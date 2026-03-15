@@ -59,13 +59,12 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  // Don't call auth() here - let AuthProvider handle it
-  // This was causing the entire page to hang if auth was slow
+  const session = await auth()
   
   return (
     <html lang="en" className="h-full">
       <body className={`${inter.className} h-full`}>
-        <AuthProvider session={null}>
+        <AuthProvider session={session}>
           <UsernameGuard>
             {children}
           </UsernameGuard>
