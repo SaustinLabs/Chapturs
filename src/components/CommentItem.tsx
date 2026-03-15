@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import {
   ThumbsUp,
@@ -11,10 +11,13 @@ import {
   Flag,
   Pin,
   EyeOff,
-  Eye
+  Eye,
+  SmilePlus
 } from 'lucide-react'
 import CommentForm from './CommentForm'
-import type { Comment } from '@/types/comment'
+import ReportModal from './ReportModal'
+import EmojiPicker from './EmojiPicker'
+import type { Comment, CommentUser } from '@/types/comment'
 
 interface CommentItemProps {
   comment: Comment
@@ -41,11 +44,27 @@ export default function CommentItem({
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(comment.content)
   const [showMenu, setShowMenu] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [showReportModal, setShowReportModal] = useState(false)
   const [loading, setLoading] = useState(false)
   const [liked, setLiked] = useState(
     comment.likes?.some(like => like.userId === currentUserId) || false
   )
   const [likeCount, setLikeCount] = useState(comment.likeCount)
+  const [reactions, setReactions] = useState<{ emoji: string, userIds: string[] }[]>([])
+
+  // Parse reactions on mount
+  useEffect(() => {
+    if (comment.reactions && Array.isArray(comment.reactions)) {
+      setReactions(comment.reactions.map(r => ({ emoji: r.emoji, userIds: r.users.map(u => u.id) })))
+    } else if (typeof comment.reactions === 'string') {
+      try {
+        setReactions(JSON.parse(comment.reactions))
+      } catch (e) {
+        setReactions([])
+      }
+    }
+  }, [comment.reactions])
 
   const isOwner = currentUserId === comment.userId
   const canEdit = isOwner && !comment.isEdited && isWithinEditWindow()
@@ -76,6 +95,33 @@ export default function CommentItem({
       console.error('Error liking comment:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleReaction = async (emoji: string) => {
+    if (!currentUserId || loading) return
+
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/comments/${comment.id}/react`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emoji })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.reactions) {
+          setReactions(data.reactions)
+        }
+      } else {
+        console.error('Failed to react:', await response.text())
+      }
+    } catch (error) {
+      console.error('Error reacting to comment:', error)
+    } finally {
+      setLoading(false)
+      setShowEmojiPicker(false)
     }
   }
 
@@ -159,39 +205,6 @@ export default function CommentItem({
       }
     } catch (error) {
       console.error('Error hiding comment:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleReport = async () => {
-    const reason = prompt('Reason for reporting (spam, harassment, spoiler, other):')
-    if (!reason) return
-
-    const validReasons = ['spam', 'harassment', 'spoiler', 'other']
-    if (!validReasons.includes(reason.toLowerCase())) {
-      alert('Invalid reason. Please use: spam, harassment, spoiler, or other')
-      return
-    }
-
-    setLoading(true)
-    try {
-      const response = await fetch(`/api/comments/${comment.id}/report`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: reason.toLowerCase() })
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        alert('Comment reported successfully')
-      } else {
-        alert(data.error || 'Failed to report comment')
-      }
-    } catch (error) {
-      console.error('Error reporting comment:', error)
-      alert('Failed to report comment')
     } finally {
       setLoading(false)
     }
@@ -297,7 +310,7 @@ export default function CommentItem({
                   {!isOwner && (
                     <button
                       onClick={() => {
-                        handleReport()
+                        setShowReportModal(true)
                         setShowMenu(false)
                       }}
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
@@ -344,8 +357,33 @@ export default function CommentItem({
           <p className="text-gray-800 mb-3 whitespace-pre-wrap">{comment.content}</p>
         )}
 
+        {/* Reactions Display */}
+        {reactions && reactions.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {reactions.map((reaction, idx) => {
+              const hasReacted = currentUserId ? reaction.userIds.includes(currentUserId) : false
+              return (
+                <button
+                  key={idx}
+                  onClick={() => handleReaction(reaction.emoji)}
+                  disabled={!currentUserId || loading}
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm border transition-colors ${
+                    hasReacted 
+                      ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300' 
+                      : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700'
+                  }`}
+                  title={`${reaction.userIds.length} reaction${reaction.userIds.length !== 1 ? 's' : ''}`}
+                >
+                  <span className="text-base leading-none">{reaction.emoji}</span>
+                  <span className="text-xs font-medium ml-1">{reaction.userIds.length}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+
         {/* Actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 relative">
           <button
             onClick={handleLike}
             disabled={!currentUserId || loading}
@@ -365,6 +403,28 @@ export default function CommentItem({
               <Reply className="w-4 h-4" />
               Reply
             </button>
+          )}
+
+          {currentUserId && (
+            <div className="relative">
+              <button
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className="flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600"
+                title="Add Reaction"
+              >
+                <SmilePlus className="w-4 h-4" />
+                React
+              </button>
+              
+              {showEmojiPicker && (
+                <div className="absolute top-full mt-2 left-0 z-50">
+                  <EmojiPicker
+                    onSelect={(emoji) => handleReaction(emoji)}
+                    onClose={() => setShowEmojiPicker(false)}
+                  />
+                </div>
+              )}
+            </div>
           )}
 
           {comment.replyCount > 0 && !comment.replies && (
@@ -411,6 +471,14 @@ export default function CommentItem({
           ))}
         </div>
       )}
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        targetId={comment.id}
+        targetType="comment"
+      />
     </div>
   )
 }

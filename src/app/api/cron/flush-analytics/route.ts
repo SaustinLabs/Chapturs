@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/database/PrismaService'
 import { flushRedisToDatabase } from '@/lib/analytics/view-counter'
 
 /**
@@ -31,9 +32,26 @@ export async function GET(request: NextRequest) {
     // Flush Redis counters to database
     const result = await flushRedisToDatabase()
 
+    // Auto-publish scheduled chapters
+    const now = new Date()
+    const publishCount = await prisma.section.updateMany({
+      where: {
+        status: 'draft',
+        scheduledPublishAt: {
+          lte: now
+        }
+      },
+      data: {
+        status: 'published',
+        publishedAt: now,
+        scheduledPublishAt: null // Clear the schedule once published
+      }
+    })
+
     return NextResponse.json({
       success: true,
-      timestamp: new Date().toISOString(),
+      timestamp: now.toISOString(),
+      publishedChapters: publishCount.count,
       ...result
     })
 

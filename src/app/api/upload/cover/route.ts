@@ -57,34 +57,41 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
     
-      // For now, return base64 data URLs since R2 upload has SSL/TLS compatibility issues with Node.js
-      // TODO: Fix R2 configuration or implement proper AWS Signature V4 signing
-    
+      // Generate storage keys
+      const baseKey = generateStorageKey('covers', file.name, uuidv4())
+      const optimizedKey = baseKey.replace(/\.[^/.]+$/, '_optimized.webp')
+      const thumbnailKey = baseKey.replace(/\.[^/.]+$/, '_thumb.webp')
+      const originalKey = baseKey.replace(/\.[^/.]+$/, '_original.webp')
+
       // Generate optimized version  
-    const optimized = await sharp(buffer)
-      .webp({ quality: 85 })
-      .resize(800, 1200, { fit: 'inside', withoutEnlargement: true })
-      .toBuffer()
-    
+      const optimized = await sharp(buffer)
+        .webp({ quality: 85 })
+        .resize(800, 1200, { fit: 'inside', withoutEnlargement: true })
+        .toBuffer()
+      
       // Generate thumbnail
-    const thumbnail = await sharp(buffer)
-      .webp({ quality: 70 })
-      .resize(200, 300, { fit: 'cover' })
-      .toBuffer()
-    
-      // Return data URLs for now (works without R2)
-      const optimizedBase64 = optimized.toString('base64')
-      const thumbnailBase64 = thumbnail.toString('base64')
-      const originalBase64 = buffer.toString('base64')
-    
-    const response = createSuccessResponse({
-        original: `data:image/webp;base64,${originalBase64}`,
-        optimized: `data:image/webp;base64,${optimizedBase64}`,
-        thumbnail: `data:image/webp;base64,${thumbnailBase64}`,
-      filename: file.name,
-      size: file.size,
-      type: file.type
-    }, 'Cover image uploaded successfully', requestId)
+      const thumbnail = await sharp(buffer)
+        .webp({ quality: 70 })
+        .resize(200, 300, { fit: 'cover' })
+        .toBuffer()
+      
+      // Upload to R2 directly server-side
+      const { uploadToR2 } = await import('@/lib/r2')
+      
+      const [originalUrl, optimizedUrl, thumbnailUrl] = await Promise.all([
+        uploadToR2(originalKey, buffer, file.type),
+        uploadToR2(optimizedKey, optimized, 'image/webp'),
+        uploadToR2(thumbnailKey, thumbnail, 'image/webp')
+      ])
+
+      const response = createSuccessResponse({
+        original: originalUrl,
+        optimized: optimizedUrl,
+        thumbnail: thumbnailUrl,
+        filename: file.name,
+        size: file.size,
+        type: file.type
+      }, 'Cover image uploaded successfully', requestId)
     
     return addCorsHeaders(response)
 

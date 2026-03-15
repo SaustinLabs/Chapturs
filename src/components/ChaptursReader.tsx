@@ -5,7 +5,7 @@ import { ChaptDocument, ContentBlock, ProseBlock, HeadingBlock, DialogueBlock, C
 import { ChatBlockEditor, PhoneBlockEditor, DialogueBlockEditor, NarrationBlockEditor } from './BlockEditors'
 import { MessageCircle, Globe, BookmarkPlus, Share2, MessageSquare, Edit3, PanelRight, X } from 'lucide-react'
 import TranslationPanel from './TranslationPanel'
-import CommentThread, { Comment } from './CommentThread'
+import InlineBlockComments from './InlineBlockComments'
 import EditSuggestionModal from './EditSuggestionModal'
 
 interface ChaptursReaderProps {
@@ -42,9 +42,9 @@ export default function ChaptursReader({
   // Translation & Collaboration State
   const [showTranslationPanel, setShowTranslationPanel] = useState(false)
   const [activeBlockForTranslation, setActiveBlockForTranslation] = useState<string | null>(null)
-  const [showCommentThread, setShowCommentThread] = useState(false)
+  const [showBlockComments, setShowBlockComments] = useState(false)
   const [activeBlockForComments, setActiveBlockForComments] = useState<string | null>(null)
-  const [blockComments, setBlockComments] = useState<Map<string, Comment[]>>(new Map())
+  const [blockCommentCounts, setBlockCommentCounts] = useState<Map<string, number>>(new Map())
   const [showEditSuggestionModal, setShowEditSuggestionModal] = useState(false)
   const [selectedText, setSelectedText] = useState('')
   const [selectedBlockId, setSelectedBlockId] = useState('')
@@ -133,14 +133,14 @@ export default function ChaptursReader({
         )
         if (response.ok) {
           const data = await response.json()
-          const commentsByBlock = new Map<string, Comment[]>()
+          const countsByBlock = new Map<string, number>()
           
-          data.comments.forEach((comment: Comment) => {
-            const existing = commentsByBlock.get(comment.blockId) || []
-            commentsByBlock.set(comment.blockId, [...existing, comment])
+          data.comments.forEach((comment: any) => {
+            const currentCount = countsByBlock.get(comment.blockId) || 0
+            countsByBlock.set(comment.blockId, currentCount + 1)
           })
           
-          setBlockComments(commentsByBlock)
+          setBlockCommentCounts(countsByBlock)
         }
       } catch (error) {
         console.error('Failed to load comments:', error)
@@ -165,41 +165,9 @@ export default function ChaptursReader({
     setShowDualLanguage(!showDualLanguage)
   }
 
-  // Collaboration handlers
-  const handleAddComment = async (blockId: string, text: string, parentId?: string) => {
-    try {
-      const response = await fetch('/api/comments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          blockId,
-          chapterId: document.metadata.id,
-          workId: document.metadata.id, // Using chapter ID as work ID for now
-          userId: currentUserId,
-          userName: currentUserName,
-          text,
-          parentId
-        })
-      })
-
-      if (response.ok) {
-        // Reload comments for this block
-        const commentsResponse = await fetch(
-          `/api/comments?blockId=${blockId}&resolved=false`
-        )
-        if (commentsResponse.ok) {
-          const data = await commentsResponse.json()
-          setBlockComments(prev => new Map(prev).set(blockId, data.comments))
-        }
-      }
-    } catch (error) {
-      console.error('Failed to add comment:', error)
-    }
-  }
-
   const handleOpenCommentThread = (blockId: string) => {
     setActiveBlockForComments(blockId)
-    setShowCommentThread(true)
+    setShowBlockComments(true)
   }
 
   const handleOpenTranslationPanel = (blockId: string) => {
@@ -304,7 +272,7 @@ export default function ChaptursReader({
       <div className="max-w-4xl mx-auto px-6 py-12">
         <article className="prose prose-lg max-w-none">
           {document.content.map((block, index) => {
-            const blockCommentCount = blockComments.get(block.id)?.length || 0
+            const blockCommentCount = blockCommentCounts.get(block.id) || 0
             
             return (
               <div key={block.id} className="relative group">
@@ -384,20 +352,18 @@ export default function ChaptursReader({
         )}
       </div>
 
-      {/* Comment Thread Modal */}
-      {showCommentThread && activeBlockForComments && enableCollaboration && (
-        <div className="fixed inset-0 bg-black/20 z-50 flex items-start justify-center pt-20">
-          <CommentThread
-            blockId={activeBlockForComments}
-            chapterId={document.metadata.id}
+      {/* Inline Block Comments Overlay */}
+      {showBlockComments && activeBlockForComments && enableCollaboration && (
+        <div className="fixed inset-y-0 right-0 w-80 z-50 transform transition-transform shadow-2xl">
+          <InlineBlockComments
             workId={document.metadata.id}
-            comments={blockComments.get(activeBlockForComments) || []}
+            sectionId={document.metadata.id}
+            blockId={activeBlockForComments}
             currentUserId={currentUserId}
-            onAddComment={async (text, parentId) => {
-              await handleAddComment(activeBlockForComments, text, parentId)
-            }}
+            currentUsername={currentUserName}
+            isOpen={showBlockComments}
             onClose={() => {
-              setShowCommentThread(false)
+              setShowBlockComments(false)
               setActiveBlockForComments(null)
             }}
           />

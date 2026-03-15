@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
 import { auth } from '@/auth'
 
+export const dynamic = 'force-dynamic'
+
 // POST /api/edit-suggestions/[id]/reject - Reject an edit suggestion
 export async function POST(
   request: NextRequest,

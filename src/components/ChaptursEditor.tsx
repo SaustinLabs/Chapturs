@@ -8,6 +8,9 @@ import RichTextEditor from './RichTextEditor'
 import EditorSidebar from './EditorSidebar'
 import HtmlWithHighlights from './HtmlWithHighlights'
 import CharacterProfileModal from './CharacterProfileModal'
+import QualityReportModal from './QualityReportModal'
+import PrePublishChecklist from './PrePublishChecklist'
+import { Activity, Clock } from 'lucide-react'
 
 interface ChaptursEditorProps {
   workId: string
@@ -53,10 +56,19 @@ export default function ChaptursEditor({
   const [localCharacters, setLocalCharacters] = useState<any[]>([])
   const [showCharacterModal, setShowCharacterModal] = useState(false)
 
+  // Quality Assessment state
+  const [showQualityModal, setShowQualityModal] = useState(false)
+  const [isAssessing, setIsAssessing] = useState(false)
+  const [assessmentData, setAssessmentData] = useState<any>(null)
+
   // Sidebar state
   const [showSidebar, setShowSidebar] = useState(false)
   const [glossaryRefreshKey, setGlossaryRefreshKey] = useState(0)
   const [characterRefreshKey, setCharacterRefreshKey] = useState(0)
+  
+  // Checklist & Scheduling state
+  const [showChecklist, setShowChecklist] = useState(false)
+  const [isScheduling, setIsScheduling] = useState(false)
 
   // Track text selection
   useEffect(() => {
@@ -257,6 +269,40 @@ export default function ChaptursEditor({
     }
   }, [editorState.document, onSave])
 
+  const handleRunQualityCheck = async () => {
+    if (!chapterId) {
+      alert("Please save the chapter first before running an assessment.")
+      return
+    }
+    
+    setShowQualityModal(true)
+    setIsAssessing(true)
+    
+    try {
+      // We must pass sectionId to our backend route
+      const response = await fetch(`/api/works/${workId}/assess`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sectionId: chapterId })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setAssessmentData(data.assessment)
+      } else {
+        const err = await response.json()
+        alert(`Assessment failed: ${err.error}`)
+        setShowQualityModal(false)
+      }
+    } catch (error) {
+      console.error(error)
+      alert("Failed to connect to assessment service.")
+      setShowQualityModal(false)
+    } finally {
+      setIsAssessing(false)
+    }
+  }
+
   // Block manipulation
   const addBlock = useCallback((type: BlockType, afterBlockId: string | null = null) => {
     const newBlock = createBlockByType(type)
@@ -425,6 +471,16 @@ export default function ChaptursEditor({
           </button>
           
           <button
+            onClick={handleRunQualityCheck}
+            disabled={!chapterId || editorState.isDirty}
+            title={editorState.isDirty ? "Save chapter first" : "Assess Quality"}
+            className="px-3 py-1.5 text-sm bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 rounded hover:bg-indigo-200 dark:hover:bg-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <Activity size={16} />
+            Assess
+          </button>
+
+          <button
             onClick={handleSave}
             disabled={!editorState.isDirty}
             className="px-4 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
@@ -434,19 +490,61 @@ export default function ChaptursEditor({
           </button>
 
           {onPublish && (
-            <button
-              onClick={() => {
-                console.log('ChaptursEditor: Publish button clicked')
-                console.log('ChaptursEditor: Document to publish:', editorState.document)
-                onPublish(editorState.document)
-              }}
-              className="px-4 py-1.5 text-sm bg-green-600 text-white rounded hover:bg-green-700"
-            >
-              Publish
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setIsScheduling(true)
+                  setShowChecklist(true)
+                }}
+                className="px-3 py-1.5 text-sm bg-gray-700 text-gray-300 rounded hover:bg-gray-600 flex items-center gap-2"
+                title="Schedule for later"
+              >
+                <Clock size={16} />
+                Schedule
+              </button>
+              <button
+                onClick={() => {
+                  setIsScheduling(false)
+                  setShowChecklist(true)
+                }}
+                className="px-4 py-1.5 text-sm bg-green-600 text-white rounded hover:bg-green-700 font-bold"
+              >
+                Publish
+              </button>
+            </div>
           )}
         </div>
       </div>
+
+      {/* Pre-Publish Checklist Modal */}
+      <PrePublishChecklist
+        isOpen={showChecklist}
+        onClose={() => setShowChecklist(false)}
+        document={editorState.document}
+        workId={workId}
+        isScheduling={isScheduling}
+        onConfirm={async (scheduledDate) => {
+          setShowChecklist(false)
+          if (scheduledDate) {
+            // Call scheduling API
+            try {
+              const res = await fetch(`/api/works/${workId}/sections/${chapterId}/schedule`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ scheduledDate })
+              })
+              if (res.ok) {
+                alert(`Scheduled for ${new Date(scheduledDate).toLocaleString()}`)
+              }
+            } catch (e) {
+              console.error('Scheduling failed')
+            }
+          } else if (onPublish) {
+            // Immediate publish
+            onPublish(editorState.document)
+          }
+        }}
+      />
 
       {/* Floating Sidebar Toggle Button - positioned below this component's toolbar */}
       <button
@@ -617,6 +715,14 @@ export default function ChaptursEditor({
           </div>
         </div>
       )}
+
+      {/* Quality Report Modal */}
+      <QualityReportModal 
+        isOpen={showQualityModal}
+        isLoading={isAssessing}
+        assessment={assessmentData}
+        onClose={() => setShowQualityModal(false)}
+      />
 
       {/* Editor Sidebar */}
       <EditorSidebar

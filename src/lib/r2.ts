@@ -9,39 +9,52 @@ import {
 } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
-// R2 configuration from environment
-const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID
-const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID
-const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY
-const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME
-const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL
+// Lazy R2 client — only instantiated on first use so Next.js static
+// build collection doesn't fail when R2 env vars are not set.
+let _r2Client: S3Client | null = null
 
-// Validate required environment variables
-if (!R2_ACCOUNT_ID) {
-  throw new Error('Missing R2_ACCOUNT_ID environment variable')
-}
-if (!R2_ACCESS_KEY_ID) {
-  throw new Error('Missing R2_ACCESS_KEY_ID environment variable')
-}
-if (!R2_SECRET_ACCESS_KEY) {
-  throw new Error('Missing R2_SECRET_ACCESS_KEY environment variable')
-}
-if (!R2_BUCKET_NAME) {
-  throw new Error('Missing R2_BUCKET_NAME environment variable')
+function getR2Config() {
+  const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID
+  const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID
+  const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY
+  const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME
+
+  if (!R2_ACCOUNT_ID) throw new Error('Missing R2_ACCOUNT_ID environment variable')
+  if (!R2_ACCESS_KEY_ID) throw new Error('Missing R2_ACCESS_KEY_ID environment variable')
+  if (!R2_SECRET_ACCESS_KEY) throw new Error('Missing R2_SECRET_ACCESS_KEY environment variable')
+  if (!R2_BUCKET_NAME) throw new Error('Missing R2_BUCKET_NAME environment variable')
+
+  return { R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME }
 }
 
-// Initialize S3 client for R2
-export const r2Client = new S3Client({
-  region: 'auto',
-  endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  credentials: {
-    accessKeyId: R2_ACCESS_KEY_ID,
-    secretAccessKey: R2_SECRET_ACCESS_KEY,
-  },
-  forcePathStyle: true, // Force path-style URLs for R2 compatibility
+function getClient(): S3Client {
+  if (!_r2Client) {
+    const { R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY } = getR2Config()
+    _r2Client = new S3Client({
+      region: 'auto',
+      endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId: R2_ACCESS_KEY_ID,
+        secretAccessKey: R2_SECRET_ACCESS_KEY,
+      },
+      forcePathStyle: true,
+    })
+  }
+  return _r2Client
+}
+
+// Export a proxy so existing `r2Client.send(...)` calls still work
+export const r2Client: S3Client = new Proxy({} as S3Client, {
+  get(_target, prop) {
+    return (getClient() as any)[prop]
+  }
 })
 
-export const getR2PublicUrl = () => R2_PUBLIC_URL || `https://pub-${R2_ACCOUNT_ID}.r2.dev`
+export const getR2PublicUrl = () => {
+  const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL
+  const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID
+  return R2_PUBLIC_URL || `https://pub-${R2_ACCOUNT_ID}.r2.dev`
+}
 
 /**
  * Generate presigned URL for direct upload to R2
@@ -52,6 +65,7 @@ export async function generatePresignedUploadUrl(
   contentType: string,
   maxSize: number
 ): Promise<string> {
+  const { R2_BUCKET_NAME } = getR2Config()
   const command = new PutObjectCommand({
     Bucket: R2_BUCKET_NAME,
     Key: key,
@@ -75,6 +89,7 @@ export async function uploadToR2(
   contentType: string,
   metadata?: Record<string, string>
 ): Promise<string> {
+  const { R2_BUCKET_NAME } = getR2Config()
   const command = new PutObjectCommand({
     Bucket: R2_BUCKET_NAME,
     Key: key,
@@ -91,6 +106,7 @@ export async function uploadToR2(
  * Delete file from R2
  */
 export async function deleteFromR2(key: string): Promise<void> {
+  const { R2_BUCKET_NAME } = getR2Config()
   const command = new DeleteObjectCommand({
     Bucket: R2_BUCKET_NAME,
     Key: key,
@@ -104,6 +120,7 @@ export async function deleteFromR2(key: string): Promise<void> {
  * Rarely needed since we use public URLs
  */
 export async function getFromR2(key: string): Promise<Buffer> {
+  const { R2_BUCKET_NAME } = getR2Config()
   const command = new GetObjectCommand({
     Bucket: R2_BUCKET_NAME,
     Key: key,

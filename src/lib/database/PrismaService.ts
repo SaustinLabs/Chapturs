@@ -7,19 +7,29 @@ const PrismaClient: any = (PrismaPkg as any).PrismaClient || (PrismaPkg as any).
 // Global Prisma instance with connection pooling for Supabase
 const globalForPrisma = global as unknown as { prisma: any }
 
-export const prisma = globalForPrisma.prisma || new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
-  },
+// Lazily initialize Prisma — defers construction until first use.
+// This prevents Next.js static page collection from failing when DATABASE_URL
+// is not set in the build environment.
+function getPrismaClient() {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = new PrismaClient({
+      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
+      },
+    })
+  }
+  return globalForPrisma.prisma
+}
+
+export const prisma: any = new Proxy({} as any, {
+  get(_target, prop) {
+    return getPrismaClient()[prop]
+  }
 })
 
-// Prevent multiple instances in development
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma
-}
 
 // Connection health check with retry
 export async function ensureConnection(retries = 3): Promise<boolean> {

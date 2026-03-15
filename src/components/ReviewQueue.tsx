@@ -2,7 +2,21 @@
 
 import { useState, useEffect } from 'react'
 import { Inbox, MessageSquare, Edit3, Check, X, ChevronDown, ChevronUp, Filter } from 'lucide-react'
-import { Comment } from './CommentThread'
+export interface Comment {
+  id: string
+  workId: string
+  chapterId: string
+  blockId: string
+  userId: string
+  userName: string
+  text: string
+  resolved: boolean
+  createdAt: string
+  updatedAt: string
+  parentId?: string
+  replies?: Comment[]
+}
+
 import { EditSuggestion, EditSuggestionCard } from './EditSuggestionModal'
 
 interface ReviewQueueProps {

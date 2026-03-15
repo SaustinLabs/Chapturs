@@ -59,11 +59,19 @@ model User {
   commentLikes   CommentLike[]
   commentReports CommentReport[]
 
+  // Sprint 3 additions
+  contestEntries ContestEntry[]
+  workRatings    WorkRating[]
+
   // Fan content contributions
   translationsSubmitted FanTranslation[]  @relation("FanTranslationTranslators")
   audiobooksSubmitted   FanAudiobook[]    @relation("FanAudiobookNarrators")
   fanContentVotes       FanContentVote[]  @relation("FanContentVotes")
   tier3DealProposals    Tier3Deal[]       @relation("ContributorTier3Deals")
+
+  // Collaboration
+  collaborations          WorkCollaborator[]
+  collaborationActivities CollaborationActivity[]
 
   @@map("users")
 }
@@ -185,6 +193,7 @@ model Work {
   glossary       String? // JSON array
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  viewCount      Int      @default(0)
 
   // Fan content tracking
   defaultTranslationByLanguage String @default("{}") // JSON: {"es": "tier1-id", "ja": "tier2-id"}
@@ -225,6 +234,14 @@ model Work {
   fanAudiobooks   FanAudiobook[]   @relation("FanAudiobooks")
   tier3Deals      Tier3Deal[]      @relation("Tier3Deals")
 
+  // Collaboration
+  collaborators           WorkCollaborator[]
+  collaborationActivities CollaborationActivity[]
+
+  // Sprint 3 additions
+  contestEntries ContestEntry[]
+  workRatings    WorkRating[]
+
   @@map("works")
 }
 
@@ -239,6 +256,8 @@ model Section {
   publishedAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  viewCount   Int       @default(0)
+  scheduledPublishAt DateTime?
 
   // Chapter number for ordering
   chapterNumber Int?
@@ -1250,6 +1269,9 @@ model BlockComment {
 
   likes      Int     @default(0)
   isResolved Boolean @default(false)
+  
+  // Emoji Reactions (JSON array of { emoji: string, userIds: string[] })
+  reactions  String? @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1297,6 +1319,9 @@ model Comment {
   replies Comment[]       @relation("CommentReplies")
   likes   CommentLike[]
   reports CommentReport[]
+
+  // Emoji Reactions (JSON array of { emoji: string, userIds: string[] })
+  reactions String?       @db.Text
 
   @@index([workId])
   @@index([sectionId])
@@ -1521,4 +1546,110 @@ model Tier3Deal {
   @@index([creatorId, status])
   @@index([contributorId, status])
   @@map("tier3_deals")
+}
+
+// ============================================================================
+// JOINT OWNERSHIP SYSTEM
+// ============================================================================
+
+model WorkCollaborator {
+  id              String   @id @default(cuid())
+  workId          String
+  userId          String
+  role            String   // 'owner', 'editor', 'contributor'
+  permissions     String   // JSON: {canEdit, canPublish, canInvite, canDelete}
+  revenueShare    Float    @default(0) // Percentage (0-100)
+  invitedBy       String
+  invitedAt       DateTime @default(now())
+  acceptedAt      DateTime?
+  status          String   @default("pending") // 'pending', 'active', 'removed'
+
+  work            Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workId, userId])
+  @@map("work_collaborators")
+}
+
+model CollaborationActivity {
+  id          String   @id @default(cuid())
+  workId      String
+  userId      String
+  action      String   // 'edited_chapter', 'added_glossary', 'published', etc.
+  details     String   // JSON with action details
+  createdAt   DateTime @default(now())
+
+  work        Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("collaboration_activity")
+}
+
+// ============================================================================
+// CONTEST & RATING SYSTEMS
+// ============================================================================
+
+model Contest {
+  id                 String   @id @default(cuid())
+  title              String
+  description        String   @db.Text
+  rules              String   @db.Text
+  startDate          DateTime
+  endDate            DateTime
+  submissionDeadline DateTime
+  status             String   @default("draft") // draft, active, voting, completed, cancelled
+  prizePool          Float    @default(0)       // Total USD prize pool
+  prizeSplit         String   // JSON: [{place: 1, percent: 50}, ...]
+  theme              String?  // Optional prompt/theme
+  genres             String?  // JSON: allowed genres
+  minWordCount       Int?
+  maxWordCount       Int?
+  judges             String   // JSON: userId[]
+  createdBy          String   // Admin userId
+  adRevenueShare     Float    @default(0)      // % of contest page ad revenue going to prize pool
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  entries ContestEntry[]
+  @@map("contests")
+}
+
+model ContestEntry {
+  id          String   @id @default(cuid())
+  contestId   String
+  workId      String
+  userId      String
+  submittedAt DateTime @default(now())
+  score       Float?   // Admin/judge score
+  placement   Int?     // Final ranking (1st, 2nd, etc.)
+  prizeAmount Float?   // Calculated prize in USD
+  paidOut     Boolean  @default(false)
+
+  contest Contest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  work    Work    @relation(fields: [workId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([contestId, workId])
+  @@map("contest_entries")
+}
+
+model WorkRating {
+  id            String   @id @default(cuid())
+  workId        String
+  userId        String
+  overall       Int      // 1-5
+  writing       Int?
+  plot          Int?
+  characters    Int?
+  worldBuilding Int?
+  pacing        Int?
+  review        String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  work Work @relation(fields: [workId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workId, userId])
+  @@map("work_ratings")
 }

@@ -68,9 +68,11 @@ export default function Sidebar({ currentHub, onHubChange }: SidebarProps) {
   const currentItems = currentHub === 'reader' ? readerItems : creatorItems
 
   return (
+    <>
     <div className={`
       fixed left-0 top-0 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 
       transition-all duration-300 ease-in-out z-50
+      hidden md:block
       ${isCollapsed ? 'w-16' : 'w-64'}
     `}>
       <div className="flex flex-col h-full">
@@ -289,5 +291,38 @@ export default function Sidebar({ currentHub, onHubChange }: SidebarProps) {
         </div>
       </div>
     </div>
+    
+    {/* Mobile Bottom Navigation */}
+    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50 flex justify-around items-center p-2 pb-safe">
+      {currentItems.slice(0, 5).map((item) => {
+        const IconComponent = item.icon
+        const isCreatorItem = currentHub === 'creator'
+        const requiresAuth = isCreatorItem && !session
+        
+        return (
+          <a
+            key={item.href}
+            href={requiresAuth ? '#' : item.href}
+            onClick={(e) => {
+              if (requiresAuth) {
+                e.preventDefault()
+                handleSignIn()
+              }
+            }}
+            className={`
+              flex flex-col items-center justify-center p-2 rounded-lg text-xs font-medium
+              ${requiresAuth 
+                ? 'text-gray-400 dark:text-gray-600' 
+                : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400'
+              }
+            `}
+          >
+            <IconComponent className="w-6 h-6 mb-1" />
+            <span className="truncate w-16 text-center">{item.label}</span>
+          </a>
+        )
+      })}
+    </div>
+    </>
   )
 }

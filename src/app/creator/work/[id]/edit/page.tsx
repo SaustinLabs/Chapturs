@@ -262,7 +262,7 @@ export default function EditWorkPage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-4 pt-4">
+          <div className="flex gap-4 pt-4 flex-wrap">
             <button
               onClick={handleSave}
               disabled={saving}
@@ -275,6 +275,12 @@ export default function EditWorkPage() {
               className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
             >
               Manage Chapters
+            </button>
+            <button
+              onClick={() => router.push(`/creator/works/${workId}/collaborators`)}
+              className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              Collaborators
             </button>
             <button
               onClick={() => router.push('/creator/works')}

@@ -6,6 +6,7 @@ import AppLayout from '@/components/AppLayout'
 import ChapterBlockRenderer from '@/components/ChapterBlockRenderer'
 import ChapterTopBar from '@/components/ChapterTopBar'
 import StickyAudioScrubber from '@/components/StickyAudioScrubber'
+import WorkRatingSystem from '@/components/WorkRatingSystem'
 import { Work, Section } from '@/types'
 import DataService from '@/lib/api/DataService'
 import { 
@@ -103,6 +104,17 @@ export default function ChapterPage() {
               setSection(foundSection)
               const index = sectionsArray.findIndex((s: Section) => s.id === chapterId)
               setCurrentSectionIndex(index)
+
+              // Track view
+              try {
+                fetch(`/api/works/${storyId}/view`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ sectionId: chapterId })
+                })
+              } catch (e) {
+                console.error('Failed to track view:', e)
+              }
             }
           }
         }
@@ -294,11 +306,16 @@ export default function ChapterPage() {
         </div>
 
         {/* Progress Bar */}
-        <div className="mt-4 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+        <div className="mt-4 mb-12 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
           <div
             className="bg-blue-500 h-2 rounded-full transition-all duration-300"
             style={{ width: `${((currentSectionIndex + 1) / allSections.length) * 100}%` }}
           ></div>
+        </div>
+
+        {/* Rating Section */}
+        <div className="max-w-2xl mx-auto mt-12 mb-24">
+          <WorkRatingSystem workId={storyId} />
         </div>
       </div>
     </AppLayout>

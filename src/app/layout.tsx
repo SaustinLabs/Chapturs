@@ -10,8 +10,45 @@ import { Analytics } from '@vercel/analytics/react'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Chapturs - Your Webnovel Platform',
+  metadataBase: new URL('https://chapturs.com'),
+  title: {
+    template: '%s | Chapturs',
+    default: 'Chapturs - Connect with creators and stories',
+  },
   description: 'Discover and create amazing webnovels on the platform that combines the best of content discovery and creator monetization.',
+  openGraph: {
+    title: 'Chapturs',
+    description: 'Discover and create amazing webnovels on the platform that combines the best of content discovery and creator monetization.',
+    url: 'https://chapturs.com',
+    siteName: 'Chapturs',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Chapturs Platform',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Chapturs',
+    description: 'Discover and create amazing webnovels on the platform that combines the best of content discovery and creator monetization.',
+    images: ['/og-image.jpg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 }
 
 // Validate environment on startup

@@ -24,4 +24,8 @@ export interface Comment {
   hasMoreReplies?: boolean
   replies?: Comment[]
   likes?: { userId: string }[]
+  reactions?: {
+    emoji: string
+    users: CommentUser[]
+  }[]
 }
