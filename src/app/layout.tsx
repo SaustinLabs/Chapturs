@@ -4,6 +4,7 @@ import './globals.css'
 import { AuthProvider } from '@/components/AuthProvider'
 import UsernameGuard from '@/components/auth/UsernameGuard'
 import { validateEnvironment } from '@/lib/config'
+import { auth } from '@/auth'
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Analytics } from '@vercel/analytics/react'
 
