@@ -2,27 +2,35 @@ import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
 import GitHub from "next-auth/providers/github"
 import Discord from "next-auth/providers/discord"
-import { prisma } from '@/lib/database/PrismaService'
+
+// Support both NextAuth v5 names and legacy names used in older docs.
+const authSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET
+const googleClientId = process.env.AUTH_GOOGLE_ID || process.env.GOOGLE_CLIENT_ID
+const googleClientSecret = process.env.AUTH_GOOGLE_SECRET || process.env.GOOGLE_CLIENT_SECRET
 
 // Validate required environment variables
-const requiredEnvVars = ['AUTH_SECRET', 'AUTH_GOOGLE_ID', 'AUTH_GOOGLE_SECRET']
-const missingVars = requiredEnvVars.filter(varName => !process.env[varName])
+const missingVars = [
+  !authSecret ? 'AUTH_SECRET (or NEXTAUTH_SECRET)' : null,
+  !googleClientId ? 'AUTH_GOOGLE_ID (or GOOGLE_CLIENT_ID)' : null,
+  !googleClientSecret ? 'AUTH_GOOGLE_SECRET (or GOOGLE_CLIENT_SECRET)' : null,
+].filter(Boolean)
 
 if (missingVars.length > 0) {
   console.error('❌ Missing required environment variables:', missingVars.join(', '))
   console.error('Please add these to your Vercel environment variables:')
-  console.error('- AUTH_SECRET (generate with: openssl rand -base64 32)')
-  console.error('- AUTH_GOOGLE_ID (from Google Cloud Console)')
-  console.error('- AUTH_GOOGLE_SECRET (from Google Cloud Console)')
+  console.error('- AUTH_SECRET (or NEXTAUTH_SECRET)')
+  console.error('- AUTH_GOOGLE_ID (or GOOGLE_CLIENT_ID)')
+  console.error('- AUTH_GOOGLE_SECRET (or GOOGLE_CLIENT_SECRET)')
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  secret: process.env.AUTH_SECRET,
+  secret: authSecret,
+  trustHost: true,
   providers: [
     // Google OAuth (primary recommended option)
     Google({
-      clientId: process.env.AUTH_GOOGLE_ID,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
       authorization: {
         params: {
           prompt: "consent",
@@ -73,23 +81,30 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       
       try {
         console.log('📝 Attempting to create/update user in database...')
+
+        // Load Prisma lazily so middleware/edge auth paths don't import it.
+        const { prisma } = await import('@/lib/database/PrismaService')
         
-        // SIMPLIFIED: Only upsert user, defer author creation to session callback
-        // This reduces cold start timeout issues on Vercel
-        const dbUser = await prisma.user.upsert({
-          where: { email },
-          update: {
-            displayName: profile.name || undefined,
-            avatar: (profile as any).picture || (profile as any).avatar_url || (profile as any).image || undefined,
-          },
-          create: {
-            id: user.id,
-            email,
-            username: email.split('@')[0] + '_' + Date.now(),
-            displayName: profile.name || undefined,
-            avatar: (profile as any).picture || (profile as any).avatar_url || (profile as any).image || undefined,
-          },
-        })
+        // Bound DB wait time so OAuth callback cannot hang indefinitely.
+        await Promise.race([
+          prisma.user.upsert({
+            where: { email },
+            update: {
+              displayName: profile.name || undefined,
+              avatar: (profile as any).picture || (profile as any).avatar_url || (profile as any).image || undefined,
+            },
+            create: {
+              id: user.id,
+              email,
+              username: email.split('@')[0] + '_' + Date.now(),
+              displayName: profile.name || undefined,
+              avatar: (profile as any).picture || (profile as any).avatar_url || (profile as any).image || undefined,
+            },
+          }),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Sign-in database timeout')), 8000)
+          )
+        ])
         
         console.log('✅ User upserted.')
         return true
