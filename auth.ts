@@ -80,47 +80,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: { email },
           update: {
             displayName: profile.name || undefined,
-            // Support different avatar field names across providers
             avatar: (profile as any).picture || (profile as any).avatar_url || (profile as any).image || undefined,
           },
           create: {
-            id: user.id, // Use NextAuth's generated ID
+            id: user.id,
             email,
-            username: email.split('@')[0] + '_' + Date.now(), // Generate unique username
+            username: email.split('@')[0] + '_' + Date.now(),
             displayName: profile.name || undefined,
             avatar: (profile as any).picture || (profile as any).avatar_url || (profile as any).image || undefined,
           },
         })
         
-        console.log('✅ User successfully upserted into DB.')
-
-        // Ensure user has an author profile
-        console.log('📝 Checking for author profile...')
-        const existingAuthor = await prisma.author.findUnique({
-          where: { userId: dbUser.id }
-        })
-
-        if (!existingAuthor) {
-          console.log('📝 Creating initial author profile...')
-          await prisma.author.create({
-            data: {
-              userId: dbUser.id,
-              verified: false,
-              socialLinks: '[]'
-            }
-          })
-          console.log('✅ Author profile created.')
-        }
-        
+        console.log('✅ User upserted.')
         return true
       } catch (error) {
-        console.error('❌ Database error during sign-in callback:')
-        if (error instanceof Error) {
-          console.error(`- Message: ${error.message}`)
-          if (error.message.includes('Can\'t reach database server')) {
-            console.error('  👉 Possible cause: Wrong credentials or Supabase project is paused.')
-          }
-        }
+        console.error('❌ Sign-in callback database error:', error)
         return false
       }
     },
