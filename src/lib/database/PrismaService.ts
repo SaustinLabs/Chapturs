@@ -12,11 +12,20 @@ const globalForPrisma = global as unknown as { prisma: any }
 // is not set in the build environment.
 function getPrismaClient() {
   if (!globalForPrisma.prisma) {
+    const dbUrl = process.env.DATABASE_URL
+    
+    if (!dbUrl) {
+      console.error('❌ Prisma Error: DATABASE_URL is not defined in the environment.')
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('Critical: DATABASE_URL missing in production.')
+      }
+    }
+
     globalForPrisma.prisma = new PrismaClient({
       log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
       datasources: {
         db: {
-          url: process.env.DATABASE_URL,
+          url: dbUrl || 'postgresql://placeholder:5432/placeholder', // Fallback for build time
         },
       },
     })

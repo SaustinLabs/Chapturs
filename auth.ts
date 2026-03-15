@@ -92,24 +92,35 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           },
         })
         
-        console.log('✅ User upserted:', {
-          email: dbUser.email,
-          id: dbUser.id,
-          username: dbUser.username
+        console.log('✅ User successfully upserted into DB.')
+
+        // Ensure user has an author profile
+        console.log('📝 Checking for author profile...')
+        const existingAuthor = await prisma.author.findUnique({
+          where: { userId: dbUser.id }
         })
-        
-        console.log(`✅ User authenticated via ${account?.provider}:`, dbUser.email)
-        return true
-      } catch (error) {
-        console.error('❌ Database error during sign-in:', error)
-        console.error('Error details:', JSON.stringify(error, null, 2))
-        
-        // Check if it's a connection error
-        if (error instanceof Error) {
-          console.error('Error message:', error.message)
-          console.error('Error stack:', error.stack)
+
+        if (!existingAuthor) {
+          console.log('📝 Creating initial author profile...')
+          await prisma.author.create({
+            data: {
+              userId: dbUser.id,
+              verified: false,
+              socialLinks: '[]'
+            }
+          })
+          console.log('✅ Author profile created.')
         }
         
+        return true
+      } catch (error) {
+        console.error('❌ Database error during sign-in callback:')
+        if (error instanceof Error) {
+          console.error(`- Message: ${error.message}`)
+          if (error.message.includes('Can\'t reach database server')) {
+            console.error('  👉 Possible cause: Wrong credentials or Supabase project is paused.')
+          }
+        }
         return false
       }
     },
