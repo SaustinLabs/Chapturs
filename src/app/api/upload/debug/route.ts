@@ -2,11 +2,31 @@
 // Visit /api/upload/debug to see diagnostic information
 
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/auth'
+import { prisma } from '@/lib/database/PrismaService'
 import { r2Client, getR2PublicUrl } from '@/lib/r2'
 import { ListObjectsV2Command } from '@aws-sdk/client-s3'
 
 export async function GET(request: NextRequest) {
   try {
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ error: 'Endpoint disabled' }, { status: 503 })
+    }
+
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const adminUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    })
+
+    if (!adminUser || adminUser.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const diagnostics: any = {
       timestamp: new Date().toISOString(),
       environment: {
