@@ -5,6 +5,7 @@ import ProfileSidebar from '@/components/profile/ProfileSidebar'
 import FeaturedSpace from '@/components/profile/FeaturedSpace'
 import BlockGrid from '@/components/profile/BlockGrid'
 import { prisma } from '@/lib/database/PrismaService'
+import { auth } from '@/auth'
 
 interface ProfilePageProps {
   params: Promise<{
@@ -14,6 +15,13 @@ interface ProfilePageProps {
 
 async function ProfilePageContent({ params }: ProfilePageProps) {
   const { username } = await params
+  
+  // Get current session to check if viewer is the profile owner
+  const session = await auth()
+  const sessionUsername = session?.user?.id 
+    ? (await prisma.user.findUnique({ where: { id: session.user.id }, select: { username: true } }))?.username
+    : null
+  const isOwner = sessionUsername === username
 
   // Fetch user and profile data
   const user = await prisma.user.findUnique({
@@ -92,7 +100,7 @@ async function ProfilePageContent({ params }: ProfilePageProps) {
           displayName={profile?.displayName || user.displayName || user.username}
           username={user.username}
           bio={profile?.bio || undefined}
-          isOwner={false}
+          isOwner={isOwner}
         />
       }
       featured={
@@ -108,13 +116,13 @@ async function ProfilePageContent({ params }: ProfilePageProps) {
               : featuredWork.genres,
             status: featuredWork.status
           } : undefined}
-          isOwner={false}
+          isOwner={isOwner}
         />
       }
       blocks={
         <BlockGrid
           blocks={profile?.blocks || []}
-          isOwner={false}
+          isOwner={isOwner}
         />
       }
     />
