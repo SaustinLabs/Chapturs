@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/database/PrismaService'
 import { createErrorResponse } from '@/lib/api/errorHandling'
 
 export async function GET(req: NextRequest) {
@@ -43,3 +43,4 @@ export async function GET(req: NextRequest) {
     return createErrorResponse(error, 'fetch-reports')
   }
 }
+

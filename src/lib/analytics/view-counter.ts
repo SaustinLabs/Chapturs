@@ -139,7 +139,7 @@ export async function flushRedisToDatabase() {
 async function flushToDatabase(counters: Map<string, number>) {
   if (counters.size === 0) return
 
-  const { prisma } = await import('@/lib/prisma')
+  const { prisma } = await import('@/lib/database/PrismaService')
 
   // Group by work vs section
   const workUpdates: Array<{ id: string; count: number }> = []
@@ -220,7 +220,7 @@ export async function trackReadingProgress(
   }
 
   // Save to database (only at milestones)
-  const { prisma } = await import('@/lib/prisma')
+  const { prisma } = await import('@/lib/database/PrismaService')
   
   // Find existing or create new
   const existing = await prisma.readingHistory.findFirst({
@@ -257,7 +257,7 @@ export async function trackReadingProgress(
  */
 export async function getViewStats(workId: string, sectionId?: string) {
   const client = getRedisClient()
-  const { prisma } = await import('@/lib/prisma')
+  const { prisma } = await import('@/lib/database/PrismaService')
 
   // Get DB stats
   const work = await prisma.work.findUnique({
@@ -293,3 +293,4 @@ export async function getViewStats(workId: string, sectionId?: string) {
     pending: pendingViews + memoryViews
   }
 }
+

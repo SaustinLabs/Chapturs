@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/database/PrismaService'
 import { createErrorResponse, createSuccessResponse, generateRequestId } from '@/lib/api/errorHandling'
 
 export async function POST(req: NextRequest) {
@@ -80,3 +80,4 @@ export async function POST(req: NextRequest) {
     return createErrorResponse(error, requestId)
   }
 }
+

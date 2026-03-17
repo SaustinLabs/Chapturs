@@ -1,9 +1,9 @@
-﻿// ============================================================================
+// ============================================================================
 // QUALITY ASSESSMENT STATS API
 // ============================================================================
 
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/database/PrismaService'
 
 /**
  * GET /api/quality-assessment/stats
@@ -67,3 +67,4 @@ export async function GET() {
     )
   }
 }
+

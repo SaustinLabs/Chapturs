@@ -3,7 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/database/PrismaService'
 import { getFromR2, uploadToR2, getPublicUrl, deleteFromR2 } from '@/lib/r2'
 import {
   generateVariants,
@@ -155,3 +155,4 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
