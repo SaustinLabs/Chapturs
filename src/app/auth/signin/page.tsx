@@ -1,21 +1,34 @@
 'use client'
 
 import { signIn } from "next-auth/react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { useState, Suspense } from "react"
 
 function SignInContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const callbackUrl = searchParams.get('callbackUrl') || '/'
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
+    setError(null)
     try {
-      await signIn('google', { callbackUrl })
-    } catch (error) {
-      console.error('Sign in error:', error)
-    } finally {
+      const res = await signIn('google', { callbackUrl, redirect: false })
+      if (res?.error) {
+        setError('Sign in failed. Please try again.')
+        setIsLoading(false)
+        return
+      }
+      if (res?.url) {
+        router.push(res.url)
+      } else {
+        router.push(callbackUrl)
+      }
+    } catch (err) {
+      console.error('Sign in error:', err)
+      setError('Something went wrong. Please try again.')
       setIsLoading(false)
     }
   }
@@ -36,6 +49,12 @@ function SignInContent() {
         </div>
         
         <div className="mt-8 space-y-6">
+          {error && (
+            <div className="rounded-md bg-red-50 dark:bg-red-900/30 p-4">
+              <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+            </div>
+          )}
+          
           <div>
             <button
               onClick={handleGoogleSignIn}
