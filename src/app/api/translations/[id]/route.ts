@@ -23,7 +23,7 @@ export async function GET(
   const { id } = await params
   
   try {
-    const translation = await prisma.sectionTranslation.findUnique({
+    const translation = await prisma.translation.findUnique({
       where: { id },
       include: {
         section: true
@@ -58,7 +58,7 @@ export async function PATCH(
     const body = await request.json()
     const { content, isReviewed } = body
 
-    const translation = await prisma.sectionTranslation.update({
+    const translation = await prisma.translation.update({
       where: { id },
       data: {
         content: content || undefined,

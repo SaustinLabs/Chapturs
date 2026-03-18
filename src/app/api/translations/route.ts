@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status') || 'pending'
     const language = searchParams.get('lang')
 
-    const translations = await prisma.sectionTranslation.findMany({
+    const translations = await prisma.translation.findMany({
       where: {
         isReviewed: status === 'reviewed',
         language: language || undefined
