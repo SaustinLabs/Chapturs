@@ -178,6 +178,7 @@ export default class DatabaseService {
           select: {
             id: true,
             title: true,
+            content: true,
             wordCount: true,
             status: true,
             publishedAt: true,
