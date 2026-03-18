@@ -1,7 +1,7 @@
 // R2 Free Tier Usage Monitoring
 // Track storage and operations to stay within limits
 
-import { prisma } from './prisma'
+import { prisma } from '@/lib/database/PrismaService'
 
 // Free tier limits from Cloudflare R2
 const FREE_TIER_LIMITS = {
