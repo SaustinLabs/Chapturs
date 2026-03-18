@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 /**
  * Ad Placements API Routes
  * 

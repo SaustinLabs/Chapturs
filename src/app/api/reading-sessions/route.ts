@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 /**
  * Reading Sessions API Endpoint
  * 

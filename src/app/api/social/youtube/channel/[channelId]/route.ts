@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { getCachedOrFetch, CACHE_TTL } from '@/lib/cache/social-cache'
 import { getChannelStatsById } from '@/lib/api/youtube'

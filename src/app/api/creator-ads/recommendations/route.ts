@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 /**
  * Creator Recommendations API
  * 

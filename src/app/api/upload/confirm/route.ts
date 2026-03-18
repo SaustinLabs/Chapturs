@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 // Upload Confirm API - Process uploaded image and generate variants
 // Free tier optimized with aggressive compression
 

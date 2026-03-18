@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 /**
  * Signal Tracking API Endpoint
  * 

@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 // Debug endpoint to test R2 connection and CORS
 // Visit /api/upload/debug to see diagnostic information
 

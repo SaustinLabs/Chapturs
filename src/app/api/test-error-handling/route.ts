@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 // Test API endpoint to validate error handling system
 import { NextRequest, NextResponse } from 'next/server'
 import { 

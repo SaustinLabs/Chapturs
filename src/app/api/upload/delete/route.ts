@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 // Upload Delete API - Remove image from R2 and database
 // Includes authorization checks
 

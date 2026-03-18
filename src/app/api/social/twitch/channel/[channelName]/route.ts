@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 import { NextRequest, NextResponse } from 'next/server'
 import twitchClient from '@/lib/api/twitch'
 import { getCachedOrFetch, CACHE_TTL } from '@/lib/cache/social-cache'

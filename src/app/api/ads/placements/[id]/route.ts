@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 /**
  * Individual Ad Placement Management API
  * 
