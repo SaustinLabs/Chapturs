@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabaseQuery, supabaseUpdate } from '@/lib/supabase-edge'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 interface RouteParams {
   params: Promise<{

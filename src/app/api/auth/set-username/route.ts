@@ -1,4 +1,4 @@
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '../../../../../auth'
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    console.log('✅ Username updated:', {
+    console.log('✁EUsername updated:', {
       userId: updatedUser.id,
       newUsername: updatedUser.username,
       email: updatedUser.email

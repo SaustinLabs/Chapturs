@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth-edge'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 // GET /api/auth/current-user - edge-compatible, uses Supabase REST API
 export async function GET() {

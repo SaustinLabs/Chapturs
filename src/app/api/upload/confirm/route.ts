@@ -1,4 +1,4 @@
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 // Upload Confirm API - Process uploaded image and generate variants
 // Free tier optimized with aggressive compression

@@ -1,4 +1,4 @@
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 // Debug endpoint to test R2 connection and CORS
 // Visit /api/upload/debug to see diagnostic information

@@ -1,5 +1,3 @@
-export const runtime = 'edge'
-
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '../../../../../auth'
 import { 
@@ -12,6 +10,9 @@ import {
 import { generateStorageKey, getR2PublicUrl } from '@/lib/r2'
 import { v4 as uuidv4 } from 'uuid'
 import sharp from 'sharp'
+
+// Force Node.js runtime (sharp requires native Node modules)
+export const runtime = 'nodejs'
 
 const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID
 const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID

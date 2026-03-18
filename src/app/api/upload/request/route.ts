@@ -1,5 +1,3 @@
-export const runtime = 'edge'
-
 // Upload Request API - Generate presigned URL for direct R2 upload
 // Free tier optimized with strict validation
 

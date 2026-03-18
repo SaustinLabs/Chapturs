@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/auth-edge'
 import { supabaseQuery } from '@/lib/supabase-edge'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 /**
  * GET /api/creator/dashboard-stats

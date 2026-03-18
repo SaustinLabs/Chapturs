@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 // User sync endpoint - called client-side after OAuth login
 // Creates/updates user in database via Supabase REST API (edge-compatible)
