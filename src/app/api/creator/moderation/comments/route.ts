@@ -1,6 +1,8 @@
+export const runtime = 'edge'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
-import { auth } from '@/auth'
+import { auth } from '@/auth-edge'
 
 // GET /api/creator/moderation/comments - Get reported/flagged comments for creator's works
 export async function GET(request: NextRequest) {

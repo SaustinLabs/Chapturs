@@ -1,6 +1,8 @@
+export const runtime = 'edge'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
-import { auth } from '@/auth'
+import { auth } from '@/auth-edge'
 
 export const dynamic = 'force-dynamic'
 

@@ -1,5 +1,7 @@
+export const runtime = 'edge'
+
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
+import { auth } from '@/auth-edge'
 import { prisma } from '@/lib/database/PrismaService'
 
 /**

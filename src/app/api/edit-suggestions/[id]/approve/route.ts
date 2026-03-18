@@ -1,6 +1,8 @@
+export const runtime = 'edge'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
-import { auth } from '@/auth'
+import { auth } from '@/auth-edge'
 
 // POST /api/edit-suggestions/[id]/approve - Approve an edit suggestion
 export async function POST(
