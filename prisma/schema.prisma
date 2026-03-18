@@ -43,6 +43,7 @@ model User {
   adPlacements           AdPlacement[]
   creatorRecommendations CreatorRecommendation[]
   recommendedBy          CreatorRecommendation[] @relation("RecommendedAuthor")
+  adImpressions          AdImpression[]
 
   // Reader monetization preferences
   adSupportLevel String? @default("normal") // 'normal', 'boosted', 'video'
@@ -89,6 +90,9 @@ model Author {
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   works         Work[]
   subscriptions Subscription[]
+  adImpressions AdImpression[]
+  earnings      AuthorEarnings?
+  payouts       Payout[]
 
   // Recommendation system relations
   userSignals UserSignal[]
@@ -221,6 +225,7 @@ model Work {
   adPlacements          AdPlacement[]
   recommendedByCreators CreatorRecommendation[] @relation("RecommendedWork")
   defaultAdConfig       DefaultAdConfig?
+  adImpressions         AdImpression[]
 
   // Content moderation relations
   contentValidations ContentValidation[]
@@ -1652,4 +1657,84 @@ model WorkRating {
 
   @@unique([workId, userId])
   @@map("work_ratings")
+}
+
+// Ad impression tracking
+model AdImpression {
+  id           String   @id @default(cuid())
+  userId       String?  // null for anonymous
+  authorId     String   // The author who earns from this
+  workId       String   // Which work the ad was shown on
+  sectionId    String?  // Optional: which chapter
+  placement    String   // 'sidebar' | 'inline' | 'interstitial' | 'video-support'
+  adType       String   // 'platform' | 'creator-promo' | 'video'
+  revenue      Float    @default(0) // Revenue generated from this impression
+  clicked      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  // Relations
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  author       Author   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  work         Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
+
+  @@index([authorId])
+  @@index([workId])
+  @@index([createdAt])
+  @@map("ad_impressions")
+}
+
+// Author earnings summary
+model AuthorEarnings {
+  id                String   @id @default(cuid())
+  authorId          String   @unique
+  totalImpressions  Int      @default(0)
+  totalClicks       Int      @default(0)
+  totalRevenue      Float    @default(0) // Total earned (platform ads)
+  premiumRevenue    Float    @default(0) // From premium pool
+  pendingPayout     Float    @default(0) // Not yet paid out
+  lifetimePayout    Float    @default(0) // Total ever paid
+  lastCalculatedAt  DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  author            Author   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  payouts           Payout[]
+
+  @@map("author_earnings")
+}
+
+// Payout records
+model Payout {
+  id            String   @id @default(cuid())
+  authorId      String
+  earningsId    String
+  amount        Float
+  status        String   @default("pending") // 'pending' | 'processing' | 'completed' | 'failed'
+  method        String?  // 'stripe' | 'paypal' | 'bank'
+  transactionId String?  // External payment processor ID
+  processedAt   DateTime?
+  createdAt     DateTime @default(now())
+
+  // Relations
+  author        Author         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  earnings      AuthorEarnings @relation(fields: [earningsId], references: [id], onDelete: Cascade)
+
+  @@index([authorId])
+  @@index([status])
+  @@map("payouts")
+}
+
+// Premium subscription pool (tracks revenue to distribute to authors)
+model PremiumRevenuePool {
+  id              String   @id @default(cuid())
+  month           String   // 'YYYY-MM' format
+  totalRevenue    Float    // Total premium subscription revenue for the month
+  distributedAmount Float  @default(0) // How much has been distributed to authors
+  status          String   @default("open") // 'open' | 'calculating' | 'distributed'
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([month])
+  @@map("premium_revenue_pools")
 }
