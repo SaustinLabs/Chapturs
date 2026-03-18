@@ -54,3 +54,4 @@ coverage/
 # Optional eslint cache
 .eslintcache
 .env(for vercel)
+.vercel
