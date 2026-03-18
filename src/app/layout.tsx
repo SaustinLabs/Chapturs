@@ -5,7 +5,7 @@ import { AuthProvider } from '@/components/AuthProvider'
 import UsernameGuard from '@/components/auth/UsernameGuard'
 import { Footer } from '@/components/ui/Footer'
 import { validateEnvironment } from '@/lib/config'
-import { auth } from '@/auth'
+import { auth } from '@/auth-edge'
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Analytics } from '@vercel/analytics/react'
 
