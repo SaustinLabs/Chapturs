@@ -5,7 +5,7 @@ import { prisma } from '@/lib/database/PrismaService'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ workId: string; chapterId: string; audiobookId: string }> }
+  { params }: { params: Promise<{ id: string; chapterId: string; audiobookId: string }> }
 ) {
   try {
     const { audiobookId } = await params

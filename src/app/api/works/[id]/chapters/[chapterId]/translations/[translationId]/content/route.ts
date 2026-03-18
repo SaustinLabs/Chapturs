@@ -6,7 +6,7 @@ import { auth } from '@/auth'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ workId: string; chapterId: string; translationId: string }> }
+  { params }: { params: Promise<{ id: string; chapterId: string; translationId: string }> }
 ) {
   try {
     const { translationId } = await params

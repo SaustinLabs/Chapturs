@@ -5,19 +5,19 @@ import { prisma } from '@/lib/database/PrismaService'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ workId: string; chapterId: string }> }
+  { params }: { params: Promise<{ id: string; chapterId: string }> }
 ) {
   try {
-    const { workId, chapterId } = await params
+    const { id, chapterId } = await params
 
-    console.log('[AUDIO_API] Fetching audiobooks for:', { workId, chapterId })
+    console.log('[AUDIO_API] Fetching audiobooks for:', { id, chapterId })
 
     // Fetch all audiobooks for this chapter
     let audiobooks: any[] = []
     try {
       audiobooks = await prisma.fanAudiobook.findMany({
         where: {
-          workId,
+          id,
           chapterId,
           status: 'active',
         },

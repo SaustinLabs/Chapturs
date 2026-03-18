@@ -5,21 +5,21 @@ import { prisma } from '@/lib/database/PrismaService'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ workId: string; chapterId: string }> }
+  { params }: { params: Promise<{ id: string; chapterId: string }> }
 ) {
   try {
-    const { workId, chapterId } = await params
+    const { id, chapterId } = await params
     const { searchParams } = new URL(request.url)
     const languageCode = searchParams.get('languageCode') || 'en'
 
-    console.log('[TRANS_API] Fetching translations for:', { workId, chapterId, languageCode })
+    console.log('[TRANS_API] Fetching translations for:', { id, chapterId, languageCode })
 
     // Fetch all translations for this chapter and language
     let translations: any[] = []
     try {
       translations = await prisma.fanTranslation.findMany({
         where: {
-          workId,
+          id,
           chapterId,
           languageCode,
           status: 'active',
