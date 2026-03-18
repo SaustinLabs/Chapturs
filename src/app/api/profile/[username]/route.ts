@@ -1,5 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database/PrismaService'
+import { NextResponse } from 'next/server'
+import { supabaseQuery, supabaseUpdate } from '@/lib/supabase-edge'
+
+export const runtime = 'edge'
 
 interface RouteParams {
   params: Promise<{
@@ -8,58 +10,16 @@ interface RouteParams {
 }
 
 // GET /api/profile/[username] - Get public profile data
-export async function GET(request: NextRequest, props: RouteParams) {
+export async function GET(request: Request, props: RouteParams) {
   const params = await props.params
   try {
     const { username } = params
 
-    const user = await prisma.user.findUnique({
-      where: { username },
-      select: {
-        id: true,
-        username: true,
-        displayName: true,
-        avatar: true,
-        verified: true,
-        authorProfile: {
-          select: {
-            id: true,
-            verified: true,
-            creatorProfile: {
-              select: {
-                id: true,
-                displayName: true,
-                bio: true,
-                profileImage: true,
-                coverImage: true,
-                featuredType: true,
-                featuredWorkId: true,
-                featuredBlockId: true,
-                accentColor: true,
-                fontStyle: true,
-                backgroundStyle: true,
-                profileViews: true,
-                isPublished: true,
-                blocks: {
-                  where: { isVisible: true },
-                  orderBy: { order: 'asc' },
-                  select: {
-                    id: true,
-                    type: true,
-                    data: true,
-                    gridX: true,
-                    gridY: true,
-                    width: true,
-                    height: true,
-                    title: true,
-                    order: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+    // Fetch user by username
+    const user = await supabaseQuery<any>('users', {
+      select: 'id,username,displayName,avatar,verified',
+      filter: { username: `eq.${username}` },
+      single: true,
     })
 
     if (!user) {
@@ -69,40 +29,62 @@ export async function GET(request: NextRequest, props: RouteParams) {
       )
     }
 
-    const profile = user.authorProfile?.creatorProfile
+    // Fetch author profile
+    const author = await supabaseQuery<any>('authors', {
+      select: 'id,verified,userId',
+      filter: { userId: `eq.${user.id}` },
+      single: true,
+    })
 
-    // If profile not published, return limited data
+    let profile = null
+    let blocks: any[] = []
+
+    if (author) {
+      // Fetch creator profile
+      profile = await supabaseQuery<any>('creator_profiles', {
+        select: 'id,displayName,bio,profileImage,coverImage,featuredType,featuredWorkId,featuredBlockId,accentColor,fontStyle,backgroundStyle,profileViews,isPublished,authorId',
+        filter: { authorId: `eq.${author.id}` },
+        single: true,
+      })
+
+      if (profile) {
+        // Fetch visible blocks
+        blocks = await supabaseQuery<any[]>('profile_blocks', {
+          select: 'id,type,data,gridX,gridY,width,height,title,order',
+          filter: { profileId: `eq.${profile.id}`, isVisible: 'eq.true' },
+          order: 'order.asc',
+        }) || []
+      }
+    }
+
+    // If profile exists but not published, return limited data
     if (profile && !profile.isPublished) {
       return NextResponse.json({
         user: {
           username: user.username,
-          displayName: user.displayName
+          displayName: user.displayName,
         },
         profile: {
-          isPublished: false
-        }
+          isPublished: false,
+        },
       })
     }
 
     // Fetch featured work if applicable
     let featuredWork = null
     if (profile?.featuredType === 'work' && profile.featuredWorkId) {
-      featuredWork = await prisma.work.findUnique({
-        where: { id: profile.featuredWorkId },
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          coverImage: true,
-          genres: true,
-          status: true,
-          _count: {
-            select: {
-              likes: true,
-              bookmarks: true
-            }
-          }
-        }
+      featuredWork = await supabaseQuery<any>('works', {
+        select: 'id,title,description,coverImage,genres,status',
+        filter: { id: `eq.${profile.featuredWorkId}` },
+        single: true,
+      })
+    }
+
+    // Track profile view (increment view count)
+    if (profile) {
+      await supabaseUpdate('creator_profiles', { id: `eq.${profile.id}` }, {
+        profileViews: (profile.profileViews ?? 0) + 1,
+        lastViewedAt: new Date().toISOString(),
       })
     }
 
@@ -112,11 +94,11 @@ export async function GET(request: NextRequest, props: RouteParams) {
         username: user.username,
         displayName: user.displayName,
         avatar: user.avatar,
-        verified: user.verified
+        verified: user.verified,
       },
-      author: user.authorProfile ? {
-        id: user.authorProfile.id,
-        verified: user.authorProfile.verified
+      author: author ? {
+        id: author.id,
+        verified: author.verified,
       } : null,
       profile: profile ? {
         id: profile.id,
@@ -130,11 +112,10 @@ export async function GET(request: NextRequest, props: RouteParams) {
         backgroundStyle: profile.backgroundStyle,
         profileViews: profile.profileViews,
         isPublished: profile.isPublished,
-        blocks: profile.blocks
+        blocks,
       } : null,
-      featuredWork
+      featuredWork,
     })
-
   } catch (error) {
     console.error('Error fetching profile:', error)
     return NextResponse.json(
