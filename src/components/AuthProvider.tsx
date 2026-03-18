@@ -3,6 +3,7 @@
 import { SessionProvider } from "next-auth/react"
 import { Session } from "next-auth"
 import { UserProvider } from '@/hooks/useUser'
+import { UserSync } from './UserSync'
 
 export function AuthProvider({ 
   children, 
@@ -14,6 +15,7 @@ export function AuthProvider({
   return (
     <SessionProvider session={session}>
       <UserProvider>
+        <UserSync />
         {children}
       </UserProvider>
     </SessionProvider>
