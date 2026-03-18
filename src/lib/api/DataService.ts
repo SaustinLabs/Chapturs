@@ -46,7 +46,7 @@ export class DataService {
     
     const data = await response.json()
     console.log('DataService.getFeedItems: API response:', data)
-    return data.items || []
+    return data.data?.items || data.items || []
   }
 
   // User Operations - API calls only
