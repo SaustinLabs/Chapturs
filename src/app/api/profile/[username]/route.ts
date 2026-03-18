@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server'
-import { supabaseQuery, supabaseUpdate } from '@/lib/supabase-edge'
-
 export const runtime = 'nodejs'
+
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/database/PrismaService'
 
 interface RouteParams {
   params: Promise<{
@@ -16,10 +16,17 @@ export async function GET(request: Request, props: RouteParams) {
     const { username } = params
 
     // Fetch user by username
-    const user = await supabaseQuery<any>('users', {
-      select: 'id,username,displayName,avatar,verified',
-      filter: { username: `eq.${username}` },
-      single: true,
+    const user = await prisma.user.findUnique({
+      where: { username },
+      select: {
+        id: true,
+        username: true,
+        displayName: true,
+        avatar: true,
+        verified: true,
+        bio: true,
+        createdAt: true,
+      }
     })
 
     if (!user) {
@@ -30,63 +37,47 @@ export async function GET(request: Request, props: RouteParams) {
     }
 
     // Fetch author profile
-    const author = await supabaseQuery<any>('authors', {
-      select: 'id,verified,userId',
-      filter: { userId: `eq.${user.id}` },
-      single: true,
+    const author = await prisma.author.findUnique({
+      where: { userId: user.id },
+      select: {
+        id: true,
+        verified: true,
+        _count: {
+          select: {
+            works: true,
+            subscriptions: true,
+          }
+        }
+      }
     })
 
-    let profile = null
-    let blocks: any[] = []
-
-    if (author) {
-      // Fetch creator profile
-      profile = await supabaseQuery<any>('creator_profiles', {
-        select: 'id,displayName,bio,profileImage,coverImage,featuredType,featuredWorkId,featuredBlockId,accentColor,fontStyle,backgroundStyle,profileViews,isPublished,authorId',
-        filter: { authorId: `eq.${author.id}` },
-        single: true,
-      })
-
-      if (profile) {
-        // Fetch visible blocks
-        blocks = await supabaseQuery<any[]>('profile_blocks', {
-          select: 'id,type,data,gridX,gridY,width,height,title,order',
-          filter: { profileId: `eq.${profile.id}`, isVisible: 'eq.true' },
-          order: 'order.asc',
-        }) || []
-      }
-    }
-
-    // If profile exists but not published, return limited data
-    if (profile && !profile.isPublished) {
-      return NextResponse.json({
-        user: {
-          username: user.username,
-          displayName: user.displayName,
-        },
-        profile: {
-          isPublished: false,
-        },
-      })
-    }
-
-    // Fetch featured work if applicable
-    let featuredWork = null
-    if (profile?.featuredType === 'work' && profile.featuredWorkId) {
-      featuredWork = await supabaseQuery<any>('works', {
-        select: 'id,title,description,coverImage,genres,status',
-        filter: { id: `eq.${profile.featuredWorkId}` },
-        single: true,
-      })
-    }
-
-    // Track profile view (increment view count)
-    if (profile) {
-      await supabaseUpdate('creator_profiles', { id: `eq.${profile.id}` }, {
-        profileViews: (profile.profileViews ?? 0) + 1,
-        lastViewedAt: new Date().toISOString(),
-      })
-    }
+    // Fetch user's published works
+    const works = author ? await prisma.work.findMany({
+      where: {
+        authorId: author.id,
+        status: { in: ['published', 'ongoing', 'completed'] }
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        coverImage: true,
+        formatType: true,
+        status: true,
+        genres: true,
+        tags: true,
+        createdAt: true,
+        _count: {
+          select: {
+            likes: true,
+            bookmarks: true,
+            sections: true,
+          }
+        }
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 10,
+    }) : []
 
     return NextResponse.json({
       user: {
@@ -95,26 +86,26 @@ export async function GET(request: Request, props: RouteParams) {
         displayName: user.displayName,
         avatar: user.avatar,
         verified: user.verified,
+        bio: user.bio,
+        createdAt: user.createdAt,
       },
       author: author ? {
         id: author.id,
         verified: author.verified,
+        workCount: author._count.works,
+        subscriberCount: author._count.subscriptions,
       } : null,
-      profile: profile ? {
-        id: profile.id,
-        displayName: profile.displayName,
-        bio: profile.bio,
-        profileImage: profile.profileImage,
-        coverImage: profile.coverImage,
-        featuredType: profile.featuredType,
-        accentColor: profile.accentColor,
-        fontStyle: profile.fontStyle,
-        backgroundStyle: profile.backgroundStyle,
-        profileViews: profile.profileViews,
-        isPublished: profile.isPublished,
-        blocks,
-      } : null,
-      featuredWork,
+      works: works.map(w => ({
+        ...w,
+        genres: JSON.parse(w.genres || '[]'),
+        tags: JSON.parse(w.tags || '[]'),
+        statistics: {
+          likes: w._count.likes,
+          bookmarks: w._count.bookmarks,
+          sections: w._count.sections,
+        },
+      })),
+      profile: null,
     })
   } catch (error) {
     console.error('Error fetching profile:', error)

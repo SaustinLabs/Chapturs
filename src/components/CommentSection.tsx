@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { MessageSquare } from 'lucide-react'
+import { signIn } from 'next-auth/react'
 import CommentForm from './CommentForm'
 import CommentItem from './CommentItem'
 import type { Comment } from '@/types/comment'
@@ -141,22 +142,49 @@ export default function CommentSection({
       </div>
 
       {/* Comment form */}
-      {canComment && (
+      {/* Comment form or sign-in prompt */}
+      {canComment ? (
         <CommentForm
           workId={workId}
           sectionId={sectionId}
           onCommentAdded={handleCommentAdded}
         />
+      ) : (
+        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Sign in to join the conversation
+          </p>
+          <button
+            onClick={() => signIn('google')}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Sign in
+          </button>
+        </div>
       )}
 
       {/* Comments list */}
       {comments.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
+        <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <MessageSquare className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-          <p className="text-gray-500 font-medium">No comments yet</p>
-          <p className="text-sm text-gray-400 mt-1">
-            {canComment ? 'Be the first to comment!' : 'Sign in to leave a comment'}
-          </p>
+          <p className="text-gray-500 dark:text-gray-400 font-medium">No comments yet</p>
+          {canComment ? (
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+              Be the first to comment!
+            </p>
+          ) : (
+            <div className="mt-3">
+              <p className="text-sm text-gray-400 dark:text-gray-500 mb-3">
+                Sign in to join the conversation
+              </p>
+              <button
+                onClick={() => signIn('google')}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Sign in with Google
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
