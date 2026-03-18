@@ -50,6 +50,11 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  verification: {
+    other: {
+      'google-adsense-account': 'ca-pub-5320775955237091',
+    },
+  },
 }
 
 // Validate environment on startup
