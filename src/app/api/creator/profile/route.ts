@@ -1,46 +1,49 @@
+export const runtime = 'nodejs'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth-edge'
-import { supabaseQuery, supabaseInsert, supabaseUpdate, supabaseDelete } from '@/lib/supabase-edge'
-
-export const runtime = 'nodejs'
+import { prisma } from '@/lib/database/PrismaService'
 
 /**
  * GET /api/creator/profile
  * Fetch the authenticated creator's profile data for editing
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user's author record
-    const author = await supabaseQuery('authors', {
-      select: 'id,userId',
-      filter: { userId: `eq.${session.user.id}` },
-      single: true
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        displayName: true,
+        username: true,
+        author: {
+          select: {
+            id: true,
+            creatorProfile: {
+              include: {
+                blocks: {
+                  orderBy: { order: 'asc' }
+                }
+              }
+            }
+          }
+        }
+      }
     })
 
-    if (!author) {
+    if (!user?.author) {
       return NextResponse.json({ error: 'Author not found' }, { status: 404 })
     }
 
-    const user = await supabaseQuery('users', {
-      select: 'displayName',
-      filter: { id: `eq.${session.user.id}` },
-      single: true
-    })
+    const profile = user.author.creatorProfile
 
-    const profile = await supabaseQuery('creator_profiles', {
-      filter: { authorId: `eq.${author.id}` },
-      single: true
-    })
-
-    // If no profile exists, return default empty profile
     if (!profile) {
       return NextResponse.json({
-        displayName: user?.displayName || '',
+        displayName: user.displayName || '',
         bio: '',
         profileImage: undefined,
         coverImage: undefined,
@@ -53,14 +56,8 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    const blocks = await supabaseQuery('profile_blocks', {
-      filter: { profileId: `eq.${profile.id}` },
-      order: 'order.asc'
-    })
-
-    // Return existing profile
     return NextResponse.json({
-      displayName: profile.displayName || user?.displayName || '',
+      displayName: profile.displayName || user.displayName || '',
       bio: profile.bio || '',
       profileImage: profile.profileImage,
       coverImage: profile.coverImage,
@@ -70,7 +67,10 @@ export async function GET(request: NextRequest) {
       fontStyle: profile.fontStyle,
       backgroundStyle: profile.backgroundStyle,
       isPublished: profile.isPublished,
-      blocks: Array.isArray(blocks) ? blocks : []
+      blocks: profile.blocks.map(b => ({
+        ...b,
+        data: typeof b.data === 'string' ? JSON.parse(b.data || '{}') : b.data,
+      }))
     })
   } catch (error) {
     console.error('Error fetching creator profile:', error)
@@ -94,24 +94,16 @@ export async function PATCH(request: NextRequest) {
 
     const data = await request.json()
 
-    // Get user's author record
-    const author = await supabaseQuery('authors', {
-      select: 'id,userId',
-      filter: { userId: `eq.${session.user.id}` },
-      single: true
+    const author = await prisma.author.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true }
     })
 
     if (!author) {
       return NextResponse.json({ error: 'Author not found' }, { status: 404 })
     }
 
-    const existingProfile = await supabaseQuery('creator_profiles', {
-      filter: { authorId: `eq.${author.id}` },
-      single: true
-    })
-
-    const basePayload = {
-      authorId: author.id,
+    const updateData: any = {
       displayName: data.displayName,
       bio: data.bio,
       profileImage: data.profileImage,
@@ -121,80 +113,59 @@ export async function PATCH(request: NextRequest) {
       accentColor: data.accentColor || '#3B82F6',
       fontStyle: data.fontStyle || 'default',
       backgroundStyle: data.backgroundStyle || 'solid',
-      isPublished: data.isPublished || false
+      isPublished: data.isPublished || false,
     }
 
-    const publishedAt = data.isPublished ? new Date().toISOString() : null
-
-    let profileResult: any
-
-    if (existingProfile) {
-      const updateData: Record<string, any> = {
-        displayName: data.displayName,
-        bio: data.bio,
-        profileImage: data.profileImage,
-        coverImage: data.coverImage,
-        featuredType: data.featuredType,
-        featuredWorkId: data.featuredWorkId,
-        accentColor: data.accentColor,
-        fontStyle: data.fontStyle,
-        backgroundStyle: data.backgroundStyle,
-        isPublished: data.isPublished
-      }
-
-      if (data.isPublished) {
-        updateData.publishedAt = new Date().toISOString()
-      }
-
-      const updated = await supabaseUpdate('creator_profiles', { id: `eq.${existingProfile.id}` }, updateData)
-      profileResult = Array.isArray(updated) ? updated[0] : updated
-    } else {
-      const created = await supabaseInsert('creator_profiles', {
-        ...basePayload,
-        publishedAt
-      })
-      profileResult = Array.isArray(created) ? created[0] : created
+    if (data.isPublished) {
+      updateData.publishedAt = new Date()
     }
 
-    const profileId = profileResult?.id || existingProfile?.id
+    // Upsert creator profile
+    const profile = await prisma.creatorProfile.upsert({
+      where: { authorId: author.id },
+      update: updateData,
+      create: {
+        authorId: author.id,
+        ...updateData,
+        publishedAt: data.isPublished ? new Date() : null,
+      }
+    })
 
     // Handle blocks if provided
-    if (data.blocks && Array.isArray(data.blocks) && profileId) {
+    if (data.blocks && Array.isArray(data.blocks)) {
       // Delete existing blocks
-      await supabaseDelete('profile_blocks', {
-        profileId: `eq.${profileId}`
+      await prisma.profileBlock.deleteMany({
+        where: { profileId: profile.id }
       })
 
       // Create new blocks
       if (data.blocks.length > 0) {
-        const blocksPayload = data.blocks.map((block: any, index: number) => ({
-          profileId,
-          type: block.type,
-          data: typeof block.data === 'string' ? block.data : JSON.stringify(block.data),
-          gridX: block.gridX || 0,
-          gridY: block.gridY || index,
-          width: block.width || 1,
-          height: block.height || 1,
-          title: block.title,
-          isVisible: block.isVisible !== false,
-          order: block.order || index
-        }))
-
-        await supabaseInsert('profile_blocks', blocksPayload as any)
+        await prisma.profileBlock.createMany({
+          data: data.blocks.map((block: any, index: number) => ({
+            profileId: profile.id,
+            type: block.type,
+            data: typeof block.data === 'string' ? block.data : JSON.stringify(block.data || {}),
+            gridX: block.gridX || 0,
+            gridY: block.gridY || index,
+            width: block.width || 1,
+            height: block.height || 1,
+            title: block.title,
+            isVisible: block.isVisible !== false,
+            order: block.order ?? index
+          }))
+        })
       }
     }
 
-    // Get username for redirect
-    const user = await supabaseQuery('users', {
-      select: 'username',
-      filter: { id: `eq.${session.user.id}` },
-      single: true
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { username: true }
     })
 
     return NextResponse.json({
       success: true,
       username: user?.username,
-      profileId
+      profileId: profile.id
     })
   } catch (error) {
     console.error('Error updating creator profile:', error)

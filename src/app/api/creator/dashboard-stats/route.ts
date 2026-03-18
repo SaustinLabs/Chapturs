@@ -28,6 +28,7 @@ export async function GET() {
                 sections: true,
                 likes: true,
                 bookmarks: true,
+                comments: true,
               }
             }
           }
@@ -47,10 +48,14 @@ export async function GET() {
     let totalReads = 0
     let totalLikes = 0
     let totalChapters = 0
+    let totalComments = 0
+    let totalBookmarks = 0
 
     for (const work of author.works) {
       totalChapters += work._count.sections
       totalLikes += work._count.likes
+      totalComments += work._count.comments
+      totalBookmarks += work._count.bookmarks
       try {
         const stats = typeof work.statistics === 'string'
           ? JSON.parse(work.statistics || '{}')
@@ -60,19 +65,30 @@ export async function GET() {
     }
 
     return NextResponse.json({
+      success: true,
       overview: {
         totalWorks: author.works.length,
         totalChapters,
         totalReads,
         totalLikes,
-        totalBookmarks: author.works.reduce((sum, w) => sum + w._count.bookmarks, 0),
-        totalSubscribers: author._count.subscriptions,
+        totalBookmarks,
+        totalSubscriptions: author._count.subscriptions,
       },
       recentActivity: {
         newReads: 0,
         newLikes: 0,
-        newComments: 0,
+        newComments: totalComments,
         pendingFanart: 0,
+      },
+      qualityScores: {
+        averageScore: 0,
+        tier: 'unrated',
+        boostMultiplier: 1.0,
+      },
+      revenue: {
+        thisMonth: 0,
+        lastMonth: 0,
+        pending: 0,
       }
     })
   } catch (error) {
