@@ -6,9 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // User model
@@ -65,10 +64,10 @@ model User {
   workRatings    WorkRating[]
 
   // Fan content contributions
-  translationsSubmitted FanTranslation[]  @relation("FanTranslationTranslators")
-  audiobooksSubmitted   FanAudiobook[]    @relation("FanAudiobookNarrators")
-  fanContentVotes       FanContentVote[]  @relation("FanContentVotes")
-  tier3DealProposals    Tier3Deal[]       @relation("ContributorTier3Deals")
+  translationsSubmitted FanTranslation[] @relation("FanTranslationTranslators")
+  audiobooksSubmitted   FanAudiobook[]   @relation("FanAudiobookNarrators")
+  fanContentVotes       FanContentVote[] @relation("FanContentVotes")
+  tier3DealProposals    Tier3Deal[]      @relation("ContributorTier3Deals")
 
   // Collaboration
   collaborations          WorkCollaborator[]
@@ -87,7 +86,7 @@ model Author {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   works         Work[]
   subscriptions Subscription[]
   adImpressions AdImpression[]
@@ -102,7 +101,7 @@ model Author {
 
   // Fan content settings
   fanContentSettings CreatorFanContentSettings?
-  tier3Deals         Tier3Deal[]                 @relation("CreatorTier3Deals")
+  tier3Deals         Tier3Deal[]                @relation("CreatorTier3Deals")
 
   @@map("authors")
 }
@@ -200,7 +199,7 @@ model Work {
   viewCount      Int      @default(0)
 
   // Fan content tracking
-  defaultTranslationByLanguage String @default("{}") // JSON: {"es": "tier1-id", "ja": "tier2-id"}
+  defaultTranslationByLanguage String  @default("{}") // JSON: {"es": "tier1-id", "ja": "tier2-id"}
   officialAudiobookId          String?
 
   // Relations
@@ -252,23 +251,23 @@ model Work {
 
 // Section model (chapters, articles sections, comic issues, etc.)
 model Section {
-  id          String    @id @default(cuid())
-  workId      String
-  title       String
-  content     String // JSON object for different content types
-  wordCount   Int?
-  status      String    @default("draft") // 'draft', 'published', 'archived'
-  publishedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  viewCount   Int       @default(0)
+  id                 String    @id @default(cuid())
+  workId             String
+  title              String
+  content            String // JSON object for different content types
+  wordCount          Int?
+  status             String    @default("draft") // 'draft', 'published', 'archived'
+  publishedAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  viewCount          Int       @default(0)
   scheduledPublishAt DateTime?
 
   // Chapter number for ordering
   chapterNumber Int?
 
   // Fan content default selections (for fast lookup)
-  defaultTranslationIdByLanguage String @default("{}") // JSON: {"es": "tier2-id", "ja": "tier1-id"}
+  defaultTranslationIdByLanguage String  @default("{}") // JSON: {"es": "tier2-id", "ja": "tier1-id"}
   defaultAudiobookId             String?
 
   // Relations
@@ -533,10 +532,10 @@ model Image {
   entityType  String? // 'profile', 'cover', 'fanart', 'chapter', etc.
 
   // Moderation
-  status       String    @default("pending") // 'pending', 'approved', 'rejected'
-  altText      String? // Accessibility description
-  moderatedBy  String? // User ID of moderator
-  moderatedAt  DateTime?
+  status          String    @default("pending") // 'pending', 'approved', 'rejected'
+  altText         String? // Accessibility description
+  moderatedBy     String? // User ID of moderator
+  moderatedAt     DateTime?
   moderationNotes String? // Reason for rejection, etc.
 
   createdAt DateTime @default(now())
@@ -1274,9 +1273,9 @@ model BlockComment {
 
   likes      Int     @default(0)
   isResolved Boolean @default(false)
-  
+
   // Emoji Reactions (JSON array of { emoji: string, userIds: string[] })
-  reactions  String? @db.Text
+  reactions String? @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1326,7 +1325,7 @@ model Comment {
   reports CommentReport[]
 
   // Emoji Reactions (JSON array of { emoji: string, userIds: string[] })
-  reactions String?       @db.Text
+  reactions String? @db.Text
 
   @@index([workId])
   @@index([sectionId])
@@ -1408,11 +1407,11 @@ model FanTranslation {
   translationNotes  String? // Translator's notes on style/challenges
 
   // Quality rating
-  readabilityAvg    Float @default(0)
-  comprehensionAvg  Float @default(0)
-  polishAvg         Float @default(0)
-  qualityOverall    Float @default(0) // Computed: average of above three
-  ratingCount       Int   @default(0)
+  readabilityAvg   Float @default(0)
+  comprehensionAvg Float @default(0)
+  polishAvg        Float @default(0)
+  qualityOverall   Float @default(0) // Computed: average of above three
+  ratingCount      Int   @default(0)
 
   status    String   @default("active") // "active" | "flagged" | "removed"
   createdAt DateTime @default(now())
@@ -1482,9 +1481,9 @@ model FanContentVote {
   fanAudiobook   FanAudiobook? @relation("FanAudiobookVotes", fields: [fanAudiobookId], references: [id], onDelete: Cascade)
 
   // 1-5 star ratings
-  readabilityRating    Int // 1-5
-  comprehensionRating  Int // 1-5
-  polishRating         Int // 1-5
+  readabilityRating   Int // 1-5
+  comprehensionRating Int // 1-5
+  polishRating        Int // 1-5
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1541,7 +1540,7 @@ model Tier3Deal {
   exclusivityDuration Int? // null = non-exclusive, OR days (30, 60, 90, etc.)
   externalLinkAllow   Boolean @default(true) // Can contributor link their work elsewhere?
 
-  status          String    @default("pending_creator") // "pending_creator" | "pending_contributor" | "active" | "expired" | "rejected"
+  status          String  @default("pending_creator") // "pending_creator" | "pending_contributor" | "active" | "expired" | "rejected"
   rejectionReason String?
 
   createdAt  DateTime  @default(now())
@@ -1558,34 +1557,34 @@ model Tier3Deal {
 // ============================================================================
 
 model WorkCollaborator {
-  id              String   @id @default(cuid())
-  workId          String
-  userId          String
-  role            String   // 'owner', 'editor', 'contributor'
-  permissions     String   // JSON: {canEdit, canPublish, canInvite, canDelete}
-  revenueShare    Float    @default(0) // Percentage (0-100)
-  invitedBy       String
-  invitedAt       DateTime @default(now())
-  acceptedAt      DateTime?
-  status          String   @default("pending") // 'pending', 'active', 'removed'
+  id           String    @id @default(cuid())
+  workId       String
+  userId       String
+  role         String // 'owner', 'editor', 'contributor'
+  permissions  String // JSON: {canEdit, canPublish, canInvite, canDelete}
+  revenueShare Float     @default(0) // Percentage (0-100)
+  invitedBy    String
+  invitedAt    DateTime  @default(now())
+  acceptedAt   DateTime?
+  status       String    @default("pending") // 'pending', 'active', 'removed'
 
-  work            Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  work Work @relation(fields: [workId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([workId, userId])
   @@map("work_collaborators")
 }
 
 model CollaborationActivity {
-  id          String   @id @default(cuid())
-  workId      String
-  userId      String
-  action      String   // 'edited_chapter', 'added_glossary', 'published', etc.
-  details     String   // JSON with action details
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  workId    String
+  userId    String
+  action    String // 'edited_chapter', 'added_glossary', 'published', etc.
+  details   String // JSON with action details
+  createdAt DateTime @default(now())
 
-  work        Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  work Work @relation(fields: [workId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("collaboration_activity")
 }
@@ -1603,19 +1602,20 @@ model Contest {
   endDate            DateTime
   submissionDeadline DateTime
   status             String   @default("draft") // draft, active, voting, completed, cancelled
-  prizePool          Float    @default(0)       // Total USD prize pool
-  prizeSplit         String   // JSON: [{place: 1, percent: 50}, ...]
-  theme              String?  // Optional prompt/theme
-  genres             String?  // JSON: allowed genres
+  prizePool          Float    @default(0) // Total USD prize pool
+  prizeSplit         String // JSON: [{place: 1, percent: 50}, ...]
+  theme              String? // Optional prompt/theme
+  genres             String? // JSON: allowed genres
   minWordCount       Int?
   maxWordCount       Int?
-  judges             String   // JSON: userId[]
-  createdBy          String   // Admin userId
-  adRevenueShare     Float    @default(0)      // % of contest page ad revenue going to prize pool
+  judges             String // JSON: userId[]
+  createdBy          String // Admin userId
+  adRevenueShare     Float    @default(0) // % of contest page ad revenue going to prize pool
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
   entries ContestEntry[]
+
   @@map("contests")
 }
 
@@ -1625,9 +1625,9 @@ model ContestEntry {
   workId      String
   userId      String
   submittedAt DateTime @default(now())
-  score       Float?   // Admin/judge score
-  placement   Int?     // Final ranking (1st, 2nd, etc.)
-  prizeAmount Float?   // Calculated prize in USD
+  score       Float? // Admin/judge score
+  placement   Int? // Final ranking (1st, 2nd, etc.)
+  prizeAmount Float? // Calculated prize in USD
   paidOut     Boolean  @default(false)
 
   contest Contest @relation(fields: [contestId], references: [id], onDelete: Cascade)
@@ -1642,7 +1642,7 @@ model WorkRating {
   id            String   @id @default(cuid())
   workId        String
   userId        String
-  overall       Int      // 1-5
+  overall       Int // 1-5
   writing       Int?
   plot          Int?
   characters    Int?
@@ -1661,21 +1661,21 @@ model WorkRating {
 
 // Ad impression tracking
 model AdImpression {
-  id           String   @id @default(cuid())
-  userId       String?  // null for anonymous
-  authorId     String   // The author who earns from this
-  workId       String   // Which work the ad was shown on
-  sectionId    String?  // Optional: which chapter
-  placement    String   // 'sidebar' | 'inline' | 'interstitial' | 'video-support'
-  adType       String   // 'platform' | 'creator-promo' | 'video'
-  revenue      Float    @default(0) // Revenue generated from this impression
-  clicked      Boolean  @default(false)
-  createdAt    DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String? // null for anonymous
+  authorId  String // The author who earns from this
+  workId    String // Which work the ad was shown on
+  sectionId String? // Optional: which chapter
+  placement String // 'sidebar' | 'inline' | 'interstitial' | 'video-support'
+  adType    String // 'platform' | 'creator-promo' | 'video'
+  revenue   Float    @default(0) // Revenue generated from this impression
+  clicked   Boolean  @default(false)
+  createdAt DateTime @default(now())
 
   // Relations
-  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  author       Author   @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  work         Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  author Author @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  work   Work   @relation(fields: [workId], references: [id], onDelete: Cascade)
 
   @@index([authorId])
   @@index([workId])
@@ -1685,40 +1685,40 @@ model AdImpression {
 
 // Author earnings summary
 model AuthorEarnings {
-  id                String   @id @default(cuid())
-  authorId          String   @unique
-  totalImpressions  Int      @default(0)
-  totalClicks       Int      @default(0)
-  totalRevenue      Float    @default(0) // Total earned (platform ads)
-  premiumRevenue    Float    @default(0) // From premium pool
-  pendingPayout     Float    @default(0) // Not yet paid out
-  lifetimePayout    Float    @default(0) // Total ever paid
-  lastCalculatedAt  DateTime @default(now())
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id               String   @id @default(cuid())
+  authorId         String   @unique
+  totalImpressions Int      @default(0)
+  totalClicks      Int      @default(0)
+  totalRevenue     Float    @default(0) // Total earned (platform ads)
+  premiumRevenue   Float    @default(0) // From premium pool
+  pendingPayout    Float    @default(0) // Not yet paid out
+  lifetimePayout   Float    @default(0) // Total ever paid
+  lastCalculatedAt DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   // Relations
-  author            Author   @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  payouts           Payout[]
+  author  Author   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  payouts Payout[]
 
   @@map("author_earnings")
 }
 
 // Payout records
 model Payout {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   authorId      String
   earningsId    String
   amount        Float
-  status        String   @default("pending") // 'pending' | 'processing' | 'completed' | 'failed'
-  method        String?  // 'stripe' | 'paypal' | 'bank'
-  transactionId String?  // External payment processor ID
+  status        String    @default("pending") // 'pending' | 'processing' | 'completed' | 'failed'
+  method        String? // 'stripe' | 'paypal' | 'bank'
+  transactionId String? // External payment processor ID
   processedAt   DateTime?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime  @default(now())
 
   // Relations
-  author        Author         @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  earnings      AuthorEarnings @relation(fields: [earningsId], references: [id], onDelete: Cascade)
+  author   Author         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  earnings AuthorEarnings @relation(fields: [earningsId], references: [id], onDelete: Cascade)
 
   @@index([authorId])
   @@index([status])
@@ -1727,13 +1727,13 @@ model Payout {
 
 // Premium subscription pool (tracks revenue to distribute to authors)
 model PremiumRevenuePool {
-  id              String   @id @default(cuid())
-  month           String   // 'YYYY-MM' format
-  totalRevenue    Float    // Total premium subscription revenue for the month
-  distributedAmount Float  @default(0) // How much has been distributed to authors
-  status          String   @default("open") // 'open' | 'calculating' | 'distributed'
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                String   @id @default(cuid())
+  month             String // 'YYYY-MM' format
+  totalRevenue      Float // Total premium subscription revenue for the month
+  distributedAmount Float    @default(0) // How much has been distributed to authors
+  status            String   @default("open") // 'open' | 'calculating' | 'distributed'
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@unique([month])
   @@map("premium_revenue_pools")
