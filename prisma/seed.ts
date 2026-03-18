@@ -27,11 +27,8 @@ async function main() {
       update: {},
       create: {
         userId: user.id,
-        displayName: userData.displayName,
-        bio: userData.bio,
-        totalFollowers: Math.floor(Math.random() * 5000),
-        totalViews: Math.floor(Math.random() * 50000),
         socialLinks: JSON.stringify({}),
+        verified: userData.verified,
       },
     })
     console.log(`  ✓ User: ${userData.username}`)
@@ -98,9 +95,8 @@ async function main() {
         maturityRating: workData.maturityRating,
         status: workData.status,
         coverImage: null,
-        totalViews: Math.floor(Math.random() * 10000),
-        totalLikes: Math.floor(Math.random() * 500),
-        totalComments: Math.floor(Math.random() * 100),
+        statistics: JSON.stringify({ views: Math.floor(Math.random() * 10000), likes: Math.floor(Math.random() * 500) }),
+        viewCount: Math.floor(Math.random() * 10000),
       },
     })
 
@@ -113,7 +109,7 @@ async function main() {
           content: JSON.stringify([{ id: `block-${i}`, type: 'text', content: sec.content }]),
           wordCount: sec.wordCount,
           status: 'published',
-          orderIndex: i,
+          chapterNumber: i + 1,
           publishedAt: new Date(),
         },
       })
