@@ -7,7 +7,7 @@ const PrismaClient: any = (PrismaPkg as any).PrismaClient || (PrismaPkg as any).
 // Global Prisma instance with connection pooling for Supabase
 const globalForPrisma = global as unknown as { prisma: any }
 
-// Lazily initialize Prisma — defers construction until first use.
+// Lazily initialize Prisma  Edefers construction until first use.
 // This prevents Next.js static page collection from failing when DATABASE_URL
 // is not set in the build environment.
 function getPrismaClient() {
@@ -15,7 +15,7 @@ function getPrismaClient() {
     const dbUrl = process.env.DATABASE_URL
     
     if (!dbUrl) {
-      console.error('❌ Prisma Error: DATABASE_URL is not defined in the environment.')
+      console.error('❁EPrisma Error: DATABASE_URL is not defined in the environment.')
       if (process.env.NODE_ENV === 'production') {
         throw new Error('Critical: DATABASE_URL missing in production.')
       }
