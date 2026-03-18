@@ -157,19 +157,37 @@ export async function POST(request: NextRequest, props: RouteParams) {
   }
 }
 
-// GET /api/works/[id]/sections - Get work sections
+// GET /api/works/[id]/sections - Get work sections (public for published sections)
 export async function GET(request: NextRequest, props: RouteParams) {
   const params = await props.params;
   try {
-    const session = await auth()
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const workId = params.id
+    const session = await auth()
 
     // Fetch sections from database
-    const sections = await DatabaseService.getSectionsForWork(workId)
+    const allSections = await DatabaseService.getSectionsForWork(workId)
+
+    // If user is authenticated and is the work author, return all sections (including drafts)
+    // Otherwise, only return published sections
+    let sections = allSections
+    if (!session?.user?.id) {
+      // Anonymous users only see published sections
+      sections = allSections.filter((s: any) => s.isPublished || s.status === 'published')
+    } else {
+      // Check if user is the author
+      const work = await prisma.work.findUnique({
+        where: { id: workId },
+        select: { authorId: true }
+      })
+      const author = await prisma.author.findFirst({
+        where: { userId: session.user.id }
+      })
+      const isAuthor = author && work && author.id === work.authorId
+      if (!isAuthor) {
+        // Non-authors only see published sections
+        sections = allSections.filter((s: any) => s.isPublished || s.status === 'published')
+      }
+    }
 
     return NextResponse.json({
       success: true,

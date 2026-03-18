@@ -48,13 +48,13 @@ export default function WorkViewer({
   }
 
   const startReading = () => {
-    // Find the first chapter for this work
-    const workChapters = mockChapters.filter(chapter => chapter.storyId === work.id)
-    if (workChapters.length > 0) {
-      const firstChapter = workChapters.sort((a, b) => a.chapterNumber - b.chapterNumber)[0]
-      router.push(`/story/${work.id}/chapter/${firstChapter.id}`)
+    // Use actual work sections instead of mock data
+    const sections = work.sections || []
+    if (sections.length > 0) {
+      const firstSection = sections.sort((a: any, b: any) => (a.chapterNumber || 0) - (b.chapterNumber || 0))[0]
+      router.push(`/story/${work.id}/chapter/${firstSection.id}`)
     } else {
-      // Fallback: navigate to the story page which might have more chapters
+      // Fallback: navigate to the story page
       router.push(`/story/${work.id}`)
     }
   }
