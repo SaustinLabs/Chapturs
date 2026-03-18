@@ -437,4 +437,16 @@ export interface SuggestedAdPlacement {
   estimatedRevenue: number
 }
 
+// === AD ELIGIBILITY & FILTERING === //
+
+export type AdEligibility = 'full' | 'restricted' | 'none'
+export type MaturityTag = 'all_ages' | 'mature' | 'explicit'
+
+export interface AdSlotConfig {
+  placement: string
+  maturityRating: string
+  eligibility: AdEligibility
+  wordCount: number
+}
+
 // All types are already exported inline above
