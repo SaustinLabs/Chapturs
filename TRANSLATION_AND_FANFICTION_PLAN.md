@@ -151,7 +151,73 @@ model LicenseAgreement {
 
 ---
 
-## Part 4: Content Platform Vision - "YouTube but for Text"
+## Part 4: Dual-Mode Comment System
+
+### Concept
+Comments exist at two levels - per-paragraph (inline) and per-work (bottom). Same comments, two views.
+
+### Inline View (Reading Mode)
+- As reader scrolls, comment count indicators appear next to paragraphs
+- Tap to expand inline comments for that paragraph
+- Keeps reading context - you see discussion about what you just read
+- Like Medium's highlights but threaded and discussion-focused
+
+### Bottom View (YouTube-style)
+- All comments from entire work, sorted by: Top | Newest | Most Discussed
+- Threaded replies (like YouTube)
+- Upvotes on comments
+- Shows which paragraph each comment references (clickable link back)
+
+### Comment Schema
+```prisma
+model Comment {
+  id          String @id @default(cuid())
+  workId      String
+  sectionId   String
+  blockId     String?   // Which paragraph/block
+  parentId    String?   // For threading
+  userId      String
+  content     String @db.Text
+  upvotes     Int @default(0)
+  downvotes   Int @default(0)
+  replyCount  Int @default(0)
+  isPinned    Boolean @default(false)
+  isEdited    Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+```
+
+### Features
+- Threaded replies (unlimited depth, collapse long threads)
+- Pin comments (author can pin)
+- Report/flag
+- Sort: Top, Newest, Most Discussed
+- @mention other users
+- Markdown support in comments
+
+---
+
+## Part 5: Platform Improvements (Mara's Notes)
+
+### Critical
+1. **Mobile optimization** - Most readers are on phones. Test everything on mobile.
+2. **Offline reading** - Service workers + local chapter caching for subway/offline reading.
+3. **Cold start feed** - Featured/trending section for new users with no reading history. Without this, empty feed = instant bounce.
+
+### Important
+4. **Creator payouts** - Minimum payout threshold, Stripe Connect integration, monthly payout schedule. Revenue split is just a number until creators can cash out.
+5. **Notifications** - Followed author posts new content → push notification.
+6. **Threaded comments** - See Part 4 above.
+
+### Nice to Have
+7. **Tagline/branding** - "Chapturs" works for books but feels narrow for articles/poetry. Consider a tagline.
+8. **Performance** - Edge runtime helps, but monitor page load times especially on mobile.
+9. **"Support Author" button** - Tipping/donation system separate from ads.
+
+---
+
+## Part 6: Content Platform Vision - "YouTube but for Text"
 
 ### Core Concept
 Chapturs is a unified written content platform - not just webnovels. All content types flow through one system:
