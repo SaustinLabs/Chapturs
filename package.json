@@ -2,6 +2,9 @@
   "name": "chapturs",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "next dev --turbopack --port 3000",
     "build": "prisma generate && next build",
