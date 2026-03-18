@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
         )
       } catch (error) {
         console.error('Failed to generate personalized feed, falling back to generic:', error)
-        feedItems = await getFallbackFeed(limit, offset)
+        feedItems = await getFallbackFeed(limit, offset, session?.user?.id)
       }
     } else {
       // Guest user - show popular/trending content
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
 
     // If we didn't get enough items, supplement with generic content
     if (feedItems.length < limit) {
-      const supplemental = await getFallbackFeed(limit - feedItems.length, offset + feedItems.length)
+      const supplemental = await getFallbackFeed(limit - feedItems.length, offset + feedItems.length, session?.user?.id)
       feedItems.push(...supplemental)
     }
 
@@ -102,7 +102,21 @@ export async function GET(request: NextRequest) {
 }
 
 // Fallback feed for guest users or when personalization fails
-async function getFallbackFeed(limit: number, offset: number) {
+async function getFallbackFeed(limit: number, offset: number, userId?: string) {
+  // Get user's subscriptions if logged in
+  let subscribedAuthorIds: string[] = []
+  if (userId) {
+    try {
+      const subs = await prisma.subscription.findMany({
+        where: { userId: userId },
+        select: { authorId: true }
+      })
+      subscribedAuthorIds = subs.map(s => s.authorId)
+    } catch (e) {
+      // ignore
+    }
+  }
+
   const works = await prisma.work.findMany({
     where: { 
       status: { in: ['published', 'ongoing', 'completed'] }
@@ -160,9 +174,13 @@ async function getFallbackFeed(limit: number, offset: number) {
       createdAt: work.createdAt,
       updatedAt: work.updatedAt
     },
-    feedType: 'discovery' as const,
-    reason: 'Popular content',
-    score: Math.random(),
+    feedType: subscribedAuthorIds.includes(work.authorId) ? 'subscribed' as const
+      : (work._count.likes + work._count.bookmarks) > 3 ? 'algorithmic' as const
+      : 'discovery' as const,
+    reason: subscribedAuthorIds.includes(work.authorId) ? 'From an author you follow'
+      : (work._count.likes + work._count.bookmarks) > 3 ? 'Trending with readers'
+      : 'Popular content',
+    score: (work._count.likes * 2 + work._count.bookmarks + work._count.sections) / 10 + Math.random() * 0.1,
     readingStatus: 'unread' as const,
     addedToFeedAt: new Date(),
     bookmark: false,
