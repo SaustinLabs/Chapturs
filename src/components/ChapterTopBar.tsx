@@ -28,6 +28,8 @@ interface ChapterTopBarProps {
   onSubscribe: () => void
   audioEnabled: boolean
   onAudioToggle: () => void
+  targetLanguage: string
+  onTargetLanguageChange: (lang: string) => void
 }
 
 export default function ChapterTopBar({
@@ -41,13 +43,14 @@ export default function ChapterTopBar({
   onSubscribe,
   audioEnabled,
   onAudioToggle,
+  targetLanguage,
+  onTargetLanguageChange,
 }: ChapterTopBarProps) {
   const [showLanguageMenu, setShowLanguageMenu] = useState(false)
   const [showAudiobookMenu, setShowAudiobookMenu] = useState(false)
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [showTranslationForm, setShowTranslationForm] = useState(false)
   const [showAudiobookForm, setShowAudiobookForm] = useState(false)
-  const [selectedLanguage, setSelectedLanguage] = useState('English')
 
   return (
     <div className="sticky top-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">

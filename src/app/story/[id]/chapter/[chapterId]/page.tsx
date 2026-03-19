@@ -38,6 +38,8 @@ export default function ChapterPage() {
     lineHeight: 1.7,
     theme: 'auto'
   })
+  const [targetLanguage, setTargetLanguage] = useState('en')
+  const [baseSection, setBaseSection] = useState<Section | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -61,7 +63,10 @@ export default function ChapterPage() {
             // Find the current section
             const foundSection = sectionsArray.find((s: Section) => s.id === chapterId)
             if (foundSection) {
-              // Fetch chapter-aware glossary definitions
+              // Store original section as base for translations
+              setBaseSection(foundSection)
+              setSection(foundSection)
+              // rest...
               const chapterNum = foundSection.chapterNumber || 1
               try {
                 const glossaryRes = await fetch(`/api/works/${storyId}/glossary?chapter=${chapterNum}`)
@@ -130,6 +135,36 @@ export default function ChapterPage() {
     }
   }, [storyId, chapterId])
 
+  // Fetch translated content when targetLanguage changes
+  useEffect(() => {
+    if (!baseSection || !storyId || !chapterId) return
+
+    if (targetLanguage === 'en') {
+      setSection(baseSection)
+      return
+    }
+
+    const fetchTranslation = async () => {
+      try {
+        const res = await fetch(`/api/chapter/${storyId}/${chapterId}/content?lang=${targetLanguage}`)
+        if (res.ok) {
+          const data = await res.json()
+          setSection(prev => ({
+            ...baseSection,
+            title: data.title,
+            content: data.content
+          }))
+        } else {
+          console.error('Translation fetch failed:', res.status)
+        }
+      } catch (e) {
+        console.error('Translation fetch error:', e)
+      }
+    }
+
+    fetchTranslation()
+  }, [targetLanguage, baseSection, storyId, chapterId])
+
   const navigateToSection = (newIndex: number) => {
     if (newIndex >= 0 && newIndex < allSections.length) {
       const newSection = allSections[newIndex]
@@ -182,6 +217,8 @@ export default function ChapterPage() {
         onSubscribe={() => setIsSubscribed(!isSubscribed)}
         audioEnabled={audioEnabled}
         onAudioToggle={() => setAudioEnabled(!audioEnabled)}
+        targetLanguage={targetLanguage}
+        onTargetLanguageChange={setTargetLanguage}
       />
 
       {/* Sticky Audio Scrubber (shown when audio is enabled) */}
