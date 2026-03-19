@@ -19,7 +19,7 @@ export async function GET(
     try {
       translations = await prisma.fanTranslation.findMany({
         where: {
-          id,
+          workId: id,
           chapterId,
           languageCode,
           status: 'active',
