@@ -144,25 +144,45 @@ export default function ChapterPage() {
       return
     }
 
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 5000)
+
     const fetchTranslation = async () => {
       try {
-        const res = await fetch(`/api/chapter/${storyId}/${chapterId}/content?lang=${targetLanguage}`)
+        const res = await fetch(`/api/chapter/${storyId}/${chapterId}/content?lang=${targetLanguage}`, {
+          signal: controller.signal,
+        })
         if (res.ok) {
           const data = await res.json()
-          setSection(prev => ({
-            ...baseSection,
-            title: data.title,
-            content: data.content
-          }))
+          if (data.title && data.content && Array.isArray(data.content) && data.content.length > 0) {
+            setSection(prev => ({
+              ...baseSection,
+              title: data.title,
+              content: data.content
+            }))
+          } else {
+            console.log('No translation content available')
+          }
         } else {
           console.error('Translation fetch failed:', res.status)
         }
       } catch (e) {
-        console.error('Translation fetch error:', e)
+        if (e.name === 'AbortError') {
+          console.error('Translation fetch timed out after 5 seconds')
+        } else {
+          console.error('Translation fetch error:', e)
+        }
+      } finally {
+        clearTimeout(timeoutId)
       }
     }
 
     fetchTranslation()
+
+    return () => {
+      clearTimeout(timeoutId)
+      controller.abort()
+    }
   }, [targetLanguage, baseSection, storyId, chapterId])
 
   const navigateToSection = (newIndex: number) => {
