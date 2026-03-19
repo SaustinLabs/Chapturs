@@ -356,7 +356,7 @@ export default function StoryPage() {
                       </span>
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                      ({story.statistics.ratingCount} ratings)
+                      ({(story.statistics.ratingCount ?? 0)} ratings)
                     </div>
                   </div>
                 </div>

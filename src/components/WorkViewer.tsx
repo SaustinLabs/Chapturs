@@ -115,9 +115,9 @@ export default function WorkViewer({
               </span>
               <span className="flex items-center gap-1">
                 <StarIcon className="w-4 h-4" />
-                {(work.statistics.averageRating ?? 0).toFixed(1)} ({formatNumber(work.statistics.ratingCount)})
+                {(work.statistics.averageRating ?? 0).toFixed(1)} ({formatNumber(work.statistics.ratingCount ?? 0)})
               </span>
-              <span>{formatNumber(work.statistics.subscribers)} subscribers</span>
+              <span>{formatNumber(work.statistics.subscribers ?? 0)} subscribers</span>
             </div>
             
             <div className="flex items-center gap-2">
@@ -221,19 +221,19 @@ export default function WorkViewer({
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    {formatNumber(work.statistics.views)}
+                    {formatNumber(work.statistics?.views ?? 0)}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">Views</div>
                 </div>
                 <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    {formatNumber(work.statistics.subscribers)}
+                    {formatNumber(work.statistics?.subscribers ?? 0)}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">Subscribers</div>
                 </div>
                 <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-                    {work.statistics.averageRating.toFixed(1)}
+                    {(work.statistics?.averageRating ?? 0).toFixed(1)}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">Rating</div>
                 </div>

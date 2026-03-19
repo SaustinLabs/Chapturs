@@ -418,7 +418,7 @@ export default function FeedCard({ item, onClick, recommendationRank = 0 }: Feed
           <div className="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400">
             <span className="flex items-center">
               <EyeIcon className="w-4 h-4 mr-1" />
-              {formatNumber(item.work.statistics.views)}
+              {formatNumber(item.work.statistics?.views ?? 0)}
             </span>
             <span className="flex items-center">
               <StarIcon className="w-4 h-4 mr-1" />
