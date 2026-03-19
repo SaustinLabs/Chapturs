@@ -422,7 +422,7 @@ export default function FeedCard({ item, onClick, recommendationRank = 0 }: Feed
             </span>
             <span className="flex items-center">
               <StarIcon className="w-4 h-4 mr-1" />
-              {item.work.statistics.averageRating.toFixed(1)}
+              {(item.work.statistics.averageRating ?? 0).toFixed(1)}
             </span>
             <span className="flex items-center">
               {getFormatIcon(item.work.formatType)}

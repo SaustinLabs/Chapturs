@@ -115,7 +115,7 @@ export default function WorkViewer({
               </span>
               <span className="flex items-center gap-1">
                 <StarIcon className="w-4 h-4" />
-                {work.statistics.averageRating.toFixed(1)} ({formatNumber(work.statistics.ratingCount)})
+                {(work.statistics.averageRating ?? 0).toFixed(1)} ({formatNumber(work.statistics.ratingCount)})
               </span>
               <span>{formatNumber(work.statistics.subscribers)} subscribers</span>
             </div>

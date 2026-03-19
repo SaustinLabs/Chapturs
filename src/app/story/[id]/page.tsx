@@ -352,7 +352,7 @@ export default function StoryPage() {
                     <div className="flex items-center justify-center space-x-1">
                       <StarIcon className="w-5 h-5 text-yellow-400 fill-current" />
                       <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                        {story.statistics.averageRating.toFixed(1)}
+                        {(story.statistics.averageRating ?? 0).toFixed(1)}
                       </span>
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
