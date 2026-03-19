@@ -6,7 +6,7 @@ import HtmlWithHighlights from './HtmlWithHighlights'
 
 interface ContentBlock {
   id: string
-  type: 'prose' | 'heading' | 'dialogue' | 'narration' | 'chat' | 'phone'
+  type: 'prose' | 'heading' | 'dialogue' | 'narration' | 'chat' | 'phone' | 'text'
   [key: string]: any
 }
 
@@ -52,6 +52,10 @@ function BlockRenderer({ block }: { block: ContentBlock }) {
   switch (block.type) {
     case 'prose':
       return <ProseBlock content={block.text || block.content || ''} />
+    
+    case 'text':
+      // Plain text block from editor
+      return <ProseBlock content={block.content || block.text || ''} />
     
     case 'heading':
       return <HeadingBlock text={block.text} level={block.level} />
