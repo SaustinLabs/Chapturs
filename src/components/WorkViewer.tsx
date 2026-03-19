@@ -239,7 +239,7 @@ export default function WorkViewer({
                 </div>
                 <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                    {Math.round(work.statistics.completionRate * 100)}%
+                    {Math.round((work.statistics?.completionRate ?? 0) * 100)}%
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">Completion</div>
                 </div>
