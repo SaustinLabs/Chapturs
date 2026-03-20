@@ -24,6 +24,69 @@ import {
 
 const prisma = new PrismaClient()
 
+export class BudgetExceededError extends Error {
+  constructor(
+    public scope: 'daily' | 'monthly',
+    public limitUsd: number,
+    public spentUsd: number
+  ) {
+    super(`Quality assessment ${scope} budget exceeded`)
+    this.name = 'BudgetExceededError'
+  }
+}
+
+function getBudgetCaps() {
+  const dailyRaw = process.env.QUALITY_ASSESSMENT_DAILY_BUDGET_USD
+  const monthlyRaw = process.env.QUALITY_ASSESSMENT_MONTHLY_BUDGET_USD
+  const daily = dailyRaw ? Number(dailyRaw) : undefined
+  const monthly = monthlyRaw ? Number(monthlyRaw) : undefined
+  return {
+    daily: Number.isFinite(daily) ? daily : undefined,
+    monthly: Number.isFinite(monthly) ? monthly : undefined,
+  }
+}
+
+function startOfUtcDay(date: Date) {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
+}
+
+function startOfUtcMonth(date: Date) {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1))
+}
+
+async function getUsageCostSince(start: Date): Promise<number> {
+  const result = await prisma.lLMUsageLog.aggregate({
+    where: {
+      service: 'quality_assessment',
+      success: true,
+      createdAt: { gte: start },
+    },
+    _sum: { estimatedCost: true },
+  })
+  return result._sum.estimatedCost || 0
+}
+
+async function enforceBudgetCaps() {
+  const caps = getBudgetCaps()
+  if (!caps.daily && !caps.monthly) return
+
+  const now = new Date()
+
+  if (caps.daily) {
+    const spentToday = await getUsageCostSince(startOfUtcDay(now))
+    if (spentToday >= caps.daily) {
+      throw new BudgetExceededError('daily', caps.daily, spentToday)
+    }
+  }
+
+  if (caps.monthly) {
+    const spentMonth = await getUsageCostSince(startOfUtcMonth(now))
+    if (spentMonth >= caps.monthly) {
+      throw new BudgetExceededError('monthly', caps.monthly, spentMonth)
+    }
+  }
+}
+
 /**
  * Add work to quality assessment queue
  */
@@ -78,6 +141,9 @@ export async function queueForAssessment(
  * Process next item in queue (respects rate-limit retry times)
  */
 export async function processNextInQueue(): Promise<QualityAssessmentResult | null> {
+  // Enforce optional budget caps before doing any work
+  await enforceBudgetCaps()
+
   // Get next queued item (prioritize by: high > normal > low, then oldest first, but skip if retryAfter is in future)
   const now = new Date()
   const queueItem = await prisma.qualityAssessmentQueue.findFirst({

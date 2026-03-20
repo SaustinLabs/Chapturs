@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Development Queue Processor
  * 
  * Runs in the background during development to process quality assessments.
@@ -19,7 +19,12 @@ async function processQueue() {
     })
 
     if (!response.ok) {
-      console.error(`❌ Process failed: ${response.status} ${response.statusText}`)
+      if (response.status === 429) {
+        const payload = await response.json().catch(() => ({}))
+        console.warn(`笞・・ Budget cap reached (${payload.scope || 'unknown'}). Spent $${payload.spentUsd || '?'} / $${payload.limitUsd || '?'}`)
+        return
+      }
+      console.error(`笶・Process failed: ${response.status} ${response.statusText}`)
       return
     }
 
@@ -27,24 +32,24 @@ async function processQueue() {
     const timestamp = new Date().toISOString()
     
     if (result.processed > 0) {
-      console.log(`✅ [${timestamp}] Processed ${result.processed} assessment(s)`)
+      console.log(`笨・[${timestamp}] Processed ${result.processed} assessment(s)`)
       if (result.failed > 0) {
-        console.log(`   ⚠️  ${result.failed} failed`)
+        console.log(`   笞・・ ${result.failed} failed`)
       }
     } else {
-      console.log(`ℹ️  [${timestamp}] Queue empty, waiting...`)
+      console.log(`邃ｹ・・ [${timestamp}] Queue empty, waiting...`)
     }
 
     if (result.remaining > 0) {
-      console.log(`   📋 ${result.remaining} remaining in queue`)
+      console.log(`   搭 ${result.remaining} remaining in queue`)
     }
   } catch (error) {
-    console.error(`❌ Error processing queue:`, error.message)
+    console.error(`笶・Error processing queue:`, error.message)
   }
 }
 
 // Initial run
-console.log('🚀 Quality Assessment Queue Processor started')
+console.log('噫 Quality Assessment Queue Processor started')
 console.log(`   Processing every ${INTERVAL_MS / 1000}s`)
 console.log(`   API: ${API_URL}`)
 console.log('')
@@ -56,11 +61,11 @@ setInterval(processQueue, INTERVAL_MS)
 
 // Handle graceful shutdown
 process.on('SIGINT', () => {
-  console.log('\n👋 Shutting down queue processor...')
+  console.log('\n窓 Shutting down queue processor...')
   process.exit(0)
 })
 
 process.on('SIGTERM', () => {
-  console.log('\n👋 Shutting down queue processor...')
+  console.log('\n窓 Shutting down queue processor...')
   process.exit(0)
 })

@@ -5,7 +5,7 @@ export const runtime = 'nodejs'
 // ============================================================================
 
 import { NextRequest, NextResponse } from 'next/server'
-import { processNextInQueue } from '@/lib/quality-assessment/assessment-service'
+import { processNextInQueue, BudgetExceededError } from '@/lib/quality-assessment/assessment-service'
 
 /**
  * POST /api/quality-assessment/process
@@ -27,10 +27,19 @@ export async function POST(request: NextRequest) {
       results
     })
   } catch (error) {
+    if (error instanceof BudgetExceededError) {
+      return NextResponse.json(
+        {
+          error: 'Budget cap reached',
+          scope: error.scope,
+          limitUsd: error.limitUsd,
+          spentUsd: error.spentUsd,
+        },
+        { status: 429 }
+      )
+    }
+
     console.error('Queue processing error:', error)
-    return NextResponse.json(
-      { error: 'Failed to process queue' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to process queue' }, { status: 500 })
   }
 }

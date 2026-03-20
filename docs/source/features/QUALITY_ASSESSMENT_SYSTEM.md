@@ -206,6 +206,15 @@ import QualityCelebration from '@/components/QualityCelebration'
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
+### Optional Budget Caps
+
+Use these to pause queue processing once cost limits are reached:
+
+```bash
+QUALITY_ASSESSMENT_DAILY_BUDGET_USD=5
+QUALITY_ASSESSMENT_MONTHLY_BUDGET_USD=100
+```
+
 ### Prompt Customization
 
 Edit the prompt in `src/lib/quality-assessment/llm-service.ts`:

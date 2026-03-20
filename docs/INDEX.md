@@ -14,6 +14,8 @@ This folder contains organized source documents and synthesized summaries.
 - summaries/methods-paths.md
 - summaries/visuals.md
 - summaries/source-index.md
+- summaries/task-suggestions-core.md
+- summaries/task-suggestions-features.md
 
 ## Source Documents
 Organized originals live under:
