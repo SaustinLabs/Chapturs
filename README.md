@@ -37,6 +37,5 @@ Summaries and indexes live under:
 ## Notes
 - Many documents include dates inside the files; filesystem timestamps may not reflect real chronology.
 - Some legacy docs reference old filenames; use docs/summaries/source-index.md to locate the current path.
-- Any credentials or secrets found in docs should be treated as compromised and rotated.
 
 If you’re looking for the actual live product, visit **Chapturs.com**.
