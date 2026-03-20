@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import {
   ThumbsUp,
@@ -52,6 +52,7 @@ export default function CommentItem({
   )
   const [likeCount, setLikeCount] = useState(comment.likeCount)
   const [reactions, setReactions] = useState<{ emoji: string, userIds: string[] }[]>([])
+  const [spoilerIndices, setSpoilerIndices] = useState(new Set<number>())
 
   // Parse reactions on mount
   useEffect(() => {
@@ -65,6 +66,8 @@ export default function CommentItem({
       }
     }
   }, [comment.reactions])
+
+  const [isContentBlurred, setIsContentBlurred] = useState(true)
 
   const isOwner = currentUserId === comment.userId
   const canEdit = isOwner && !comment.isEdited && isWithinEditWindow()
@@ -325,36 +328,54 @@ export default function CommentItem({
           )}
         </div>
 
-        {/* Content */}
-        {isEditing ? (
-          <div className="mb-3">
-            <textarea
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows={3}
-            />
-            <div className="flex items-center gap-2 mt-2">
-              <button
-                onClick={handleEdit}
-                disabled={loading}
-                className="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
-              >
-                Save
-              </button>
-              <button
-                onClick={() => {
-                  setIsEditing(false)
-                  setEditContent(comment.content)
-                }}
-                className="px-3 py-1 text-sm font-medium text-gray-700 hover:text-gray-900"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        ) : (
-          <p className="text-gray-800 mb-3 whitespace-pre-wrap">{comment.content}</p>
+        {/* Content */} 
+        {isEditing ? ( 
+          <div className="mb-3"> 
+            <textarea 
+              value={editContent} 
+              onChange={(e) => setEditContent(e.target.value)} 
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+              rows={3} 
+            /> 
+            <div className="flex items-center gap-2 mt-2"> 
+              <button 
+                onClick={handleEdit} 
+                disabled={loading} 
+                className="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50" 
+              > 
+                Save 
+              </button> 
+              <button 
+                onClick={() => { 
+                  setIsEditing(false) 
+                  setEditContent(comment.content) 
+                }} 
+                className="px-3 py-1 text-sm font-medium text-gray-700 hover:text-gray-900" 
+              > 
+                Cancel 
+              </button> 
+            </div> 
+          </div> 
+        ) : ( 
+          <> 
+            <p 
+              className="text-gray-800 mb-3 whitespace-pre-wrap" 
+              style={{ 
+                filter: isContentBlurred ? 'blur(8px)' : 'none', 
+                transition: 'filter 0.2s ease' 
+              }} 
+            > 
+              {comment.content} 
+            </p> 
+            {isContentBlurred && ( 
+              <button 
+                onClick={() => setIsContentBlurred(false)} 
+                className="text-sm text-blue-600 hover:text-blue-800" 
+              > 
+                Show spoiler 
+              </button> 
+            )} 
+          /> 
         )}
 
         {/* Reactions Display */}
@@ -368,8 +389,8 @@ export default function CommentItem({
                   onClick={() => handleReaction(reaction.emoji)}
                   disabled={!currentUserId || loading}
                   className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-sm border transition-colors ${
-                    hasReacted 
-                      ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300' 
+                    hasReacted
+                      ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300'
                       : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700'
                   }`}
                   title={`${reaction.userIds.length} reaction${reaction.userIds.length !== 1 ? 's' : ''}`}
@@ -415,7 +436,7 @@ export default function CommentItem({
                 <SmilePlus className="w-4 h-4" />
                 React
               </button>
-              
+
               {showEmojiPicker && (
                 <div className="absolute top-full mt-2 left-0 z-50">
                   <EmojiPicker
