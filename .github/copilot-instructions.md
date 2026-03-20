@@ -1,4 +1,4 @@
-# Chapturs – AI Coding Agent Instructions
+﻿# Chapturs 窶・AI Coding Agent Instructions
 
 ## Project Overview
 Chapturs is a modern webnovel platform inspired by TikTok (infinite scroll discovery) and YouTube (creator monetization). It features dual Reader/Creator hubs, dynamic glossary, analytics, and advanced content management.
@@ -20,7 +20,7 @@ Chapturs is a modern webnovel platform inspired by TikTok (infinite scroll disco
 - **Lint:** `npm run lint`
 - **Prisma:** `npx prisma generate`, `npx prisma db push`
 - **Seed DB:** `npm run db:seed`
-- **Deploy:** Push to `main` triggers Vercel deploy (see `VERCEL_DEPLOYMENT_GUIDE.md`)
+- **Deploy:** Push to `main` triggers Vercel deploy (see `docs/source/ops/VERCEL_DEPLOYMENT_GUIDE.md`)
 - **Env:** Copy `.env.example` to `.env.local` and fill in secrets. Never commit real secrets.
 
 ## Project Conventions & Patterns
@@ -34,7 +34,7 @@ Chapturs is a modern webnovel platform inspired by TikTok (infinite scroll disco
 
 ## Integration Points
 - **Cloudflare R2:** For image storage. See `src/lib/r2.ts` and related upload endpoints.
-- **Supabase PostgreSQL:** For production DB. See `VERCEL_DEPLOYMENT_GUIDE.md` for setup.
+- **Supabase PostgreSQL:** For production DB. See `docs/source/ops/VERCEL_DEPLOYMENT_GUIDE.md` for setup.
 - **Groq API:** For content quality assessment (see env vars and `/api/quality-assessment/`).
 - **NextAuth:** For authentication (see `/src/app/api/auth/`).
 
@@ -44,10 +44,13 @@ Chapturs is a modern webnovel platform inspired by TikTok (infinite scroll disco
 - **Story/Work Management:** `src/components/StoryManagement.tsx`, `src/app/story/[id]/page.tsx`
 - **API Example:** `src/app/api/works/publish/route.ts`
 - **Quality Assessment:** `src/lib/ContentValidationService.ts`, `src/app/api/quality-assessment/`
-- **Deployment:** `VERCEL_DEPLOYMENT_GUIDE.md`
+- **Deployment:** `docs/source/ops/VERCEL_DEPLOYMENT_GUIDE.md`
 
 ## Special Notes
 - **Do not commit secrets:** Always add new env files to `.gitignore`.
 - **Legacy/experimental code:** Some features (e.g., bulk upload, advanced moderation) may have partial or legacy implementations.
 - **Error handling:** Use Next.js error boundaries and API error helpers in `/src/lib/api/errorHandling.ts`.
 - **Mobile:** All design is responsive; do not create separate mobile code paths.
+
+
+
