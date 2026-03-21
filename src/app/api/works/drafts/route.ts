@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '../../../../../auth'
 import { prisma } from '@/lib/database/PrismaService'
+import { persistDescriptionTranslations } from '@/lib/translation'
 
 // POST /api/works/drafts - Create new work draft (not published to main library)
 export async function POST(request: NextRequest) {
@@ -66,6 +67,9 @@ export async function POST(request: NextRequest) {
         })
       }
     })
+    
+    // Auto-generate AI translations for the description field
+    await persistDescriptionTranslations(draft.id, description)
 
     return NextResponse.json({
       success: true,

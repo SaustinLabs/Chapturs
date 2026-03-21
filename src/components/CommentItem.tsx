@@ -328,54 +328,54 @@ export default function CommentItem({
           )}
         </div>
 
-        {/* Content */} 
-        {isEditing ? ( 
-          <div className="mb-3"> 
-            <textarea 
-              value={editContent} 
-              onChange={(e) => setEditContent(e.target.value)} 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
-              rows={3} 
-            /> 
-            <div className="flex items-center gap-2 mt-2"> 
-              <button 
-                onClick={handleEdit} 
-                disabled={loading} 
-                className="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50" 
-              > 
-                Save 
-              </button> 
-              <button 
-                onClick={() => { 
-                  setIsEditing(false) 
-                  setEditContent(comment.content) 
-                }} 
-                className="px-3 py-1 text-sm font-medium text-gray-700 hover:text-gray-900" 
-              > 
-                Cancel 
-              </button> 
-            </div> 
-          </div> 
-        ) : ( 
-          <> 
-            <p 
-              className="text-gray-800 mb-3 whitespace-pre-wrap" 
-              style={{ 
-                filter: isContentBlurred ? 'blur(8px)' : 'none', 
-                transition: 'filter 0.2s ease' 
-              }} 
-            > 
-              {comment.content} 
-            </p> 
-            {isContentBlurred && ( 
-              <button 
-                onClick={() => setIsContentBlurred(false)} 
-                className="text-sm text-blue-600 hover:text-blue-800" 
-              > 
-                Show spoiler 
-              </button> 
-            )} 
-          /> 
+        {/* Content */}
+        {isEditing ? (
+          <div className="mb-3">
+            <textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows={3}
+            />
+            <div className="flex items-center gap-2 mt-2">
+              <button
+                onClick={handleEdit}
+                disabled={loading}
+                className="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => {
+                  setIsEditing(false)
+                  setEditContent(comment.content)
+                }}
+                className="px-3 py-1 text-sm font-medium text-gray-700 hover:text-gray-900"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <p
+              className="text-gray-800 mb-3 whitespace-pre-wrap"
+              style={{
+                filter: isContentBlurred ? 'blur(8px)' : 'none',
+                transition: 'filter 0.2s ease'
+              }}
+            >
+              {comment.content}
+            </p>
+            {isContentBlurred && (
+              <button
+                onClick={() => setIsContentBlurred(false)}
+                className="text-sm text-blue-600 hover:text-blue-800"
+              >
+                Show spoiler
+              </button>
+            )}
+          </>
         )}
 
         {/* Reactions Display */}

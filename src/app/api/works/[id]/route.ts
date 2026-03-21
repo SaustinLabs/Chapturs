@@ -3,6 +3,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import DatabaseService, { prisma } from '@/lib/database/PrismaService'
 import { auth } from '@/auth'
+import { persistDescriptionTranslations } from '@/lib/translation'
 
 export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -117,6 +118,11 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       where: { id },
       data: updateData
     })
+    
+    // If description was updated, regenerate AI translations for the description field
+    if (description !== undefined) {
+      await persistDescriptionTranslations(id, description)
+    }
 
     console.log(`Works API: Successfully updated work: ${updatedWork.title}`)
     return NextResponse.json({
