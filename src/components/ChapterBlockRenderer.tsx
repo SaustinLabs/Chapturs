@@ -3,6 +3,7 @@
 import React from 'react'
 import HtmlWithGlossary from './HtmlWithGlossary'
 import HtmlWithHighlights from './HtmlWithHighlights'
+import MobileTextBox from './MobileTextBox'
 
 interface ContentBlock {
   id: string
@@ -166,7 +167,7 @@ function NarrationBlock({ text }: { text: string }) {
   )
 }
 
-// Chat Block - Modern messaging interface
+// Chat Block - Modern messaging interface with mobile optimization
 function ChatBlock({ messages }: { messages: Array<{ sender: string; text: string; timestamp?: string }> }) {
   if (!messages || messages.length === 0) return null
   
@@ -184,9 +185,16 @@ function ChatBlock({ messages }: { messages: Array<{ sender: string; text: strin
               </span>
             )}
           </div>
-          <div 
-            className="bg-white dark:bg-gray-800 rounded-lg px-4 py-2 inline-block max-w-[80%]"
-            dangerouslySetInnerHTML={{ __html: message.text }}
+          {/* Use MobileTextBox for better mobile rendering with Pretext */}
+          <MobileTextBox
+            content={message.text}
+            platform="generic"
+            fontSize={14}
+            fontFamily="Inter"
+            lineHeight={20}
+            maxWidth={250}
+            className="my-1"
+            showTimestamps={false}
           />
         </div>
       ))}

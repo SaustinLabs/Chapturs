@@ -1,0 +1,41 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          
+          # Run deployment script on VPS
+          script: |
+            cd ${{ secrets.VPS_APP_DIR || '~/chapturs' }}
+            chmod +x .github/scripts/deploy.sh
+            ./.github/scripts/deploy.sh
+
+      - name: Deployment Status
+        if: success()
+        run: |
+          echo "✓ Deployment successful!"
+          echo "Application is now running on VPS at ${{ secrets.VPS_HOST }}"
+
+      - name: Deployment Failed
+        if: failure()
+        run: |
+          echo "✗ Deployment failed!"
+          echo "Please check the VPS logs for details"
