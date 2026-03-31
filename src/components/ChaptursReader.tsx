@@ -8,9 +8,19 @@ import TranslationPanel from './TranslationPanel'
 import InlineBlockComments from './InlineBlockComments'
 import EditSuggestionModal from './EditSuggestionModal'
 import SelectionActionToolbar from './SelectionActionToolbar'
+import CharacterProfileViewModal from './CharacterProfileViewModal'
 import { useMeasureTextHeight } from '@/hooks/usePretext'
 import { buildReaderSelectionActions } from '@/lib/selectionActionRegistry'
 import { SelectionRole } from '@/lib/selectionActionRegistry'
+
+interface ReaderCharacter {
+  id: string
+  name: string
+  aliases?: string[]
+  allowUserSubmissions?: boolean
+  workId?: string
+  [key: string]: any
+}
 
 interface ChaptursReaderProps {
   document: ChaptDocument
@@ -25,6 +35,8 @@ interface ChaptursReaderProps {
   currentUserName?: string
   viewerRole?: SelectionRole
   onFanArtIntent?: (term: string, blockId: string) => void
+  workId?: string
+  characters?: ReaderCharacter[]
 }
 
 export default function ChaptursReader({
@@ -39,7 +51,9 @@ export default function ChaptursReader({
   currentUserId,
   currentUserName,
   viewerRole = 'reader',
-  onFanArtIntent
+  onFanArtIntent,
+  workId,
+  characters
 }: ChaptursReaderProps) {
   
   const [activeLanguage, setActiveLanguage] = useState<string>(document.metadata.language)
@@ -57,6 +71,8 @@ export default function ChaptursReader({
   const [selectedText, setSelectedText] = useState('')
   const [selectedBlockId, setSelectedBlockId] = useState('')
   const [selectionPosition, setSelectionPosition] = useState({ top: 0, left: 0 })
+  const [knownCharacters, setKnownCharacters] = useState<ReaderCharacter[]>(characters || [])
+  const [selectedCharacter, setSelectedCharacter] = useState<ReaderCharacter | null>(null)
   
   const observerRef = useRef<IntersectionObserver | null>(null)
 
@@ -130,6 +146,37 @@ export default function ChaptursReader({
     }
   }, [enableCollaboration])
 
+  useEffect(() => {
+    if (characters && characters.length > 0) {
+      setKnownCharacters(characters)
+      return
+    }
+
+    // Best-effort character loading; this may fail for unauthenticated readers and will silently no-op.
+    const resolvedWorkId = workId || document.metadata.id
+    const currentChapter = document.metadata.chapterNumber || 999999
+
+    const loadCharacters = async () => {
+      try {
+        const response = await fetch(`/api/works/${resolvedWorkId}/characters?chapter=${currentChapter}`)
+        if (!response.ok) return
+
+        const data = await response.json()
+        if (data?.success && Array.isArray(data.characters)) {
+          const normalized = data.characters.map((char: ReaderCharacter) => ({
+            ...char,
+            workId: char.workId || resolvedWorkId
+          }))
+          setKnownCharacters(normalized)
+        }
+      } catch {
+        // Keep reader resilient if character API is unavailable for current viewer context.
+      }
+    }
+
+    loadCharacters()
+  }, [workId, characters, document.metadata.id, document.metadata.chapterNumber])
+
   // Load comments for all blocks
   useEffect(() => {
     if (!enableCollaboration) return
@@ -188,9 +235,34 @@ export default function ChaptursReader({
     setSelectedBlockId('')
   }
 
+  const resolveCharacterFromSelection = () => {
+    const selected = selectedText.trim().toLowerCase()
+    if (!selected) return null
+
+    return (
+      knownCharacters.find((char) => {
+        const directMatch = char.name?.toLowerCase() === selected
+        const aliasMatch = Array.isArray(char.aliases)
+          ? char.aliases.some((alias) => alias.toLowerCase() === selected)
+          : false
+        return directMatch || aliasMatch
+      }) || null
+    )
+  }
+
   const handleFanArtIntent = () => {
     if (onFanArtIntent) {
       onFanArtIntent(selectedText, selectedBlockId)
+      clearSelection()
+      return
+    }
+
+    const matchedCharacter = resolveCharacterFromSelection()
+    if (matchedCharacter) {
+      setSelectedCharacter({
+        ...matchedCharacter,
+        workId: matchedCharacter.workId || workId || document.metadata.id
+      })
       clearSelection()
       return
     }
@@ -439,6 +511,14 @@ export default function ChaptursReader({
         actions={selectionActions}
         onClose={clearSelection}
       />
+
+      {selectedCharacter && (
+        <CharacterProfileViewModal
+          character={selectedCharacter}
+          isOpen={Boolean(selectedCharacter)}
+          onClose={() => setSelectedCharacter(null)}
+        />
+      )}
     </div>
   )
 }
