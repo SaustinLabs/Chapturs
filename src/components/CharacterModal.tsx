@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { X, Loader2 } from 'lucide-react'
+import { measureTextRows } from '@/hooks/usePretext'
 
 interface CharacterProfile {
   id?: string
@@ -43,6 +44,14 @@ export default function CharacterModal({ workId, character, onClose, onSuccess }
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const textareaRows = {
+    quickGlance: measureTextRows(formData.quickGlance, '14px Inter', 680, 20, { whiteSpace: 'pre-wrap' }, 2, 6),
+    physicalDescription: measureTextRows(formData.physicalDescription, '14px Inter', 680, 20, { whiteSpace: 'pre-wrap' }, 3, 10),
+    personality: measureTextRows(formData.personality, '14px Inter', 680, 20, { whiteSpace: 'pre-wrap' }, 3, 10),
+    backstory: measureTextRows(formData.backstory, '14px Inter', 680, 20, { whiteSpace: 'pre-wrap' }, 3, 12),
+    motivations: measureTextRows(formData.motivations, '14px Inter', 680, 20, { whiteSpace: 'pre-wrap' }, 3, 10),
+    characterArc: measureTextRows(formData.characterArc, '14px Inter', 680, 20, { whiteSpace: 'pre-wrap' }, 3, 12)
+  }
 
   const isEditing = !!character?.id
 
@@ -211,7 +220,7 @@ export default function CharacterModal({ workId, character, onClose, onSuccess }
                 value={formData.quickGlance}
                 onChange={(e) => setFormData({ ...formData, quickGlance: e.target.value.slice(0, 500) })}
                 placeholder="A brief description shown on hover (e.g., 'A mysterious wanderer with a dark past')"
-                rows={2}
+                rows={textareaRows.quickGlance}
                 maxLength={500}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 resize-none"
               />
@@ -229,7 +238,7 @@ export default function CharacterModal({ workId, character, onClose, onSuccess }
                 value={formData.physicalDescription}
                 onChange={(e) => setFormData({ ...formData, physicalDescription: e.target.value })}
                 placeholder="Describe their appearance, height, build, distinctive features..."
-                rows={3}
+                rows={textareaRows.physicalDescription}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 resize-none"
               />
             </div>
@@ -243,7 +252,7 @@ export default function CharacterModal({ workId, character, onClose, onSuccess }
                 value={formData.personality}
                 onChange={(e) => setFormData({ ...formData, personality: e.target.value })}
                 placeholder="Describe their personality traits, quirks, behavior patterns..."
-                rows={3}
+                rows={textareaRows.personality}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 resize-none"
               />
             </div>
@@ -257,7 +266,7 @@ export default function CharacterModal({ workId, character, onClose, onSuccess }
                 value={formData.backstory}
                 onChange={(e) => setFormData({ ...formData, backstory: e.target.value })}
                 placeholder="Their history, origins, important past events..."
-                rows={3}
+                rows={textareaRows.backstory}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 resize-none"
               />
             </div>
@@ -271,7 +280,7 @@ export default function CharacterModal({ workId, character, onClose, onSuccess }
                 value={formData.motivations}
                 onChange={(e) => setFormData({ ...formData, motivations: e.target.value })}
                 placeholder="What drives them? Goals, desires, fears..."
-                rows={3}
+                rows={textareaRows.motivations}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 resize-none"
               />
             </div>
@@ -285,7 +294,7 @@ export default function CharacterModal({ workId, character, onClose, onSuccess }
                 value={formData.characterArc}
                 onChange={(e) => setFormData({ ...formData, characterArc: e.target.value })}
                 placeholder="How do they change throughout the story?"
-                rows={3}
+                rows={textareaRows.characterArc}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 resize-none"
               />
             </div>

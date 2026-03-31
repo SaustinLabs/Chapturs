@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { Bold, Italic, Underline, Strikethrough, Superscript, Subscript, Link, Image, Smile } from 'lucide-react'
 import EmojiPicker from './EmojiPicker'
+import { measureTextRows } from '@/hooks/usePretext'
 
 interface RichTextEditorProps {
   value: string
@@ -22,6 +23,24 @@ export default function RichTextEditor({
   const editorRef = useRef<HTMLDivElement>(null)
   const [isFocused, setIsFocused] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+
+  const plainText = useMemo(() => {
+    return value
+      .replace(/<br\s*\/?>(\r\n|\r|\n)?/gi, '\n')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .trim()
+  }, [value])
+
+  const dynamicRows = useMemo(() => {
+    return measureTextRows(plainText, '16px Inter', 620, 24, { whiteSpace: 'pre-wrap' }, 4, 30)
+  }, [plainText])
+
+  const minHeightPx = useMemo(() => {
+    const parsed = Number.parseInt(minHeight.replace('px', ''), 10)
+    const base = Number.isNaN(parsed) ? 80 : parsed
+    return Math.max(base, dynamicRows * 24 + 16)
+  }, [dynamicRows, minHeight])
 
   // Initialize editor with value
   useEffect(() => {
@@ -169,7 +188,7 @@ export default function RichTextEditor({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         className="p-3 outline-none prose max-w-none bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-        style={{ minHeight }}
+        style={{ minHeight: `${minHeightPx}px` }}
         data-placeholder={placeholder}
       />
 

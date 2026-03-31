@@ -1,16 +1,18 @@
 'use client'
 
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { ChaptDocument, ContentBlock, BlockType, ProseBlock, HeadingBlock, DividerBlock, DialogueBlock, ChatBlock, PhoneBlock, NarrationBlock, ImageBlock, EditorState, ChatPlatform } from '@/types/chapt'
 import { ChatBlockEditor, PhoneBlockEditor, DialogueBlockEditor, NarrationBlockEditor } from './BlockEditors'
 import { PlusCircle, Save, Eye, Edit3, Type, MessageSquare, Smartphone, Users, SplitSquareVertical, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, Maximize, Sparkles, X, ChevronRight, UserPlus } from 'lucide-react'
 import RichTextEditor from './RichTextEditor'
 import EditorSidebar from './EditorSidebar'
 import HtmlWithHighlights from './HtmlWithHighlights'
+import SelectionActionToolbar from './SelectionActionToolbar'
 import CharacterProfileModal from './CharacterProfileModal'
 import QualityReportModal from './QualityReportModal'
 import PrePublishChecklist from './PrePublishChecklist'
 import { Activity, Clock } from 'lucide-react'
+import { measureTextRows } from '@/hooks/usePretext'
 
 interface ChaptursEditorProps {
   workId: string
@@ -65,10 +67,17 @@ export default function ChaptursEditor({
   const [showSidebar, setShowSidebar] = useState(false)
   const [glossaryRefreshKey, setGlossaryRefreshKey] = useState(0)
   const [characterRefreshKey, setCharacterRefreshKey] = useState(0)
+  const glossaryDefinitionRows = useMemo(
+    () => measureTextRows(glossaryDefinition, '14px Inter', 520, 20, { whiteSpace: 'pre-wrap' }, 4, 14),
+    [glossaryDefinition]
+  )
   
   // Checklist & Scheduling state
   const [showChecklist, setShowChecklist] = useState(false)
   const [isScheduling, setIsScheduling] = useState(false)
+  const [isSplitPreview, setIsSplitPreview] = useState(false)
+  const [selectionPosition, setSelectionPosition] = useState({ top: 0, left: 0 })
+  const previewPaneRef = useRef<HTMLDivElement | null>(null)
 
   // Track text selection
   useEffect(() => {
@@ -76,6 +85,15 @@ export default function ChaptursEditor({
       const selection = window.getSelection()
       const text = selection?.toString().trim() || ''
       setSelectedText(text)
+
+      if (selection && !selection.isCollapsed && text) {
+        const range = selection.getRangeAt(0)
+        const rect = range.getBoundingClientRect()
+        setSelectionPosition({
+          top: rect.bottom + window.scrollY + 10,
+          left: rect.left + window.scrollX
+        })
+      }
     }
 
     document.addEventListener('selectionchange', handleSelectionChange)
@@ -238,6 +256,18 @@ export default function ChaptursEditor({
       }
     }
   }, [editorState.document, editorState.isDirty])
+
+  useEffect(() => {
+    if (!isSplitPreview || !editorState.currentBlockId || !previewPaneRef.current) return
+
+    const previewNode = previewPaneRef.current.querySelector<HTMLElement>(
+      `[data-preview-block-id="${editorState.currentBlockId}"]`
+    )
+
+    if (previewNode) {
+      previewNode.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }
+  }, [isSplitPreview, editorState.currentBlockId])
 
   // Save handler
   const handleSave = useCallback(async () => {
@@ -434,28 +464,6 @@ export default function ChaptursEditor({
           />
           <span className="text-sm text-gray-900 dark:text-gray-100 font-medium">{wordCount} words</span>
           
-          {/* Action buttons for selected text - shows when text is selected */}
-          {selectedText && editorState.mode === 'edit' && (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleAddToGlossary}
-                className="px-3 py-1.5 text-xs bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded hover:bg-purple-200 dark:hover:bg-purple-800 flex items-center gap-1.5 animate-in fade-in duration-200"
-                title="Add to Glossary"
-              >
-                <Sparkles size={14} />
-                Define "{selectedText.substring(0, 20)}{selectedText.length > 20 ? '...' : ''}"
-              </button>
-              
-              <button
-                onClick={handleAddCharacterProfile}
-                className="px-3 py-1.5 text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded hover:bg-green-200 dark:hover:bg-green-800 flex items-center gap-1.5 animate-in fade-in duration-200"
-                title="Add Character Profile"
-              >
-                <UserPlus size={14} />
-                Character
-              </button>
-            </div>
-          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -468,6 +476,21 @@ export default function ChaptursEditor({
             ) : (
               <><Edit3 size={16} /> Edit</>
             )}
+          </button>
+
+          <button
+            onClick={() => {
+              setIsSplitPreview(prev => !prev)
+              setEditorState(prev => ({ ...prev, mode: 'edit' }))
+            }}
+            className={`px-3 py-1.5 text-sm border rounded flex items-center gap-2 ${{
+              true: 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+              false: 'border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }[String(isSplitPreview) as 'true' | 'false']}`}
+            title="Toggle split live preview"
+          >
+            <SplitSquareVertical size={16} />
+            Split
           </button>
           
           <button
@@ -578,6 +601,55 @@ export default function ChaptursEditor({
                 Add First Block
               </button>
             </div>
+          ) : isSplitPreview ? (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <div className="min-w-0">
+                <div className="mb-3 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Editor</div>
+                {editorState.document.content.map((block, index) => (
+                  <div key={`edit-${block.id}`} data-editor-block-id={block.id}>
+                    <BlockRenderer
+                      block={block}
+                      mode="edit"
+                      isActive={editorState.currentBlockId === block.id}
+                      onUpdate={(updates) => updateBlock(block.id, updates)}
+                      onDelete={() => deleteBlock(block.id)}
+                      onMoveUp={() => moveBlock(block.id, 'up')}
+                      onMoveDown={() => moveBlock(block.id, 'down')}
+                      onFocus={() => setEditorState(prev => ({ ...prev, currentBlockId: block.id }))}
+                      onAddBlockAfter={(e) => showBlockMenuAt(block.id, e)}
+                      canMoveUp={index > 0}
+                      canMoveDown={index < editorState.document.content.length - 1}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div ref={previewPaneRef} className="min-w-0 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 max-h-[70vh] overflow-y-auto">
+                <div className="mb-3 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Live Preview</div>
+                {editorState.document.content.map((block, index) => (
+                  <div
+                    key={`preview-${block.id}`}
+                    data-preview-block-id={block.id}
+                    onClick={() => setEditorState(prev => ({ ...prev, currentBlockId: block.id }))}
+                    className="cursor-pointer"
+                  >
+                    <BlockRenderer
+                      block={block}
+                      mode="preview"
+                      isActive={editorState.currentBlockId === block.id}
+                      onUpdate={() => {}}
+                      onDelete={() => {}}
+                      onMoveUp={() => {}}
+                      onMoveDown={() => {}}
+                      onFocus={() => {}}
+                      onAddBlockAfter={() => {}}
+                      canMoveUp={index > 0}
+                      canMoveDown={index < editorState.document.content.length - 1}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
           ) : (
             <>
               {editorState.document.content.map((block, index) => (
@@ -685,7 +757,7 @@ export default function ChaptursEditor({
                 <textarea
                   value={glossaryDefinition}
                   onChange={(e) => setGlossaryDefinition(e.target.value)}
-                  rows={4}
+                  rows={glossaryDefinitionRows}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="Enter the definition..."
                 />
@@ -715,6 +787,28 @@ export default function ChaptursEditor({
           </div>
         </div>
       )}
+
+      {/* Text Selection Toolbar */}
+      <SelectionActionToolbar
+        visible={Boolean(selectedText && editorState.mode === 'edit' && !showGlossaryModal && !showCharacterModal)}
+        position={selectionPosition}
+        actions={[
+          {
+            id: 'glossary',
+            label: 'Glossary',
+            icon: <Sparkles size={14} />,
+            onClick: handleAddToGlossary,
+            variant: 'primary'
+          },
+          {
+            id: 'character',
+            label: 'Character',
+            icon: <UserPlus size={14} />,
+            onClick: handleAddCharacterProfile
+          }
+        ]}
+        onClose={() => setSelectedText('')}
+      />
 
       {/* Quality Report Modal */}
       <QualityReportModal 

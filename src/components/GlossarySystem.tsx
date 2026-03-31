@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { GlossaryTerm } from '@/types'
+import { measureTextHeight } from '@/hooks/usePretext'
 
 interface GlossaryTooltipProps {
   term: string
@@ -12,13 +13,19 @@ interface GlossaryTooltipProps {
 export function GlossaryTooltip({ term, definition, children }: GlossaryTooltipProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [position, setPosition] = useState({ x: 0, y: 0 })
-  const tooltipRef = useRef<HTMLDivElement>(null)
-  const triggerRef = useRef<HTMLSpanElement>(null)
+  const tooltipText = useMemo(() => `${term}\n${definition}`, [term, definition])
+  const tooltipHeight = useMemo(() => {
+    const measurement = measureTextHeight(tooltipText, '14px Inter', 320, 20, { whiteSpace: 'pre-wrap' })
+    return Math.max(56, measurement.height + 24)
+  }, [tooltipText])
+  const tooltipWidth = useMemo(() => {
+    const longestSegment = Math.max(term.length, ...definition.split(/\s+/).map(w => w.length))
+    return Math.min(320, Math.max(180, longestSegment * 8 + 48))
+  }, [term, definition])
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (isVisible && tooltipRef.current) {
-        const tooltipRect = tooltipRef.current.getBoundingClientRect()
+      if (isVisible) {
         const viewportWidth = window.innerWidth
         const viewportHeight = window.innerHeight
         
@@ -26,11 +33,14 @@ export function GlossaryTooltip({ term, definition, children }: GlossaryTooltipP
         let y = e.clientY - 10
         
         // Adjust if tooltip would go off screen
-        if (x + tooltipRect.width > viewportWidth) {
-          x = e.clientX - tooltipRect.width - 10
+        if (x + tooltipWidth > viewportWidth) {
+          x = e.clientX - tooltipWidth - 10
         }
-        if (y - tooltipRect.height < 0) {
+        if (y - tooltipHeight < 0) {
           y = e.clientY + 20
+        }
+        if (y + 20 > viewportHeight) {
+          y = viewportHeight - 20
         }
         
         setPosition({ x, y })
@@ -44,7 +54,6 @@ export function GlossaryTooltip({ term, definition, children }: GlossaryTooltipP
   return (
     <span className="relative">
       <span
-        ref={triggerRef}
         onMouseEnter={() => setIsVisible(true)}
         onMouseLeave={() => setIsVisible(false)}
         className="cursor-help border-b border-dotted border-blue-500 text-blue-600 dark:text-blue-400 hover:border-solid transition-all"
@@ -54,11 +63,11 @@ export function GlossaryTooltip({ term, definition, children }: GlossaryTooltipP
       
       {isVisible && (
         <div
-          ref={tooltipRef}
           className="fixed z-50 max-w-sm p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg pointer-events-none"
           style={{ 
             left: position.x, 
             top: position.y,
+            width: `${tooltipWidth}px`,
             transform: 'translateY(-100%)'
           }}
         >

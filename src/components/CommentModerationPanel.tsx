@@ -42,6 +42,7 @@ export default function CommentModerationPanel() {
   const [loading, setLoading] = useState(true)
   const [status, setStatus] = useState<'pending' | 'reviewed' | 'actioned' | 'all'>('pending')
   const [counts, setCounts] = useState<Record<string, number>>({})
+  const [processingReportId, setProcessingReportId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchReports()
@@ -68,35 +69,28 @@ export default function CommentModerationPanel() {
     }
   }
 
-  const handleHideComment = async (commentId: string) => {
+  const handleReportAction = async (reportId: string, action: 'dismiss' | 'hide' | 'delete') => {
+    if (action === 'delete' && !confirm('Are you sure you want to delete this comment?')) return
+
+    setProcessingReportId(reportId)
     try {
-      const response = await fetch(`/api/comments/${commentId}`, {
-        method: 'PATCH',
+      const response = await fetch(`/api/creator/moderation/comments/${reportId}/action`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isHidden: true })
+        body: JSON.stringify({ action })
       })
 
       if (response.ok) {
         fetchReports() // Refresh list
+      } else {
+        const data = await response.json().catch(() => ({}))
+        alert(data?.error || 'Failed to process moderation action')
       }
     } catch (error) {
-      console.error('Error hiding comment:', error)
-    }
-  }
-
-  const handleDeleteComment = async (commentId: string) => {
-    if (!confirm('Are you sure you want to delete this comment?')) return
-
-    try {
-      const response = await fetch(`/api/comments/${commentId}`, {
-        method: 'DELETE'
-      })
-
-      if (response.ok) {
-        fetchReports() // Refresh list
-      }
-    } catch (error) {
-      console.error('Error deleting comment:', error)
+      console.error('Error processing moderation action:', error)
+      alert('Failed to process moderation action')
+    } finally {
+      setProcessingReportId(null)
     }
   }
 
@@ -240,24 +234,28 @@ export default function CommentModerationPanel() {
               {report.status === 'pending' && (
                 <div className="flex items-center gap-3 pt-2 border-t border-gray-700">
                   <button
-                    onClick={() => handleHideComment(report.comment.id)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition-colors"
+                    onClick={() => handleReportAction(report.id, 'hide')}
+                    disabled={processingReportId === report.id}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     <Eye className="w-4 h-4" />
                     Hide Comment
                   </button>
                   <button
-                    onClick={() => handleDeleteComment(report.comment.id)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                    onClick={() => handleReportAction(report.id, 'delete')}
+                    disabled={processingReportId === report.id}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     <X className="w-4 h-4" />
                     Delete Comment
                   </button>
                   <button
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
+                    onClick={() => handleReportAction(report.id, 'dismiss')}
+                    disabled={processingReportId === report.id}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     <Check className="w-4 h-4" />
-                    Dismiss Report
+                    {processingReportId === report.id ? 'Processing...' : 'Dismiss Report'}
                   </button>
                 </div>
               )}

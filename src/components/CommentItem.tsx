@@ -18,6 +18,7 @@ import CommentForm from './CommentForm'
 import ReportModal from './ReportModal'
 import EmojiPicker from './EmojiPicker'
 import type { Comment, CommentUser } from '@/types/comment'
+import { measureTextRows } from '@/hooks/usePretext'
 
 interface CommentItemProps {
   comment: Comment
@@ -41,6 +42,7 @@ export default function CommentItem({
   onReplyAdded
 }: CommentItemProps) {
   const [showReplyForm, setShowReplyForm] = useState(false)
+  const [showReplies, setShowReplies] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(comment.content)
   const [showMenu, setShowMenu] = useState(false)
@@ -215,6 +217,14 @@ export default function CommentItem({
 
   const maxDepth = 3
   const canReply = depth < maxDepth && currentUserId
+  const editRows = useMemo(
+    () => measureTextRows(editContent, '14px Inter', 560, 20, { whiteSpace: 'pre-wrap' }, 3, 14),
+    [editContent]
+  )
+  const sortedReplies = useMemo(() => {
+    if (!comment.replies) return []
+    return [...comment.replies].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+  }, [comment.replies])
 
   return (
     <div className={`${depth > 0 ? 'ml-8 mt-4' : ''}`}>
@@ -335,7 +345,7 @@ export default function CommentItem({
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows={3}
+              rows={editRows}
             />
             <div className="flex items-center gap-2 mt-2">
               <button
@@ -453,6 +463,15 @@ export default function CommentItem({
               {comment.replyCount} {comment.replyCount === 1 ? 'reply' : 'replies'}
             </span>
           )}
+
+          {comment.replies && comment.replies.length > 0 && (
+            <button
+              onClick={() => setShowReplies(prev => !prev)}
+              className="text-sm text-blue-600 hover:text-blue-700"
+            >
+              {showReplies ? 'Hide replies' : `Show replies (${comment.replies.length})`}
+            </button>
+          )}
         </div>
 
         {/* Reply form */}
@@ -475,9 +494,9 @@ export default function CommentItem({
       </div>
 
       {/* Replies */}
-      {comment.replies && comment.replies.length > 0 && (
+      {showReplies && comment.replies && comment.replies.length > 0 && (
         <div className="mt-2">
-          {comment.replies.map((reply) => (
+          {sortedReplies.map((reply) => (
             <CommentItem
               key={reply.id}
               comment={reply}

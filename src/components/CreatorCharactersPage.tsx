@@ -6,6 +6,7 @@ import { useUser } from '@/hooks/useUser'
 import { useState, useEffect } from 'react'
 import { BookOpen, Search, Users, Loader2, Plus } from 'lucide-react'
 import Link from 'next/link'
+import PretextClampText from './PretextClampText'
 
 interface Work {
   id: string
@@ -156,9 +157,14 @@ export default function CreatorCharactersPage() {
 
                 {/* Info */}
                 <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
-                    {work.title}
-                  </h3>
+                  <PretextClampText
+                    as="h3"
+                    text={work.title}
+                    lineClamp={2}
+                    font="600 16px Inter"
+                    lineHeight={22}
+                    className="font-semibold text-gray-900 dark:text-white mb-2"
+                  />
                   
                   <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                     <div className="flex items-center gap-1">

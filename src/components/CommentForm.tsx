@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { Send, Smile } from 'lucide-react'
 import EmojiPicker from './EmojiPicker'
+import { measureTextRows } from '@/hooks/usePretext'
 
 interface CommentFormProps {
   workId: string
@@ -27,7 +28,35 @@ export default function CommentForm({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [textareaWidth, setTextareaWidth] = useState(560)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    const node = textareaRef.current
+    if (!node) return
+
+    const updateWidth = () => {
+      setTextareaWidth(node.clientWidth || 560)
+    }
+
+    updateWidth()
+    const observer = new ResizeObserver(updateWidth)
+    observer.observe(node)
+
+    return () => observer.disconnect()
+  }, [])
+
+  const commentRows = useMemo(() => {
+    return measureTextRows(
+      content,
+      '14px Inter',
+      Math.max(220, textareaWidth - 24),
+      20,
+      { whiteSpace: 'pre-wrap' },
+      3,
+      16
+    )
+  }, [content, textareaWidth])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,7 +113,7 @@ export default function CommentForm({
           onChange={(e) => setContent(e.target.value)}
           placeholder={placeholder}
           autoFocus={autoFocus}
-          rows={3}
+          rows={commentRows}
           maxLength={5000}
           className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
         />

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import CharacterModal from './CharacterModal'
+import PretextClampText from './PretextClampText'
 
 interface CharacterProfile {
   id: string
@@ -282,9 +283,14 @@ export default function WorkCharactersPage() {
                   </p>
                 )}
                 {character.quickGlance && (
-                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-3 line-clamp-2">
-                    {character.quickGlance}
-                  </p>
+                  <PretextClampText
+                    as="p"
+                    text={character.quickGlance}
+                    lineClamp={2}
+                    font="14px Inter"
+                    lineHeight={20}
+                    className="text-sm text-gray-700 dark:text-gray-300 mb-3"
+                  />
                 )}
 
                 <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3">

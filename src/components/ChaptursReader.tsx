@@ -7,6 +7,8 @@ import { MessageCircle, Globe, BookmarkPlus, Share2, MessageSquare, Edit3, Panel
 import TranslationPanel from './TranslationPanel'
 import InlineBlockComments from './InlineBlockComments'
 import EditSuggestionModal from './EditSuggestionModal'
+import SelectionActionToolbar from './SelectionActionToolbar'
+import { useMeasureTextHeight } from '@/hooks/usePretext'
 
 interface ChaptursReaderProps {
   document: ChaptDocument
@@ -175,11 +177,13 @@ export default function ChaptursReader({
     setShowTranslationPanel(true)
   }
 
-  const handleTextSelectionAction = (action: 'comment' | 'suggest') => {
+  const handleTextSelectionAction = (action: 'comment' | 'suggest' | 'translate') => {
     if (action === 'suggest') {
       setShowEditSuggestionModal(true)
     } else if (action === 'comment') {
       handleOpenCommentThread(selectedBlockId)
+    } else if (action === 'translate') {
+      handleOpenTranslationPanel(selectedBlockId)
     }
   }
 
@@ -391,36 +395,37 @@ export default function ChaptursReader({
       )}
 
       {/* Text Selection Toolbar */}
-      {selectedText && enableCollaboration && !showEditSuggestionModal && (
-        <div
-          className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex gap-2"
-          style={{ top: selectionPosition.top, left: selectionPosition.left }}
-        >
-          <button
-            onClick={() => handleTextSelectionAction('comment')}
-            className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-1"
-          >
-            <MessageSquare size={14} />
-            Comment
-          </button>
-          <button
-            onClick={() => handleTextSelectionAction('suggest')}
-            className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1"
-          >
-            <Edit3 size={14} />
-            Suggest Edit
-          </button>
-          <button
-            onClick={() => {
-              setSelectedText('')
-              setSelectedBlockId('')
-            }}
-            className="p-1.5 text-gray-400 hover:text-gray-600"
-          >
-            <X size={14} />
-          </button>
-        </div>
-      )}
+      <SelectionActionToolbar
+        visible={Boolean(selectedText && enableCollaboration && !showEditSuggestionModal)}
+        position={selectionPosition}
+        actions={[
+          {
+            id: 'comment',
+            label: 'Comment',
+            icon: <MessageSquare size={14} />,
+            onClick: () => handleTextSelectionAction('comment'),
+            variant: 'primary'
+          },
+          {
+            id: 'suggest',
+            label: 'Suggest Edit',
+            icon: <Edit3 size={14} />,
+            onClick: () => handleTextSelectionAction('suggest')
+          },
+          ...(enableTranslation ? [
+            {
+              id: 'translate',
+              label: 'Translate',
+              icon: <Globe size={14} />,
+              onClick: () => handleTextSelectionAction('translate')
+            }
+          ] : [])
+        ]}
+        onClose={() => {
+          setSelectedText('')
+          setSelectedBlockId('')
+        }}
+      />
     </div>
   )
 }
@@ -603,10 +608,41 @@ function ReadableProse({
   showDualLanguage: boolean
   translations?: any[]
 }) {
+  const proseRef = useRef<HTMLDivElement>(null)
+  const [proseWidth, setProseWidth] = useState(760)
+
+  useEffect(() => {
+    const node = proseRef.current
+    if (!node) return
+
+    const update = () => {
+      setProseWidth(node.clientWidth || 760)
+    }
+
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(node)
+
+    return () => observer.disconnect()
+  }, [])
+
+  const proseMetrics = useMeasureTextHeight(
+    block.text,
+    '18px Georgia',
+    Math.max(280, proseWidth),
+    30,
+    { whiteSpace: 'pre-wrap' }
+  )
+
   // For now, just show the original text
   // In a full implementation, we'd split into sentences and show translations
   return (
-    <div className="prose max-w-none">
+    <div
+      ref={proseRef}
+      className="prose max-w-none"
+      style={{ minHeight: `${Math.max(46, proseMetrics.height)}px` }}
+      data-pretext-line-count={proseMetrics.lineCount}
+    >
       <p style={{ textAlign: block.style?.textAlign }}>
         {block.text}
       </p>

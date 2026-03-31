@@ -10,6 +10,7 @@ import DataService from '@/lib/api/DataService'
 import { useUser } from '@/hooks/useUser'
 import { signIn } from 'next-auth/react'
 import { useSignalTracker, RecommendationTracker } from '@/hooks/useRecommendationTracking'
+import PretextClampText from './PretextClampText'
 
 interface FeedCardProps {
   item: FeedItem
@@ -364,17 +365,27 @@ export default function FeedCard({ item, onClick, recommendationRank = 0 }: Feed
 
         {/* Description */}
         <div className="mb-4 flex-shrink-0">
-          <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300 line-clamp-4 min-h-[5rem] sm:min-h-[4rem]">
-            {item.work.description || 'No description available for this work yet. Click to explore and discover what awaits you in this content.'}
-          </p>
+          <PretextClampText
+            as="p"
+            text={item.work.description || 'No description available for this work yet. Click to explore and discover what awaits you in this content.'}
+            lineClamp={4}
+            font="14px Inter"
+            lineHeight={22}
+            className="text-sm leading-relaxed text-gray-600 dark:text-gray-300"
+          />
         </div>
 
         {/* Discovery reason */}
         {item.reason && (
           <div className="mb-3 p-2 bg-purple-50 dark:bg-purple-900/20 rounded border-l-2 border-purple-300 dark:border-purple-600 flex-shrink-0">
-            <p className="text-xs text-purple-700 dark:text-purple-300 line-clamp-2">
-              💡 {item.reason}
-            </p>
+            <PretextClampText
+              as="p"
+              text={`💡 ${item.reason}`}
+              lineClamp={2}
+              font="12px Inter"
+              lineHeight={18}
+              className="text-xs text-purple-700 dark:text-purple-300"
+            />
           </div>
         )}
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { MessageSquare } from 'lucide-react'
 import { signIn } from 'next-auth/react'
 import CommentForm from './CommentForm'
@@ -110,6 +110,36 @@ export default function CommentSection({
     }
   }
 
+  const sortedComments = useMemo(() => {
+    const commentsCopy = [...comments]
+
+    commentsCopy.sort((a, b) => {
+      if (a.isPinned !== b.isPinned) {
+        return a.isPinned ? -1 : 1
+      }
+
+      if (sort === 'most-liked') {
+        const likeDiff = (b.likeCount || 0) - (a.likeCount || 0)
+        if (likeDiff !== 0) return likeDiff
+      }
+
+      const aTime = new Date(a.createdAt).getTime()
+      const bTime = new Date(b.createdAt).getTime()
+
+      if (sort === 'oldest') {
+        return aTime - bTime
+      }
+
+      return bTime - aTime
+    })
+
+    return commentsCopy
+  }, [comments, sort])
+
+  const totalComments = useMemo(() => {
+    return sortedComments.reduce((count, c) => count + 1 + (c.replyCount || 0), 0)
+  }, [sortedComments])
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -125,7 +155,7 @@ export default function CommentSection({
         <div className="flex items-center gap-2">
           <MessageSquare className="w-5 h-5 text-gray-400" />
           <h2 className="text-xl font-semibold text-gray-900">
-            Comments ({comments.length})
+            Comments ({totalComments})
           </h2>
         </div>
 
@@ -164,7 +194,7 @@ export default function CommentSection({
       )}
 
       {/* Comments list */}
-      {comments.length === 0 ? (
+      {sortedComments.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <MessageSquare className="w-12 h-12 mx-auto text-gray-300 mb-3" />
           <p className="text-gray-500 dark:text-gray-400 font-medium">No comments yet</p>
@@ -188,7 +218,7 @@ export default function CommentSection({
         </div>
       ) : (
         <div className="space-y-4">
-          {comments.map(comment => (
+          {sortedComments.map(comment => (
             <CommentItem
               key={comment.id}
               comment={comment}

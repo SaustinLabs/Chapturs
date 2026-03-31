@@ -104,7 +104,6 @@ export function ChatBlockEditor({ block, mode, onUpdate }: ChatBlockEditorProps)
               />
             ) : (
               <span
-                onClick={() => isEditing && startEditingChannelName()}
                 className={isEditing ? 'cursor-pointer hover:bg-opacity-20 hover:bg-white px-2 py-1 rounded' : 'font-medium'}
                 title={isEditing ? 'Click to edit channel name' : ''}
               >
@@ -118,7 +117,7 @@ export function ChatBlockEditor({ block, mode, onUpdate }: ChatBlockEditorProps)
         <div className={`${platformStyles.body} space-y-2 p-4 max-h-96 overflow-y-auto`}>
           {block.messages.map((message) => (
             <div key={message.id} className="flex items-start gap-2">
-              {block.platformStyle?.showAvatars && (
+              {(block.platformStyle?.showAvatars ?? true) && (
                 <div className="w-8 h-8 rounded-full bg-gray-400 flex-shrink-0 flex items-center justify-center text-white text-xs">
                   {message.user[0]?.toUpperCase()}
                 </div>
