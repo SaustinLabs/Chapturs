@@ -9,6 +9,7 @@ import InlineBlockComments from './InlineBlockComments'
 import EditSuggestionModal from './EditSuggestionModal'
 import SelectionActionToolbar from './SelectionActionToolbar'
 import { useMeasureTextHeight } from '@/hooks/usePretext'
+import { buildReaderSelectionActions } from '@/lib/selectionActionRegistry'
 
 interface ChaptursReaderProps {
   document: ChaptDocument
@@ -177,15 +178,34 @@ export default function ChaptursReader({
     setShowTranslationPanel(true)
   }
 
+  const clearSelection = () => {
+    setSelectedText('')
+    setSelectedBlockId('')
+  }
+
   const handleTextSelectionAction = (action: 'comment' | 'suggest' | 'translate') => {
     if (action === 'suggest') {
       setShowEditSuggestionModal(true)
     } else if (action === 'comment') {
       handleOpenCommentThread(selectedBlockId)
+      clearSelection()
     } else if (action === 'translate') {
       handleOpenTranslationPanel(selectedBlockId)
+      clearSelection()
     }
   }
+
+  const selectionActions = useMemo(
+    () =>
+      buildReaderSelectionActions({
+        enableCollaboration,
+        enableTranslation,
+        onComment: () => handleTextSelectionAction('comment'),
+        onSuggestEdit: () => handleTextSelectionAction('suggest'),
+        onTranslate: () => handleTextSelectionAction('translate')
+      }),
+    [enableCollaboration, enableTranslation, selectedBlockId]
+  )
 
   // Parse block text into sentences for translation
   const extractSentences = (text: string): Array<{ id: string; text: string; order: number }> => {
@@ -398,33 +418,8 @@ export default function ChaptursReader({
       <SelectionActionToolbar
         visible={Boolean(selectedText && enableCollaboration && !showEditSuggestionModal)}
         position={selectionPosition}
-        actions={[
-          {
-            id: 'comment',
-            label: 'Comment',
-            icon: <MessageSquare size={14} />,
-            onClick: () => handleTextSelectionAction('comment'),
-            variant: 'primary'
-          },
-          {
-            id: 'suggest',
-            label: 'Suggest Edit',
-            icon: <Edit3 size={14} />,
-            onClick: () => handleTextSelectionAction('suggest')
-          },
-          ...(enableTranslation ? [
-            {
-              id: 'translate',
-              label: 'Translate',
-              icon: <Globe size={14} />,
-              onClick: () => handleTextSelectionAction('translate')
-            }
-          ] : [])
-        ]}
-        onClose={() => {
-          setSelectedText('')
-          setSelectedBlockId('')
-        }}
+        actions={selectionActions}
+        onClose={clearSelection}
       />
     </div>
   )

@@ -13,6 +13,7 @@ import QualityReportModal from './QualityReportModal'
 import PrePublishChecklist from './PrePublishChecklist'
 import { Activity, Clock } from 'lucide-react'
 import { measureTextRows } from '@/hooks/usePretext'
+import { buildEditorSelectionActions } from '@/lib/selectionActionRegistry'
 
 interface ChaptursEditorProps {
   workId: string
@@ -125,6 +126,15 @@ export default function ChaptursEditor({
     if (!selectedText) return
     setShowCharacterModal(true)
   }
+
+  const selectionActions = useMemo(
+    () =>
+      buildEditorSelectionActions({
+        onAddGlossary: handleAddToGlossary,
+        onAddCharacter: handleAddCharacterProfile
+      }),
+    [selectedText]
+  )
 
   // Load glossary entries for this work and expose them globally so preview/reader renderers can highlight
   useEffect(() => {
@@ -792,21 +802,7 @@ export default function ChaptursEditor({
       <SelectionActionToolbar
         visible={Boolean(selectedText && editorState.mode === 'edit' && !showGlossaryModal && !showCharacterModal)}
         position={selectionPosition}
-        actions={[
-          {
-            id: 'glossary',
-            label: 'Glossary',
-            icon: <Sparkles size={14} />,
-            onClick: handleAddToGlossary,
-            variant: 'primary'
-          },
-          {
-            id: 'character',
-            label: 'Character',
-            icon: <UserPlus size={14} />,
-            onClick: handleAddCharacterProfile
-          }
-        ]}
+        actions={selectionActions}
         onClose={() => setSelectedText('')}
       />
 
