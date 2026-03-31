@@ -73,6 +73,7 @@ export default function ChaptursReader({
   const [selectionPosition, setSelectionPosition] = useState({ top: 0, left: 0 })
   const [knownCharacters, setKnownCharacters] = useState<ReaderCharacter[]>(characters || [])
   const [selectedCharacter, setSelectedCharacter] = useState<ReaderCharacter | null>(null)
+  const [fanArtCharacterOptions, setFanArtCharacterOptions] = useState<ReaderCharacter[]>([])
   
   const observerRef = useRef<IntersectionObserver | null>(null)
 
@@ -250,6 +251,55 @@ export default function ChaptursReader({
     )
   }
 
+  const getFuzzyCharacterMatches = () => {
+    const selected = selectedText.trim().toLowerCase()
+    if (!selected) return []
+
+    const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim()
+    const selectedNormalized = normalize(selected)
+    const selectedTokens = selectedNormalized.split(/\s+/).filter(Boolean)
+
+    const scored = knownCharacters
+      .map((char) => {
+        const candidateNames = [char.name, ...(char.aliases || [])].filter(Boolean)
+        const bestScore = candidateNames.reduce((score, rawCandidate) => {
+          const candidate = normalize(rawCandidate)
+          if (!candidate) return score
+
+          if (candidate === selectedNormalized) return Math.max(score, 1)
+          if (candidate.startsWith(selectedNormalized) || selectedNormalized.startsWith(candidate)) {
+            return Math.max(score, 0.88)
+          }
+          if (candidate.includes(selectedNormalized) || selectedNormalized.includes(candidate)) {
+            return Math.max(score, 0.76)
+          }
+
+          const candidateTokens = candidate.split(/\s+/).filter(Boolean)
+          const overlap = selectedTokens.filter((token) => candidateTokens.includes(token)).length
+          if (overlap > 0) {
+            const tokenScore = overlap / Math.max(selectedTokens.length, candidateTokens.length)
+            return Math.max(score, tokenScore * 0.74)
+          }
+
+          return score
+        }, 0)
+
+        return { char, score: bestScore }
+      })
+      .filter((entry) => entry.score >= 0.55)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5)
+
+    return scored.map((entry) => entry.char)
+  }
+
+  const openCharacterProfile = (character: ReaderCharacter) => {
+    setSelectedCharacter({
+      ...character,
+      workId: character.workId || workId || document.metadata.id
+    })
+  }
+
   const handleFanArtIntent = () => {
     if (onFanArtIntent) {
       onFanArtIntent(selectedText, selectedBlockId)
@@ -259,10 +309,20 @@ export default function ChaptursReader({
 
     const matchedCharacter = resolveCharacterFromSelection()
     if (matchedCharacter) {
-      setSelectedCharacter({
-        ...matchedCharacter,
-        workId: matchedCharacter.workId || workId || document.metadata.id
-      })
+      openCharacterProfile(matchedCharacter)
+      clearSelection()
+      return
+    }
+
+    const fuzzyMatches = getFuzzyCharacterMatches()
+    if (fuzzyMatches.length === 1) {
+      openCharacterProfile(fuzzyMatches[0])
+      clearSelection()
+      return
+    }
+
+    if (fuzzyMatches.length > 1) {
+      setFanArtCharacterOptions(fuzzyMatches)
       clearSelection()
       return
     }
@@ -518,6 +578,43 @@ export default function ChaptursReader({
           isOpen={Boolean(selectedCharacter)}
           onClose={() => setSelectedCharacter(null)}
         />
+      )}
+
+      {fanArtCharacterOptions.length > 0 && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-white rounded-lg shadow-xl border border-gray-200 p-4">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">Choose Character</h3>
+                <p className="text-sm text-gray-600">Select who this fan art is for.</p>
+              </div>
+              <button
+                onClick={() => setFanArtCharacterOptions([])}
+                className="p-1 text-gray-400 hover:text-gray-600"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {fanArtCharacterOptions.map((character) => (
+                <button
+                  key={character.id}
+                  onClick={() => {
+                    openCharacterProfile(character)
+                    setFanArtCharacterOptions([])
+                  }}
+                  className="w-full text-left px-3 py-2 rounded border border-gray-200 hover:bg-gray-50"
+                >
+                  <div className="font-medium text-gray-900">{character.name}</div>
+                  {character.aliases && character.aliases.length > 0 && (
+                    <div className="text-xs text-gray-500">aka {character.aliases.slice(0, 3).join(', ')}</div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
