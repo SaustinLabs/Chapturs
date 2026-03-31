@@ -1,12 +1,16 @@
 import { Edit3, Globe, MessageSquare, Sparkles, UserPlus } from 'lucide-react'
 import { SelectionAction } from '@/components/SelectionActionToolbar'
 
+export type SelectionRole = 'reader' | 'author' | 'moderator'
+
 interface ReaderSelectionOptions {
+  role: SelectionRole
   enableCollaboration: boolean
   enableTranslation: boolean
   onComment: () => void
   onSuggestEdit: () => void
-  onTranslate: () => void
+  onSuggestTranslation: () => void
+  onFanArt: () => void
 }
 
 interface EditorSelectionOptions {
@@ -15,13 +19,15 @@ interface EditorSelectionOptions {
 }
 
 export function buildReaderSelectionActions({
+  role,
   enableCollaboration,
   enableTranslation,
   onComment,
   onSuggestEdit,
-  onTranslate
+  onSuggestTranslation,
+  onFanArt
 }: ReaderSelectionOptions): SelectionAction[] {
-  if (!enableCollaboration) return []
+  if (!enableCollaboration || role === 'author') return []
 
   return [
     {
@@ -40,10 +46,20 @@ export function buildReaderSelectionActions({
     ...(enableTranslation
       ? [
           {
-            id: 'translate',
-            label: 'Translate',
+            id: 'suggest-translation',
+            label: 'Suggest Translation',
             icon: <Globe size={14} />,
-            onClick: onTranslate
+            onClick: onSuggestTranslation
+          }
+        ]
+      : []),
+    ...(role === 'reader'
+      ? [
+          {
+            id: 'fan-art',
+            label: 'Fan Art',
+            icon: <Sparkles size={14} />,
+            onClick: onFanArt
           }
         ]
       : [])

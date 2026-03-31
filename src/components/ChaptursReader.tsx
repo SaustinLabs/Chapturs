@@ -10,6 +10,7 @@ import EditSuggestionModal from './EditSuggestionModal'
 import SelectionActionToolbar from './SelectionActionToolbar'
 import { useMeasureTextHeight } from '@/hooks/usePretext'
 import { buildReaderSelectionActions } from '@/lib/selectionActionRegistry'
+import { SelectionRole } from '@/lib/selectionActionRegistry'
 
 interface ChaptursReaderProps {
   document: ChaptDocument
@@ -22,6 +23,8 @@ interface ChaptursReaderProps {
   userLanguage?: string // User's preferred language for dual-language display
   currentUserId?: string
   currentUserName?: string
+  viewerRole?: SelectionRole
+  onFanArtIntent?: (term: string, blockId: string) => void
 }
 
 export default function ChaptursReader({
@@ -34,7 +37,9 @@ export default function ChaptursReader({
   enableCollaboration = false,
   userLanguage = 'en',
   currentUserId,
-  currentUserName
+  currentUserName,
+  viewerRole = 'reader',
+  onFanArtIntent
 }: ChaptursReaderProps) {
   
   const [activeLanguage, setActiveLanguage] = useState<string>(document.metadata.language)
@@ -183,6 +188,17 @@ export default function ChaptursReader({
     setSelectedBlockId('')
   }
 
+  const handleFanArtIntent = () => {
+    if (onFanArtIntent) {
+      onFanArtIntent(selectedText, selectedBlockId)
+      clearSelection()
+      return
+    }
+
+    alert('Fan art submission is character-specific. Click a highlighted character profile and use Submit Fan Art there.')
+    clearSelection()
+  }
+
   const handleTextSelectionAction = (action: 'comment' | 'suggest' | 'translate') => {
     if (action === 'suggest') {
       setShowEditSuggestionModal(true)
@@ -198,13 +214,15 @@ export default function ChaptursReader({
   const selectionActions = useMemo(
     () =>
       buildReaderSelectionActions({
+        role: viewerRole,
         enableCollaboration,
         enableTranslation,
         onComment: () => handleTextSelectionAction('comment'),
         onSuggestEdit: () => handleTextSelectionAction('suggest'),
-        onTranslate: () => handleTextSelectionAction('translate')
+        onSuggestTranslation: () => handleTextSelectionAction('translate'),
+        onFanArt: handleFanArtIntent
       }),
-    [enableCollaboration, enableTranslation, selectedBlockId]
+    [viewerRole, enableCollaboration, enableTranslation, selectedBlockId, selectedText]
   )
 
   // Parse block text into sentences for translation
