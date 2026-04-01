@@ -26,6 +26,23 @@ fi
 echo -e "${YELLOW}Navigating to app directory: $APP_DIR${NC}"
 cd "$APP_DIR" || { echo -e "${RED}Failed to navigate to $APP_DIR${NC}"; exit 1; }
 
+# Load production environment for CLI tools (Prisma/PM2 reload context)
+if [[ -f ".env.production" ]]; then
+    echo -e "${YELLOW}Loading environment from .env.production${NC}"
+    set -a
+    # shellcheck disable=SC1091
+    source .env.production
+    set +a
+elif [[ -f ".env" ]]; then
+    echo -e "${YELLOW}Loading environment from .env${NC}"
+    set -a
+    # shellcheck disable=SC1091
+    source .env
+    set +a
+else
+    echo -e "${YELLOW}Warning: No .env.production or .env file found in app directory.${NC}"
+fi
+
 # 2. Pull latest from GitHub main
 echo -e "${YELLOW}Pulling latest changes from GitHub...${NC}"
 if git pull origin main; then
@@ -62,7 +79,9 @@ fi
 
 # 6. Run Prisma migrations (safe on Supabase)
 echo -e "${YELLOW}Syncing Prisma schema with database...${NC}"
-if npx prisma db push --skip-generate; then
+if [[ -z "${DATABASE_URL:-}" ]]; then
+    echo -e "${RED}✗ DATABASE_URL is not set for Prisma. Skipping db push.${NC}"
+elif npx prisma validate --schema prisma/schema.prisma && npx prisma db push --skip-generate --schema prisma/schema.prisma; then
     echo -e "${GREEN}✓ Prisma sync successful${NC}"
 else
     echo -e "${RED}✗ Prisma sync failed (continuing anyway)${NC}"
@@ -77,7 +96,7 @@ echo -e "${YELLOW}Restarting PM2 app: $PM2_APP_NAME${NC}"
 
 # Check if PM2 process exists
 if pm2 pid "$PM2_APP_NAME" > /dev/null 2>&1; then
-    if pm2 reload "$PM2_APP_NAME"; then
+    if pm2 reload "$PM2_APP_NAME" --update-env; then
         echo -e "${GREEN}✓ PM2 reload successful${NC}"
     else
         echo -e "${RED}✗ PM2 reload failed${NC}"
@@ -85,7 +104,7 @@ if pm2 pid "$PM2_APP_NAME" > /dev/null 2>&1; then
     fi
 else
     echo -e "${YELLOW}PM2 process not running. Starting fresh...${NC}"
-    if pm2 start npm --name "$PM2_APP_NAME" -- start; then
+    if pm2 start npm --name "$PM2_APP_NAME" -- start --update-env; then
         echo -e "${GREEN}✓ PM2 start successful${NC}"
     else
         echo -e "${RED}✗ PM2 start failed${NC}"
