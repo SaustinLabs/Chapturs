@@ -10,6 +10,8 @@ export default function FanContentSettingsPage() {
     defaultTranslationRevenueShare: 0.30,
     defaultAudiobookRevenueShare: 0.40,
     requireCustomDealApproval: false,
+    autoApproveFanArt: false,
+    autoConfirmProvisionalCharacters: false,
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -223,6 +225,52 @@ export default function FanContentSettingsPage() {
             </label>
           </div>
 
+          {/* Fan Art Automation */}
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              Fan Art Automation
+            </h2>
+            <div className="space-y-4">
+              <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">
+                    Auto-confirm provisional characters
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    When readers submit fan art with new names, auto-confirm those provisional characters.
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.autoConfirmProvisionalCharacters}
+                  onChange={(e) =>
+                    setSettings({ ...settings, autoConfirmProvisionalCharacters: e.target.checked })
+                  }
+                  className="w-5 h-5 text-blue-500 rounded focus:ring-2 focus:ring-blue-500"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">
+                    Auto-approve fan art submissions
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    Automatically approve incoming fan art instead of sending it to pending review.
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.autoApproveFanArt}
+                  onChange={(e) =>
+                    setSettings({ ...settings, autoApproveFanArt: e.target.checked })
+                  }
+                  className="w-5 h-5 text-blue-500 rounded focus:ring-2 focus:ring-blue-500"
+                />
+              </label>
+            </div>
+          </div>
+
           {/* Info Box */}
           <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
             <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
@@ -232,6 +280,7 @@ export default function FanContentSettingsPage() {
               <li>• <strong>Tier 1 (Official):</strong> LLM translations and AI audiobooks (always available)</li>
               <li>• <strong>Tier 2 (Community):</strong> Crowdsourced edits on Tier 1 translations</li>
               <li>• <strong>Tier 3 (Professional):</strong> Fan-submitted complete translations & audiobooks</li>
+              <li>• Fan art can be auto-approved and provisional characters can be auto-confirmed</li>
               <li>• Contributors earn revenue based on views/listens and your revenue share %</li>
               <li>• Quality voting helps readers find the best versions</li>
             </ul>

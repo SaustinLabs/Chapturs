@@ -79,10 +79,24 @@ async function ensureSubmissionUser(session: any): Promise<string> {
   return created.id
 }
 
+async function ensureFanartSettingsColumns() {
+  await prisma.$executeRawUnsafe(`
+    ALTER TABLE creator_fan_content_settings
+    ADD COLUMN IF NOT EXISTS "autoApproveFanArt" boolean NOT NULL DEFAULT false
+  `)
+
+  await prisma.$executeRawUnsafe(`
+    ALTER TABLE creator_fan_content_settings
+    ADD COLUMN IF NOT EXISTS "autoConfirmProvisionalCharacters" boolean NOT NULL DEFAULT false
+  `)
+}
+
 export async function POST(request: NextRequest, props: RouteParams) {
   const params = await props.params
 
   try {
+    await ensureFanartSettingsColumns()
+
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -104,11 +118,36 @@ export async function POST(request: NextRequest, props: RouteParams) {
 
     const work = await prisma.work.findUnique({
       where: { id: workId },
-      select: { id: true, authorId: true }
+      select: {
+        id: true,
+        authorId: true,
+        author: {
+          select: {
+            id: true,
+          }
+        }
+      }
     })
 
     if (!work) {
       return NextResponse.json({ error: 'Work not found' }, { status: 404 })
+    }
+
+    const creatorSettingsRows = await prisma.$queryRaw<Array<{
+      autoApproveFanArt: boolean
+      autoConfirmProvisionalCharacters: boolean
+    }>>`
+      SELECT
+        COALESCE("autoApproveFanArt", false) as "autoApproveFanArt",
+        COALESCE("autoConfirmProvisionalCharacters", false) as "autoConfirmProvisionalCharacters"
+      FROM creator_fan_content_settings
+      WHERE "creatorId" = ${work.author.id}
+      LIMIT 1
+    `
+
+    const creatorSettings = creatorSettingsRows[0] || {
+      autoApproveFanArt: false,
+      autoConfirmProvisionalCharacters: false,
     }
 
     let targetCharacterId = data.characterId || ''
@@ -139,13 +178,21 @@ export async function POST(request: NextRequest, props: RouteParams) {
         targetCharacterId = byName[0].id
       } else {
         const metadata = {
-          pendingAuthorConfirmation: true,
+          pendingAuthorConfirmation: !creatorSettings.autoConfirmProvisionalCharacters,
           source: 'fanart-submit-anyway',
           suggestedByUserId: userId,
           suggestedAt: new Date().toISOString(),
           fromSectionId: data.sectionId || null,
           fromSelectedText: data.selectedText || null,
         }
+
+        const provisionalRole = creatorSettings.autoConfirmProvisionalCharacters
+          ? 'supporting'
+          : 'pending-confirmation'
+
+        const provisionalGlance = creatorSettings.autoConfirmProvisionalCharacters
+          ? 'Auto-created from fan art submission and auto-confirmed by creator settings.'
+          : 'Auto-created from fan art submission. Author confirmation needed.'
 
         const createdCharacter = await prisma.$queryRaw<Array<{ id: string }>>`
           INSERT INTO character_profiles (
@@ -165,8 +212,8 @@ export async function POST(request: NextRequest, props: RouteParams) {
             ${workId},
             ${data.characterName.trim()},
             ${JSON.stringify([])},
-            ${'pending-confirmation'},
-            ${'Auto-created from fan art submission. Author confirmation needed.'},
+            ${provisionalRole},
+            ${provisionalGlance},
             ${JSON.stringify(metadata)},
             ${true},
             NOW(),
@@ -203,7 +250,7 @@ export async function POST(request: NextRequest, props: RouteParams) {
         ${data.artistLink || null},
         ${data.artistHandle || null},
         ${data.notes || null},
-        ${'pending'},
+        ${creatorSettings.autoApproveFanArt ? 'approved' : 'pending'},
         NOW(),
         NOW()
       )
@@ -215,9 +262,17 @@ export async function POST(request: NextRequest, props: RouteParams) {
       submissionId: submission[0].id,
       characterId: targetCharacterId,
       provisionalCharacterCreated: createdProvisionalCharacter,
+      autoApproved: creatorSettings.autoApproveFanArt,
+      autoConfirmedCharacter: createdProvisionalCharacter
+        ? creatorSettings.autoConfirmProvisionalCharacters
+        : null,
       message: createdProvisionalCharacter
-        ? 'Fan art submitted. A provisional character was created for author confirmation.'
-        : 'Fan art submitted for author review.'
+        ? creatorSettings.autoConfirmProvisionalCharacters
+          ? 'Fan art submitted. Character was auto-confirmed by creator settings.'
+          : 'Fan art submitted. A provisional character was created for author confirmation.'
+        : creatorSettings.autoApproveFanArt
+          ? 'Fan art submitted and auto-approved by creator settings.'
+          : 'Fan art submitted for author review.'
     })
   } catch (error: any) {
     console.error('Fan art submit-anyway error:', error)
