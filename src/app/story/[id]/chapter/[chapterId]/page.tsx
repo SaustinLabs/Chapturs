@@ -67,7 +67,26 @@ export default function ChapterPage() {
   const [quickCommentError, setQuickCommentError] = useState('')
   const [submittingQuickComment, setSubmittingQuickComment] = useState(false)
   const [commentsRefreshKey, setCommentsRefreshKey] = useState(0)
+  const [selectionRects, setSelectionRects] = useState<Array<{ top: number; left: number; width: number; height: number }>>([])
   const selectionRangeRef = useRef<Range | null>(null)
+
+  const updateSelectionOverlay = () => {
+    if (!selectionRangeRef.current) {
+      setSelectionRects([])
+      return
+    }
+
+    const rects = Array.from(selectionRangeRef.current.getClientRects())
+      .filter((rect) => rect.width > 0 && rect.height > 0)
+      .map((rect) => ({
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+      }))
+
+    setSelectionRects(rects)
+  }
 
   useEffect(() => {
     const loadData = async () => {
@@ -230,6 +249,7 @@ export default function ChapterPage() {
         top: rect.bottom + window.scrollY + 10,
         left: rect.left + window.scrollX
       })
+      updateSelectionOverlay()
 
       requestAnimationFrame(() => {
         const activeSelection = window.getSelection()
@@ -254,8 +274,25 @@ export default function ChapterPage() {
     // Re-apply native selection after component rerenders so highlight remains visible.
     requestAnimationFrame(() => {
       restoreSelectionHighlight()
+      updateSelectionOverlay()
     })
   }, [selectedText, selectionPosition, showQuickComment])
+
+  useEffect(() => {
+    if (!selectedText) return
+
+    const handleViewportChange = () => {
+      updateSelectionOverlay()
+    }
+
+    window.addEventListener('scroll', handleViewportChange, true)
+    window.addEventListener('resize', handleViewportChange)
+
+    return () => {
+      window.removeEventListener('scroll', handleViewportChange, true)
+      window.removeEventListener('resize', handleViewportChange)
+    }
+  }, [selectedText])
 
   useEffect(() => {
     if (loading || !section) return
@@ -272,6 +309,7 @@ export default function ChapterPage() {
   const clearSelection = () => {
     selectionRangeRef.current = null
     setSelectedText('')
+    setSelectionRects([])
     setShowQuickComment(false)
     setQuickCommentError('')
   }
@@ -483,6 +521,25 @@ export default function ChapterPage() {
       )}
 
       <div className="max-w-4xl mx-auto">
+        {selectionRects.length > 0 && (
+          <div className="pointer-events-none fixed inset-0 z-30">
+            {selectionRects.map((rect, index) => (
+              <div
+                key={`selection-rect-${index}`}
+                className="absolute rounded-sm"
+                style={{
+                  top: rect.top,
+                  left: rect.left,
+                  width: rect.width,
+                  height: rect.height,
+                  background: 'rgba(59, 130, 246, 0.22)',
+                  boxShadow: 'inset 0 -2px 0 rgba(37, 99, 235, 0.65)'
+                }}
+              />
+            ))}
+          </div>
+        )}
+
         {/* Chapter Header */}
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-6 mt-6">
           <div className="flex items-center justify-between mb-4">
@@ -732,7 +789,7 @@ export default function ChapterPage() {
                         }
 
                         const suggestedName = character.name || selectedText
-                        setQuickCommentText(`Fan art request: please add character \"${suggestedName}\" to the character list so readers can submit art.`)
+                        setQuickCommentText(`[Character Suggestion]\nName: ${suggestedName}\nReason: Reader wants to submit fan art for this character.\nAction requested: Add to character glossary/profile and enable fan art submissions.`)
                         setShowQuickComment(true)
                         setFanArtCharacterOptions([])
                         requestAnimationFrame(restoreSelectionHighlight)
