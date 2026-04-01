@@ -15,9 +15,13 @@ const missingVars = [
   !googleClientSecret ? 'AUTH_GOOGLE_SECRET (or GOOGLE_CLIENT_SECRET)' : null,
 ].filter(Boolean)
 
-if (missingVars.length > 0) {
-  console.error('❌ Missing required environment variables:', missingVars.join(', '))
-  console.error('Please add these to your Vercel environment variables:')
+const isBuildPhase =
+  process.env.NEXT_PHASE === 'phase-production-build' ||
+  process.env.npm_lifecycle_event === 'build'
+
+if (missingVars.length > 0 && !isBuildPhase) {
+  console.error('❌ Missing required auth environment variables:', missingVars.join(', '))
+  console.error('Set these in your runtime environment (.env.production, PM2 ecosystem, or platform env vars):')
   console.error('- AUTH_SECRET (or NEXTAUTH_SECRET)')
   console.error('- AUTH_GOOGLE_ID (or GOOGLE_CLIENT_ID)')
   console.error('- AUTH_GOOGLE_SECRET (or GOOGLE_CLIENT_SECRET)')
