@@ -3,6 +3,7 @@ import './globals.css'
 import { AuthProvider } from '@/components/AuthProvider'
 import UsernameGuard from '@/components/auth/UsernameGuard'
 import { Footer } from '@/components/ui/Footer'
+import { ToastProvider } from '@/components/ui/Toast'
 import { validateEnvironment } from '@/lib/config'
 import { auth } from '@/auth-edge'
 import { SpeedInsights } from "@vercel/speed-insights/next"
@@ -77,10 +78,12 @@ export default async function RootLayout({
       <body className="font-sans h-full" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
         <ChunkRecovery />
         <AuthProvider session={session}>
-          <UsernameGuard>
-            {children}
-          </UsernameGuard>
-          <Footer />
+          <ToastProvider>
+            <UsernameGuard>
+              {children}
+            </UsernameGuard>
+            <Footer />
+          </ToastProvider>
         </AuthProvider>
         <SpeedInsights />
         <Analytics />

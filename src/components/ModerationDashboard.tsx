@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { useToast } from '@/components/ui/Toast'
 
 interface ModerationItem {
   id: string
@@ -66,7 +67,7 @@ export default function ModerationDashboard() {
   const [currentUserId, setCurrentUserId] = useState<string>('')
   const [currentUserRole, setCurrentUserRole] = useState<string>('')
   const [claimTimeoutMinutes, setClaimTimeoutMinutes] = useState<number>(20)
-  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const { toast } = useToast()
 
   useEffect(() => {
     loadModerationQueue()
@@ -84,6 +85,7 @@ export default function ModerationDashboard() {
       }
     } catch (error) {
       console.error('Failed to load moderation queue:', error)
+      toast.error('Failed to load moderation queue.')
     } finally {
       setLoading(false)
     }
@@ -99,12 +101,12 @@ export default function ModerationDashboard() {
       }
     } catch (error) {
       console.error('Failed to load item details:', error)
+      toast.error('Failed to load item details.')
     }
   }
 
   const handleModerationAction = async (itemId: string, action: 'approve' | 'reject' | 'flag' | 'claim' | 'release', notes?: string) => {
     setProcessing(true)
-    setStatusMessage(null)
     try {
       const response = await fetch(`/api/moderation/queue/${itemId}`, {
         method: 'PATCH',
@@ -121,21 +123,20 @@ export default function ModerationDashboard() {
         } else {
           await loadItemDetails(itemId)
         }
-        setStatusMessage({
-          type: 'success',
-          text: action === 'claim'
+        toast.success(
+          action === 'claim'
             ? 'Item claimed for review.'
             : action === 'release'
               ? 'Item released back to queue.'
-              : `Item ${action}d successfully.`,
-        })
+              : `Item ${action}d successfully.`
+        )
       } else {
         const error = await response.json()
-        setStatusMessage({ type: 'error', text: `Failed to ${action}: ${error.error || 'Unknown error'}` })
+        toast.error(`Failed to ${action}: ${error.error || 'Unknown error'}`)
       }
     } catch (error) {
       console.error(`Failed to ${action} item:`, error)
-      setStatusMessage({ type: 'error', text: `Failed to ${action} item.` })
+      toast.error(`Failed to ${action} item.`)
     } finally {
       setProcessing(false)
     }
@@ -200,17 +201,6 @@ export default function ModerationDashboard() {
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
           Claimed items auto-release after {claimTimeoutMinutes} minutes of inactivity.
         </p>
-        {statusMessage && (
-          <div
-            className={`mt-3 rounded-lg px-4 py-2 text-sm ${
-              statusMessage.type === 'success'
-                ? 'bg-green-50 border border-green-200 text-green-700'
-                : 'bg-red-50 border border-red-200 text-red-700'
-            }`}
-          >
-            {statusMessage.text}
-          </div>
-        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

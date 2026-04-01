@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import { useUser } from '@/hooks/useUser'
 import { signIn } from 'next-auth/react'
+import { useToast } from '@/components/ui/Toast'
 import { 
   BellIcon, 
   BellSlashIcon,
@@ -75,6 +76,7 @@ export default function SubscriptionsPage() {
 
 function AuthenticatedSubscriptionsView() {
   const router = useRouter()
+  const { toast } = useToast()
   const [subscriptions, setSubscriptions] = useState<Array<{
     id: string
     subscribedAt: string
@@ -174,8 +176,10 @@ function AuthenticatedSubscriptionsView() {
             : sub
         )
       )
+      toast.success(currentState ? 'Notifications disabled' : 'Notifications enabled')
     } catch (toggleError) {
       console.error('Failed to toggle notifications:', toggleError)
+      toast.error('Could not update notification preference. Please try again.')
     }
   }
 
@@ -192,8 +196,10 @@ function AuthenticatedSubscriptionsView() {
       }
 
       setSubscriptions((prev) => prev.filter((sub) => sub.author.id !== authorId))
+      toast.success('Unsubscribed successfully.')
     } catch (unsubscribeError) {
       console.error('Failed to unsubscribe:', unsubscribeError)
+      toast.error('Could not unsubscribe. Please try again.')
     }
   }
 
