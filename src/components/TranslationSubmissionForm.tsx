@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
+import { useToast } from '@/components/ui/Toast'
 
 interface TranslationSubmissionFormProps {
   workId: string
@@ -22,6 +23,7 @@ export default function TranslationSubmissionForm({
   const [translationNotes, setTranslationNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,7 +68,7 @@ export default function TranslationSubmissionForm({
 
       if (response.ok) {
         const data = await response.json()
-        alert(data.translation.message)
+        toast.success(data.translation?.message || 'Translation submitted successfully.')
         onSuccess()
         onClose()
       } else {

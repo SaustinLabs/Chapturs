@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Globe, ThumbsUp, ThumbsDown, Plus, Edit3, Check, X, ChevronDown, ChevronUp, Languages, Star } from 'lucide-react'
+import { useToast } from '@/components/ui/Toast'
 
 // Types for translation system
 export interface SentenceTranslation {
@@ -43,6 +44,8 @@ interface TranslationPanelProps {
   targetLanguage: string
   onLanguageChange?: (language: string) => void
   userId?: string
+  /** Pre-select and expand the sentence that contains this text (set by toolbar highlight action) */
+  initialHighlightedText?: string
 }
 
 export default function TranslationPanel({
@@ -52,7 +55,8 @@ export default function TranslationPanel({
   currentLanguage,
   targetLanguage,
   onLanguageChange,
-  userId
+  userId,
+  initialHighlightedText
 }: TranslationPanelProps) {
   
   const [translations, setTranslations] = useState<Map<string, SentenceTranslation[]>>(new Map())
@@ -65,6 +69,23 @@ export default function TranslationPanel({
   const [suggestionReason, setSuggestionReason] = useState('')
   const [loading, setLoading] = useState(false)
   const [translationMode, setTranslationMode] = useState<'auto' | 'community' | 'official'>('community')
+  const { toast } = useToast()
+
+  // Auto-expand and focus the sentence matching the toolbar highlight selection
+  useEffect(() => {
+    if (!initialHighlightedText || sentences.length === 0) return
+    const needle = initialHighlightedText.toLowerCase()
+    const match = sentences.find(
+      (s) =>
+        s.text.toLowerCase().includes(needle) ||
+        needle.includes(s.text.toLowerCase().substring(0, 30))
+    )
+    if (match) {
+      setExpandedSentences((prev) => new Set([...prev, match.id]))
+      setEditingTranslation(match.id)
+      setNewTranslationText('')
+    }
+  }, [initialHighlightedText, sentences])
 
   // Load translations for all sentences
   useEffect(() => {
@@ -111,7 +132,7 @@ export default function TranslationPanel({
 
   const submitTranslation = async (sentenceId: string, text: string) => {
     if (!userId) {
-      alert('Please sign in to submit translations')
+      toast.warning('Please sign in to submit translations')
       return
     }
 
@@ -146,7 +167,7 @@ export default function TranslationPanel({
 
   const submitSuggestion = async (translationId: string) => {
     if (!userId) {
-      alert('Please sign in to submit suggestions')
+      toast.warning('Please sign in to submit suggestions')
       return
     }
 
@@ -175,7 +196,7 @@ export default function TranslationPanel({
 
   const voteOnTranslation = async (translationId: string, vote: 'up' | 'down') => {
     if (!userId) {
-      alert('Please sign in to vote')
+      toast.warning('Please sign in to vote')
       return
     }
 
@@ -200,7 +221,7 @@ export default function TranslationPanel({
 
   const voteOnSuggestion = async (suggestionId: string, vote: 'up' | 'down') => {
     if (!userId) {
-      alert('Please sign in to vote')
+      toast.warning('Please sign in to vote')
       return
     }
 

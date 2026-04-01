@@ -7,6 +7,8 @@ interface ReaderSelectionOptions {
   role: SelectionRole
   enableCollaboration: boolean
   enableTranslation: boolean
+  /** Phase 2: true when the reader is viewing a translated version of the work */
+  isViewingTranslation?: boolean
   onComment: () => void
   onSuggestEdit: () => void
   onSuggestTranslation: () => void
@@ -22,6 +24,7 @@ export function buildReaderSelectionActions({
   role,
   enableCollaboration,
   enableTranslation,
+  isViewingTranslation = false,
   onComment,
   onSuggestEdit,
   onSuggestTranslation,
@@ -39,7 +42,7 @@ export function buildReaderSelectionActions({
     },
     {
       id: 'suggest',
-      label: 'Suggest Edit',
+      label: isViewingTranslation ? 'Suggest Edit (Original)' : 'Suggest Edit',
       icon: <Edit3 size={14} />,
       onClick: onSuggestEdit
     },
@@ -49,7 +52,9 @@ export function buildReaderSelectionActions({
             id: 'suggest-translation',
             label: 'Suggest Translation',
             icon: <Globe size={14} />,
-            onClick: onSuggestTranslation
+            onClick: onSuggestTranslation,
+            // Phase 2: make this the visually primary action when viewing a translation
+            variant: isViewingTranslation ? ('primary' as const) : undefined
           }
         ]
       : []),

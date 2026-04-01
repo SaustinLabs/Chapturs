@@ -9,6 +9,8 @@ import StickyAudioScrubber from '@/components/StickyAudioScrubber'
 import WorkRatingSystem from '@/components/WorkRatingSystem'
 import CommentSection from '@/components/CommentSection'
 import SelectionActionToolbar from '@/components/SelectionActionToolbar'
+import EditSuggestionModal from '@/components/EditSuggestionModal'
+import TranslationSubmissionForm from '@/components/TranslationSubmissionForm'
 import ImageUpload from '@/components/upload/ImageUpload'
 import CharacterProfileViewModal from '@/components/CharacterProfileViewModal'
 import { Work, Section } from '@/types'
@@ -21,7 +23,7 @@ import {
   MinusIcon,
   PlusIcon,
 } from '@heroicons/react/24/outline'
-import { MessageSquare, Send, Sparkles } from 'lucide-react'
+import { MessageSquare, Send, Sparkles, Edit3, Globe } from 'lucide-react'
 
 interface ReaderCharacter {
   id: string
@@ -117,6 +119,8 @@ export default function ChapterPage() {
   const [fanArtSubmitError, setFanArtSubmitError] = useState('')
   const [fanArtSubmitting, setFanArtSubmitting] = useState(false)
   const [commentsRefreshKey, setCommentsRefreshKey] = useState(0)
+    const [showEditSuggestModal, setShowEditSuggestModal] = useState(false)
+    const [showTranslationSuggestModal, setShowTranslationSuggestModal] = useState(false)
   const [selectionRects, setSelectionRects] = useState<Array<{ top: number; left: number; width: number; height: number }>>([])
   const [readingProgress, setReadingProgress] = useState(0)
   const [showMobileGlossary, setShowMobileGlossary] = useState(false)
@@ -1347,6 +1351,30 @@ export default function ChapterPage() {
               variant: 'primary'
             },
             {
+              id: 'suggest-edit',
+              label: work?.languages && work.languages.length > 1 ? 'Suggest Edit (Original)' : 'Suggest Edit',
+              icon: <Edit3 size={14} />,
+              onClick: () => {
+                triggerHaptic(10)
+                setShowEditSuggestModal(true)
+                requestAnimationFrame(restoreSelectionHighlight)
+              }
+            },
+            ...((work?.languages && work.languages.length > 1)
+              ? [
+                  {
+                    id: 'suggest-translation',
+                    label: 'Suggest Translation',
+                    icon: <Globe size={14} />,
+                    onClick: () => {
+                      triggerHaptic(10)
+                      setShowTranslationSuggestModal(true)
+                    },
+                    variant: 'primary' as const
+                  }
+                ]
+              : []),
+            {
               id: 'fan-art',
               label: 'Submit Art',
               icon: <Sparkles size={14} />,
@@ -1360,6 +1388,36 @@ export default function ChapterPage() {
           ]}
           onClose={clearSelection}
         />
+
+          {showEditSuggestModal && selectedText && (
+            <div className="fixed inset-0 bg-black/20 z-50 flex items-start justify-center pt-20">
+              <EditSuggestionModal
+                blockId={section?.id || chapterId}
+                chapterId={chapterId}
+                workId={storyId}
+                selectedText={selectedText}
+                currentUserId={session?.user?.id}
+                currentUserName={session?.user?.name || undefined}
+                onClose={() => {
+                  setShowEditSuggestModal(false)
+                  clearSelection()
+                }}
+                position={selectionPosition}
+              />
+            </div>
+          )}
+
+          {showTranslationSuggestModal && (
+            <TranslationSubmissionForm
+              workId={storyId}
+              chapterId={chapterId}
+              onClose={() => setShowTranslationSuggestModal(false)}
+              onSuccess={() => {
+                setShowTranslationSuggestModal(false)
+                clearSelection()
+              }}
+            />
+          )}
 
         {showQuickComment && Boolean(selectedText) && (
           <div

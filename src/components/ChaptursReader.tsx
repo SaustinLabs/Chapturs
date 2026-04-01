@@ -12,6 +12,7 @@ import CharacterProfileViewModal from './CharacterProfileViewModal'
 import { useMeasureTextHeight } from '@/hooks/usePretext'
 import { buildReaderSelectionActions } from '@/lib/selectionActionRegistry'
 import { SelectionRole } from '@/lib/selectionActionRegistry'
+import { useToast } from '@/components/ui/Toast'
 
 interface ReaderCharacter {
   id: string
@@ -76,6 +77,7 @@ export default function ChaptursReader({
   const [fanArtCharacterOptions, setFanArtCharacterOptions] = useState<ReaderCharacter[]>([])
   
   const observerRef = useRef<IntersectionObserver | null>(null)
+  const { toast } = useToast()
 
   // Initialize Intersection Observer for scroll-based animations
   useEffect(() => {
@@ -327,7 +329,7 @@ export default function ChaptursReader({
       return
     }
 
-    alert('Fan art submission is character-specific. Click a highlighted character profile and use Submit Fan Art there.')
+    toast.info('Fan art is character-specific. Click a highlighted character name in the text to open their profile and submit fan art.')
     clearSelection()
   }
 
@@ -349,12 +351,13 @@ export default function ChaptursReader({
         role: viewerRole,
         enableCollaboration,
         enableTranslation,
+        isViewingTranslation: activeLanguage !== document.metadata.language,
         onComment: () => handleTextSelectionAction('comment'),
         onSuggestEdit: () => handleTextSelectionAction('suggest'),
         onSuggestTranslation: () => handleTextSelectionAction('translate'),
         onFanArt: handleFanArtIntent
       }),
-    [viewerRole, enableCollaboration, enableTranslation, selectedBlockId, selectedText]
+    [viewerRole, enableCollaboration, enableTranslation, selectedBlockId, selectedText, activeLanguage]
   )
 
   // Parse block text into sentences for translation
@@ -521,6 +524,7 @@ export default function ChaptursReader({
               targetLanguage={userLanguage}
               onLanguageChange={setActiveLanguage}
               userId={currentUserId}
+              initialHighlightedText={selectedText || undefined}
             />
           </div>
         )}
