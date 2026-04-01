@@ -17,6 +17,38 @@ echo -e "${YELLOW}=== Chapturs VPS Deployment ===${NC}"
 APP_DIR="${APP_DIR:-.}"
 NODE_VERSION_REQUIRED="20"
 
+load_env_file() {
+    local env_file="$1"
+
+    if [[ ! -f "$env_file" ]]; then
+        return 1
+    fi
+
+    echo -e "${YELLOW}Loading environment from ${env_file}${NC}"
+
+    # Guard against binary/invalid env files
+    if LC_ALL=C grep -qU $'\x00' "$env_file"; then
+        echo -e "${RED}✗ ${env_file} appears to be binary. Skipping source.${NC}"
+        return 1
+    fi
+
+    # Source file without aborting deployment if syntax is invalid
+    set +e
+    set -a
+    # shellcheck disable=SC1090
+    . "$env_file"
+    local source_status=$?
+    set +a
+    set -e
+
+    if [[ $source_status -ne 0 ]]; then
+        echo -e "${YELLOW}Warning: Failed to source ${env_file}. Continuing deployment with existing environment.${NC}"
+        return 1
+    fi
+
+    return 0
+}
+
 # Check if running as root (recommended for PM2)
 if [[ $EUID -ne 0 ]]; then
    echo -e "${YELLOW}Warning: Not running as root. Some operations may require sudo.${NC}"
@@ -30,20 +62,10 @@ cd "$APP_DIR" || { echo -e "${RED}Failed to navigate to $APP_DIR${NC}"; exit 1; 
 git config core.fileMode false || true
 
 # Load production environment for CLI tools (Prisma/PM2 reload context)
-if [[ -f ".env.production" ]]; then
-    echo -e "${YELLOW}Loading environment from .env.production${NC}"
-    set -a
-    # shellcheck disable=SC1091
-    source .env.production
-    set +a
-elif [[ -f ".env" ]]; then
-    echo -e "${YELLOW}Loading environment from .env${NC}"
-    set -a
-    # shellcheck disable=SC1091
-    source .env
-    set +a
-else
+if ! load_env_file ".env.production"; then
+    if ! load_env_file ".env"; then
     echo -e "${YELLOW}Warning: No .env.production or .env file found in app directory.${NC}"
+    fi
 fi
 
 # 2. Pull latest from GitHub main
