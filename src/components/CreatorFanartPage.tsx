@@ -320,6 +320,9 @@ function SubmissionCard({
   })()
 
   const needsCharacterConfirmation = Boolean(characterMeta?.pendingAuthorConfirmation)
+  const confirmationSource = characterMeta?.confirmationSource as string | undefined
+  const confirmedAt = characterMeta?.confirmedAt as string | undefined
+  const isConfirmed = !needsCharacterConfirmation && Boolean(confirmedAt)
 
   const statusColors = {
     pending: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
@@ -441,6 +444,24 @@ function SubmissionCard({
               >
                 Open character management
               </Link>
+            </div>
+          )}
+
+          {isConfirmed && (
+            <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded text-sm text-emerald-900 dark:text-emerald-200">
+              <p className="font-medium mb-1">Character confirmation recorded</p>
+              <p>
+                {confirmationSource === 'creator-fanart-review'
+                  ? 'Confirmed in fanart review.'
+                  : confirmationSource === 'fanart-submit-anyway'
+                    ? 'Auto-confirmed by creator automation settings.'
+                    : 'Confirmed.'}
+              </p>
+              {confirmedAt && (
+                <p className="text-xs mt-1 opacity-80">
+                  {new Date(confirmedAt).toLocaleString()}
+                </p>
+              )}
             </div>
           )}
 
