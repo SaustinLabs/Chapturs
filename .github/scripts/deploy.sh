@@ -26,12 +26,6 @@ load_env_file() {
 
     echo -e "${YELLOW}Loading environment from ${env_file}${NC}"
 
-    # Guard against binary/invalid env files
-    if LC_ALL=C grep -qU $'\x00' "$env_file"; then
-        echo -e "${RED}✗ ${env_file} appears to be binary. Skipping source.${NC}"
-        return 1
-    fi
-
     # Source file without aborting deployment if syntax is invalid
     set +e
     set -a
@@ -111,12 +105,11 @@ fi
 
 # 6. Run Prisma migrations (safe on Supabase)
 echo -e "${YELLOW}Syncing Prisma schema with database...${NC}"
-if [[ -z "${DATABASE_URL:-}" ]]; then
-    echo -e "${RED}✗ DATABASE_URL is not set for Prisma. Skipping db push.${NC}"
-elif npx prisma validate --schema prisma/schema.prisma && npx prisma db push --skip-generate --schema prisma/schema.prisma; then
+if npx prisma validate --schema prisma/schema.prisma && npx prisma db push --skip-generate --schema prisma/schema.prisma; then
     echo -e "${GREEN}✓ Prisma sync successful${NC}"
 else
     echo -e "${RED}✗ Prisma sync failed (continuing anyway)${NC}"
+    echo -e "${YELLOW}Hint: Verify DATABASE_URL in .env/.env.production and connectivity to your Postgres instance.${NC}"
     # Don't exit - DB migrations might not be critical for restart
 fi
 
