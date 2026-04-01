@@ -33,6 +33,7 @@ export default function StoryPage() {
   const [showFullDescription, setShowFullDescription] = useState(false)
   const [openingChapter, setOpeningChapter] = useState(false)
   const [resumeSectionId, setResumeSectionId] = useState<string | null>(null)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -100,11 +101,20 @@ export default function StoryPage() {
     }
   }, [storyId])
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const apply = () => setPrefersReducedMotion(media.matches)
+    apply()
+    media.addEventListener('change', apply)
+    return () => media.removeEventListener('change', apply)
+  }, [])
+
   const openChapterWithTransition = (sectionId: string) => {
     setOpeningChapter(true)
     window.setTimeout(() => {
       router.push(`/story/${storyId}/chapter/${sectionId}`)
-    }, 230)
+    }, prefersReducedMotion ? 50 : 230)
   }
 
   const handleBookmark = async () => {
@@ -244,7 +254,9 @@ export default function StoryPage() {
     <AppLayout>
       {openingChapter && (
         <div className="fixed inset-0 z-[90] bg-black/45 backdrop-blur-sm flex items-center justify-center pointer-events-none">
-          <div className="w-24 h-24 rounded-2xl bg-white/20 border border-white/40 animate-pulse" />
+          <div className="reader-zoom-pulse w-28 h-28 rounded-3xl bg-white/20 border border-white/50 shadow-2xl flex items-center justify-center">
+            <span className="text-white text-xs font-semibold tracking-wide">Opening</span>
+          </div>
         </div>
       )}
 

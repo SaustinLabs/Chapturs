@@ -98,6 +98,7 @@ export default function ChapterPage() {
   const [selectedCharacterProfile, setSelectedCharacterProfile] = useState<ReaderCharacter | null>(null)
   const [swipeHint, setSwipeHint] = useState('')
   const [showMiniMap, setShowMiniMap] = useState(false)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const selectionRangeRef = useRef<Range | null>(null)
   const chapterContentRef = useRef<HTMLDivElement | null>(null)
   const swipeStartRef = useRef<{ x: number; y: number; t: number } | null>(null)
@@ -122,6 +123,7 @@ export default function ChapterPage() {
   }
 
   const triggerHaptic = (pattern: number | number[] = 10) => {
+    if (prefersReducedMotion) return
     try {
       if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         navigator.vibrate(pattern)
@@ -130,6 +132,15 @@ export default function ChapterPage() {
       // Ignore unsupported haptic calls.
     }
   }
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const apply = () => setPrefersReducedMotion(media.matches)
+    apply()
+    media.addEventListener('change', apply)
+    return () => media.removeEventListener('change', apply)
+  }, [])
 
   useEffect(() => {
     const loadData = async () => {
@@ -1177,7 +1188,7 @@ export default function ChapterPage() {
         </div>
 
         {showMiniMap && (
-          <div className="md:hidden fixed bottom-20 right-3 z-[60] bg-white/95 dark:bg-gray-900/95 backdrop-blur border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-2">
+          <div className="reader-sheet-rise md:hidden fixed bottom-20 right-3 z-[60] bg-white/95 dark:bg-gray-900/95 backdrop-blur border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-2">
             <div className="text-[10px] text-gray-500 dark:text-gray-400 px-1 pb-1">Chapter Jump</div>
             <div className="flex items-center gap-1">
               {[0.25, 0.5, 0.75, 1].map((percent) => (
@@ -1201,8 +1212,21 @@ export default function ChapterPage() {
         )}
 
         {showMobileGlossary && (
-          <div className="fixed inset-0 z-[75] bg-black/55 flex items-end md:items-center justify-center">
-            <div className="w-full md:max-w-2xl bg-white dark:bg-gray-900 rounded-t-2xl md:rounded-2xl border border-gray-200 dark:border-gray-700 shadow-2xl max-h-[85vh] overflow-hidden">
+          <div
+            className="fixed inset-0 z-[75] bg-black/55 flex items-end md:items-center justify-center"
+            onClick={() => {
+              setShowMobileGlossary(false)
+              setFocusedTerm('')
+              setMobileGlossaryQuery('')
+            }}
+          >
+            <div
+              className="reader-sheet-rise w-full md:max-w-2xl bg-white dark:bg-gray-900 rounded-t-2xl md:rounded-2xl border border-gray-200 dark:border-gray-700 shadow-2xl max-h-[85vh] overflow-hidden"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="py-2 flex justify-center">
+                <div className="w-10 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
+              </div>
               <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Story Glossary</h3>
                 <button
@@ -1226,7 +1250,7 @@ export default function ChapterPage() {
                       setMobileGlossaryTab('characters')
                       triggerHaptic(8)
                     }}
-                    className={`px-3 py-2 rounded-lg text-xs font-semibold ${
+                    className={`transition-colors px-3 py-2 rounded-lg text-xs font-semibold ${
                       mobileGlossaryTab === 'characters'
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
@@ -1240,7 +1264,7 @@ export default function ChapterPage() {
                       setMobileGlossaryTab('terms')
                       triggerHaptic(8)
                     }}
-                    className={`px-3 py-2 rounded-lg text-xs font-semibold ${
+                    className={`transition-colors px-3 py-2 rounded-lg text-xs font-semibold ${
                       mobileGlossaryTab === 'terms'
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
