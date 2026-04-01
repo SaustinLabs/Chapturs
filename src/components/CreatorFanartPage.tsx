@@ -96,6 +96,47 @@ export default function CreatorFanartPage() {
     }
   }
 
+  const handleConfirmCharacter = async (
+    submissionId: string,
+    workId: string,
+    characterId: string,
+    characterName: string,
+    approveSubmission: boolean
+  ) => {
+    setProcessingIds(prev => new Set(prev).add(submissionId))
+
+    try {
+      const res = await fetch('/api/creator/fanart', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'confirm-character',
+          submissionId,
+          workId,
+          characterId,
+          characterName,
+          approveSubmission,
+        })
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data?.error || 'Failed to confirm character')
+      }
+
+      await fetchSubmissions()
+    } catch (error: any) {
+      console.error('Failed to confirm character:', error)
+      alert(error?.message || 'Failed to confirm character. Please try again.')
+    } finally {
+      setProcessingIds(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(submissionId)
+        return newSet
+      })
+    }
+  }
+
   const filteredSubmissions = submissions.filter(sub => {
     if (!searchQuery) return true
     const query = searchQuery.toLowerCase()
@@ -235,6 +276,7 @@ export default function CreatorFanartPage() {
               key={submission.id}
               submission={submission}
               onReview={handleReview}
+              onConfirmCharacter={handleConfirmCharacter}
               isProcessing={processingIds.has(submission.id)}
             />
           ))}
@@ -248,13 +290,22 @@ export default function CreatorFanartPage() {
 function SubmissionCard({ 
   submission, 
   onReview, 
+  onConfirmCharacter,
   isProcessing 
 }: { 
   submission: FanartSubmission
   onReview: (id: string, action: 'approve' | 'reject', workId: string, characterId: string) => void
+  onConfirmCharacter: (
+    submissionId: string,
+    workId: string,
+    characterId: string,
+    characterName: string,
+    approveSubmission: boolean
+  ) => void
   isProcessing: boolean
 }) {
   const [showFullImage, setShowFullImage] = useState(false)
+  const [proposedCharacterName, setProposedCharacterName] = useState(submission.characterName)
 
   const characterMeta = (() => {
     if (!submission.characterMetadata) return null
@@ -346,7 +397,44 @@ function SubmissionCard({
           {needsCharacterConfirmation && (
             <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded text-sm text-amber-900 dark:text-amber-200">
               <p className="font-medium mb-1">Character confirmation needed</p>
-              <p className="mb-2">This submission created a provisional character. Confirm or edit it in Character Management.</p>
+              <p className="mb-2">This submission created a provisional character. Confirm it here, optionally renaming first.</p>
+              <input
+                type="text"
+                value={proposedCharacterName}
+                onChange={(e) => setProposedCharacterName(e.target.value)}
+                className="w-full mb-2 px-2 py-1 text-sm text-gray-900 border border-amber-300 rounded"
+                placeholder="Character name"
+              />
+              <div className="flex flex-wrap gap-2 mb-2">
+                <button
+                  onClick={() => onConfirmCharacter(
+                    submission.id,
+                    submission.workId,
+                    submission.characterId,
+                    proposedCharacterName,
+                    false
+                  )}
+                  disabled={isProcessing || !proposedCharacterName.trim()}
+                  className="px-2 py-1 text-xs bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-50"
+                >
+                  Confirm Character
+                </button>
+                {submission.status === 'pending' && (
+                  <button
+                    onClick={() => onConfirmCharacter(
+                      submission.id,
+                      submission.workId,
+                      submission.characterId,
+                      proposedCharacterName,
+                      true
+                    )}
+                    disabled={isProcessing || !proposedCharacterName.trim()}
+                    className="px-2 py-1 text-xs bg-emerald-600 text-white rounded hover:bg-emerald-700 disabled:opacity-50"
+                  >
+                    Approve + Confirm
+                  </button>
+                )}
+              </div>
               <Link
                 href={`/creator/works/${submission.workId}/characters`}
                 className="inline-flex items-center gap-1 text-amber-800 dark:text-amber-300 underline"
