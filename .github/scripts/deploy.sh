@@ -43,6 +43,31 @@ load_env_file() {
     return 0
 }
 
+extract_env_var_from_file() {
+    local env_file="$1"
+    local var_name="$2"
+
+    if [[ ! -f "$env_file" ]]; then
+        return 1
+    fi
+
+    local raw
+    raw=$(grep -E "^[[:space:]]*${var_name}[[:space:]]*=" "$env_file" | tail -n 1)
+    if [[ -z "$raw" ]]; then
+        return 1
+    fi
+
+    raw="${raw#*=}"
+    raw="${raw%$'\r'}"
+    raw="${raw#\"}"
+    raw="${raw%\"}"
+    raw="${raw#\'}"
+    raw="${raw%\'}"
+
+    printf '%s' "$raw"
+    return 0
+}
+
 # Check if running as root (recommended for PM2)
 if [[ $EUID -ne 0 ]]; then
    echo -e "${YELLOW}Warning: Not running as root. Some operations may require sudo.${NC}"
@@ -105,12 +130,23 @@ fi
 
 # 6. Run Prisma migrations (safe on Supabase)
 echo -e "${YELLOW}Syncing Prisma schema with database...${NC}"
-if npx prisma validate --schema prisma/schema.prisma && npx prisma db push --skip-generate --schema prisma/schema.prisma; then
-    echo -e "${GREEN}✓ Prisma sync successful${NC}"
+if [[ -z "${DATABASE_URL:-}" ]]; then
+    DATABASE_URL=$(extract_env_var_from_file ".env.production" "DATABASE_URL" || extract_env_var_from_file ".env" "DATABASE_URL" || true)
+    export DATABASE_URL
+fi
+
+if [[ -z "${DATABASE_URL:-}" ]]; then
+    echo -e "${YELLOW}Skipping Prisma sync: DATABASE_URL is not set in shell or env files.${NC}"
+elif [[ ! "${DATABASE_URL}" =~ ^postgres(ql)?:// ]]; then
+    echo -e "${YELLOW}Skipping Prisma sync: DATABASE_URL is not a PostgreSQL URL.${NC}"
 else
-    echo -e "${RED}✗ Prisma sync failed (continuing anyway)${NC}"
-    echo -e "${YELLOW}Hint: Verify DATABASE_URL in .env/.env.production and connectivity to your Postgres instance.${NC}"
-    # Don't exit - DB migrations might not be critical for restart
+    if npx prisma validate --schema prisma/schema.prisma && npx prisma db push --skip-generate --schema prisma/schema.prisma; then
+        echo -e "${GREEN}✓ Prisma sync successful${NC}"
+    else
+        echo -e "${RED}✗ Prisma sync failed (continuing anyway)${NC}"
+        echo -e "${YELLOW}Hint: Verify DATABASE_URL and connectivity to your Postgres instance.${NC}"
+        # Don't exit - DB migrations might not be critical for restart
+    fi
 fi
 
 # 7. Reload PM2 app
