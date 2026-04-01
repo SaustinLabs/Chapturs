@@ -65,6 +65,7 @@ export default function ModerationDashboard() {
   const [processing, setProcessing] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string>('')
   const [currentUserRole, setCurrentUserRole] = useState<string>('')
+  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   useEffect(() => {
     loadModerationQueue()
@@ -101,6 +102,7 @@ export default function ModerationDashboard() {
 
   const handleModerationAction = async (itemId: string, action: 'approve' | 'reject' | 'flag' | 'claim' | 'release', notes?: string) => {
     setProcessing(true)
+    setStatusMessage(null)
     try {
       const response = await fetch(`/api/moderation/queue/${itemId}`, {
         method: 'PATCH',
@@ -117,15 +119,36 @@ export default function ModerationDashboard() {
         } else {
           await loadItemDetails(itemId)
         }
+        setStatusMessage({
+          type: 'success',
+          text: action === 'claim'
+            ? 'Item claimed for review.'
+            : action === 'release'
+              ? 'Item released back to queue.'
+              : `Item ${action}d successfully.`,
+        })
       } else {
         const error = await response.json()
-        alert(`Failed to ${action}: ${error.error}`)
+        setStatusMessage({ type: 'error', text: `Failed to ${action}: ${error.error || 'Unknown error'}` })
       }
     } catch (error) {
       console.error(`Failed to ${action} item:`, error)
-      alert(`Failed to ${action} item`)
+      setStatusMessage({ type: 'error', text: `Failed to ${action} item.` })
     } finally {
       setProcessing(false)
+    }
+  }
+
+  const getPreviewText = (rawContent: string) => {
+    if (!rawContent) return ''
+    try {
+      const parsed = JSON.parse(rawContent)
+      if (parsed?.text && typeof parsed.text === 'string') {
+        return parsed.text
+      }
+      return rawContent
+    } catch {
+      return rawContent
     }
   }
 
@@ -172,6 +195,17 @@ export default function ModerationDashboard() {
         <p className="text-gray-600 dark:text-gray-400 mt-2">
           Review and moderate user-generated content
         </p>
+        {statusMessage && (
+          <div
+            className={`mt-3 rounded-lg px-4 py-2 text-sm ${
+              statusMessage.type === 'success'
+                ? 'bg-green-50 border border-green-200 text-green-700'
+                : 'bg-red-50 border border-red-200 text-red-700'
+            }`}
+          >
+            {statusMessage.text}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -346,7 +380,7 @@ export default function ModerationDashboard() {
                         <div>
                           <h5 className="font-medium mb-2">Content:</h5>
                           <div className="whitespace-pre-wrap text-sm">
-                            {JSON.parse(selectedItem.section.content).text || selectedItem.section.content}
+                            {getPreviewText(selectedItem.section.content)}
                           </div>
                         </div>
                       )}
@@ -354,7 +388,7 @@ export default function ModerationDashboard() {
                         <div>
                           <h5 className="font-medium mb-2">First Chapter:</h5>
                           <div className="whitespace-pre-wrap text-sm">
-                            {JSON.parse(selectedItem.work.sections[0].content).text || selectedItem.work.sections[0].content}
+                            {getPreviewText(selectedItem.work.sections[0].content)}
                           </div>
                         </div>
                       )}
