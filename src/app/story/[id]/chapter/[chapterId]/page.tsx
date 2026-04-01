@@ -97,6 +97,7 @@ export default function ChapterPage() {
   const [focusedTerm, setFocusedTerm] = useState('')
   const [selectedCharacterProfile, setSelectedCharacterProfile] = useState<ReaderCharacter | null>(null)
   const [swipeHint, setSwipeHint] = useState('')
+  const [showMiniMap, setShowMiniMap] = useState(false)
   const selectionRangeRef = useRef<Range | null>(null)
   const chapterContentRef = useRef<HTMLDivElement | null>(null)
   const swipeStartRef = useRef<{ x: number; y: number; t: number } | null>(null)
@@ -118,6 +119,16 @@ export default function ChapterPage() {
       }))
 
     setSelectionRects(rects)
+  }
+
+  const triggerHaptic = (pattern: number | number[] = 10) => {
+    try {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate(pattern)
+      }
+    } catch {
+      // Ignore unsupported haptic calls.
+    }
   }
 
   useEffect(() => {
@@ -189,6 +200,12 @@ export default function ChapterPage() {
               setSection(foundSection)
               const index = sectionsArray.findIndex((s: Section) => s.id === chapterId)
               setCurrentSectionIndex(index)
+
+              try {
+                window.localStorage.setItem(`reader-last-chapter-${storyId}`, foundSection.id)
+              } catch (error) {
+                console.error('Failed to save last read chapter:', error)
+              }
 
               // Track view
               try {
@@ -402,6 +419,7 @@ export default function ChapterPage() {
       const customEvent = event as CustomEvent
       const detail = customEvent?.detail || {}
       setShowMobileGlossary(true)
+      triggerHaptic([10, 30, 10])
 
       if (detail.type === 'term') {
         setMobileGlossaryTab('terms')
@@ -472,18 +490,22 @@ export default function ChapterPage() {
 
       if (dx < 0) {
         if (currentSectionIndex < allSections.length - 1) {
+          triggerHaptic(12)
           goToNext()
         } else {
           setSwipeHint('You are on the last chapter')
+          triggerHaptic([8, 30, 8])
         }
         return
       }
 
       if (dx > 0) {
         if (currentSectionIndex > 0) {
+          triggerHaptic(12)
           goToPrevious()
         } else {
           setSwipeHint('You are on the first chapter')
+          triggerHaptic([8, 30, 8])
         }
       }
     }
@@ -718,6 +740,7 @@ export default function ChapterPage() {
   const navigateToSection = (newIndex: number) => {
     if (newIndex >= 0 && newIndex < allSections.length) {
       const newSection = allSections[newIndex]
+      triggerHaptic(14)
       router.push(`/story/${storyId}/chapter/${newSection.id}`)
     }
   }
@@ -753,6 +776,17 @@ export default function ChapterPage() {
       ...prev,
       fontSize: options[nextIndex]
     }))
+    triggerHaptic(8)
+  }
+
+  const jumpToChapterPercent = (percent: number) => {
+    if (!chapterContentRef.current) return
+    const rect = chapterContentRef.current.getBoundingClientRect()
+    const chapterTop = window.scrollY + rect.top
+    const target = chapterTop + chapterContentRef.current.offsetHeight * percent - 90
+    window.scrollTo({ top: Math.max(0, target), behavior: 'smooth' })
+    setSwipeHint(`Jumped to ${Math.round(percent * 100)}%`)
+    triggerHaptic([8, 24, 8])
   }
 
   const filteredCharacters = characters.filter((character) => {
@@ -1031,6 +1065,7 @@ export default function ChapterPage() {
 
                 setQuickCommentError('')
                 setShowQuickComment(true)
+                triggerHaptic(10)
                 requestAnimationFrame(restoreSelectionHighlight)
               },
               variant: 'primary'
@@ -1039,7 +1074,10 @@ export default function ChapterPage() {
               id: 'fan-art',
               label: 'Submit Art',
               icon: <Sparkles size={14} />,
-              onClick: handleFanArtIntent,
+              onClick: () => {
+                triggerHaptic(10)
+                handleFanArtIntent()
+              },
               variant: 'primary',
               className: 'bg-emerald-600 hover:bg-emerald-700 border border-emerald-600'
             }
@@ -1095,7 +1133,10 @@ export default function ChapterPage() {
           <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg px-3 py-2 flex items-center justify-between">
             <button
               type="button"
-              onClick={() => setShowChapterList((value) => !value)}
+              onClick={() => {
+                setShowChapterList((value) => !value)
+                triggerHaptic(10)
+              }}
               className="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200"
             >
               Chapters
@@ -1105,6 +1146,7 @@ export default function ChapterPage() {
               onClick={() => {
                 setMobileGlossaryTab('characters')
                 setShowMobileGlossary(true)
+                triggerHaptic(10)
               }}
               className="px-3 py-2 text-xs font-semibold text-blue-700 dark:text-blue-300"
             >
@@ -1115,13 +1157,42 @@ export default function ChapterPage() {
               onClick={() => {
                 const commentsEl = document.getElementById('comments')
                 commentsEl?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                triggerHaptic(10)
               }}
               className="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200"
             >
               Comments
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowMiniMap((value) => !value)
+                triggerHaptic(10)
+              }}
+              className="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200"
+            >
+              Jump
+            </button>
           </div>
         </div>
+
+        {showMiniMap && (
+          <div className="md:hidden fixed bottom-20 right-3 z-[60] bg-white/95 dark:bg-gray-900/95 backdrop-blur border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-2">
+            <div className="text-[10px] text-gray-500 dark:text-gray-400 px-1 pb-1">Chapter Jump</div>
+            <div className="flex items-center gap-1">
+              {[0.25, 0.5, 0.75, 1].map((percent) => (
+                <button
+                  key={percent}
+                  type="button"
+                  onClick={() => jumpToChapterPercent(percent)}
+                  className="px-2 py-1 text-[11px] rounded-md bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200"
+                >
+                  {Math.round(percent * 100)}%
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {swipeHint && (
           <div className="md:hidden fixed top-24 left-1/2 -translate-x-1/2 z-[70] px-3 py-2 rounded-lg bg-gray-900 text-white text-xs shadow-lg">
@@ -1151,7 +1222,10 @@ export default function ChapterPage() {
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   <button
                     type="button"
-                    onClick={() => setMobileGlossaryTab('characters')}
+                    onClick={() => {
+                      setMobileGlossaryTab('characters')
+                      triggerHaptic(8)
+                    }}
                     className={`px-3 py-2 rounded-lg text-xs font-semibold ${
                       mobileGlossaryTab === 'characters'
                         ? 'bg-blue-600 text-white'
@@ -1162,7 +1236,10 @@ export default function ChapterPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setMobileGlossaryTab('terms')}
+                    onClick={() => {
+                      setMobileGlossaryTab('terms')
+                      triggerHaptic(8)
+                    }}
                     className={`px-3 py-2 rounded-lg text-xs font-semibold ${
                       mobileGlossaryTab === 'terms'
                         ? 'bg-blue-600 text-white'

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import AppLayout from '@/components/AppLayout'
 import { Work } from '@/types'
@@ -22,6 +22,7 @@ import { resolveCoverSrc } from '@/lib/images'
 
 export default function StoryPage() {
   const params = useParams()
+  const router = useRouter()
   const storyId = params?.id as string
   const { data: session } = useSession()
   
@@ -30,6 +31,8 @@ export default function StoryPage() {
   const [isLiked, setIsLiked] = useState(false)
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [showFullDescription, setShowFullDescription] = useState(false)
+  const [openingChapter, setOpeningChapter] = useState(false)
+  const [resumeSectionId, setResumeSectionId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -84,6 +87,25 @@ export default function StoryPage() {
 
     fetchStoryData()
   }, [storyId, session?.user?.id])
+
+  useEffect(() => {
+    if (!storyId) return
+    try {
+      const stored = window.localStorage.getItem(`reader-last-chapter-${storyId}`)
+      if (stored) {
+        setResumeSectionId(stored)
+      }
+    } catch (error) {
+      console.error('Failed to read saved chapter:', error)
+    }
+  }, [storyId])
+
+  const openChapterWithTransition = (sectionId: string) => {
+    setOpeningChapter(true)
+    window.setTimeout(() => {
+      router.push(`/story/${storyId}/chapter/${sectionId}`)
+    }, 230)
+  }
 
   const handleBookmark = async () => {
     if (!session?.user?.id || !story) return
@@ -156,15 +178,17 @@ export default function StoryPage() {
 
   const startReading = () => {
     if (story?.sections && story.sections.length > 0) {
-      // Navigate to first section/chapter
-      window.location.href = `/story/${storyId}/chapter/${story.sections[0].id}`
+      const fallbackSectionId = story.sections[0].id
+      const hasResume = resumeSectionId && story.sections.some((section) => section.id === resumeSectionId)
+      openChapterWithTransition(hasResume ? resumeSectionId! : fallbackSectionId)
     }
   }
 
   const continueReading = () => {
-    // In a real app, this would determine the user's last read section
     if (story?.sections && story.sections.length > 0) {
-      window.location.href = `/story/${storyId}/chapter/${story.sections[0].id}`
+      const fallbackSectionId = story.sections[0].id
+      const hasResume = resumeSectionId && story.sections.some((section) => section.id === resumeSectionId)
+      openChapterWithTransition(hasResume ? resumeSectionId! : fallbackSectionId)
     }
   }
 
@@ -218,6 +242,12 @@ export default function StoryPage() {
 
   return (
     <AppLayout>
+      {openingChapter && (
+        <div className="fixed inset-0 z-[90] bg-black/45 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+          <div className="w-24 h-24 rounded-2xl bg-white/20 border border-white/40 animate-pulse" />
+        </div>
+      )}
+
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Story Header */}
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -384,7 +414,7 @@ export default function StoryPage() {
                     disabled={!story.sections || story.sections.length === 0}
                     className="flex items-center justify-center space-x-2 px-6 py-3 border border-blue-500 text-blue-500 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <span>Continue Reading</span>
+                    <span>{resumeSectionId ? 'Continue Reading' : 'Quick Start'}</span>
                   </button>
                   {session?.user?.id && story.author?.id && (
                     <button
@@ -424,7 +454,7 @@ export default function StoryPage() {
                 <div
                   key={section.id}
                   className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
-                  onClick={() => window.location.href = `/story/${storyId}/chapter/${section.id}`}
+                  onClick={() => openChapterWithTransition(section.id)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
