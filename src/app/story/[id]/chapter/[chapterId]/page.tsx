@@ -7,10 +7,12 @@ import ChapterBlockRenderer from '@/components/ChapterBlockRenderer'
 import ChapterTopBar from '@/components/ChapterTopBar'
 import StickyAudioScrubber from '@/components/StickyAudioScrubber'
 import WorkRatingSystem from '@/components/WorkRatingSystem'
+import CommentSection from '@/components/CommentSection'
 import SelectionActionToolbar from '@/components/SelectionActionToolbar'
 import CharacterProfileViewModal from '@/components/CharacterProfileViewModal'
 import { Work, Section } from '@/types'
 import DataService from '@/lib/api/DataService'
+import { useSession } from 'next-auth/react'
 import { 
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -30,6 +32,7 @@ interface ReaderCharacter {
 export default function ChapterPage() {
   const params = useParams()
   const router = useRouter()
+  const { data: session } = useSession()
   const storyId = params?.id as string
   const chapterId = params?.chapterId as string
   
@@ -229,6 +232,18 @@ export default function ChapterPage() {
       globalThis.document.removeEventListener('touchend', handleTextSelection)
     }
   }, [])
+
+  useEffect(() => {
+    if (loading || !section) return
+    if (window.location.hash !== '#comments') return
+
+    const timeout = setTimeout(() => {
+      const commentsEl = document.getElementById('comments')
+      commentsEl?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 60)
+
+    return () => clearTimeout(timeout)
+  }, [loading, section])
 
   const clearSelection = () => {
     setSelectedText('')
@@ -495,6 +510,15 @@ export default function ChapterPage() {
           <WorkRatingSystem workId={storyId} />
         </div>
 
+        <div id="comments" className="max-w-2xl mx-auto mt-12 mb-24 scroll-mt-24">
+          <CommentSection
+            workId={storyId}
+            sectionId={chapterId}
+            canComment={Boolean(session?.user?.id)}
+            currentUserId={session?.user?.id}
+          />
+        </div>
+
         <SelectionActionToolbar
           visible={Boolean(selectedText)}
           position={selectionPosition}
@@ -504,7 +528,14 @@ export default function ChapterPage() {
               label: 'Comment',
               icon: <MessageSquare size={14} />,
               onClick: () => {
-                window.location.href = `/story/${storyId}#comments`
+                const commentsEl = document.getElementById('comments')
+                if (commentsEl) {
+                  window.history.replaceState(null, '', '#comments')
+                  commentsEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  return
+                }
+
+                window.location.href = `/story/${storyId}/chapter/${chapterId}#comments`
               },
               variant: 'primary'
             },
