@@ -4,6 +4,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/database/PrismaService'
 
+const CLAIM_TIMEOUT_MINUTES = 20
+
+const getClaimExpiryCutoff = () => new Date(Date.now() - CLAIM_TIMEOUT_MINUTES * 60 * 1000)
+
 // GET /api/moderation/queue - Get moderation queue
 export async function GET(request: NextRequest) {
   try {
@@ -21,6 +25,19 @@ export async function GET(request: NextRequest) {
     if (!user || !['moderator', 'admin'].includes(user.role)) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
+
+    await prisma.contentModerationQueue.updateMany({
+      where: {
+        status: 'in_review',
+        assignedTo: { not: null },
+        assignedAt: { lt: getClaimExpiryCutoff() },
+      },
+      data: {
+        assignedTo: null,
+        assignedAt: null,
+        status: 'queued',
+      },
+    })
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') || 'queued'
@@ -115,6 +132,7 @@ export async function GET(request: NextRequest) {
       total: hydratedItems.length,
       currentUserId: session.user.id,
       currentUserRole: user.role,
+      claimTimeoutMinutes: CLAIM_TIMEOUT_MINUTES,
     })
 
   } catch (error) {

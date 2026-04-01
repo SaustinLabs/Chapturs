@@ -65,6 +65,7 @@ export default function ModerationDashboard() {
   const [processing, setProcessing] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string>('')
   const [currentUserRole, setCurrentUserRole] = useState<string>('')
+  const [claimTimeoutMinutes, setClaimTimeoutMinutes] = useState<number>(20)
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   useEffect(() => {
@@ -79,6 +80,7 @@ export default function ModerationDashboard() {
         setQueue(data.items || [])
         setCurrentUserId(data.currentUserId || '')
         setCurrentUserRole(data.currentUserRole || '')
+        setClaimTimeoutMinutes(data.claimTimeoutMinutes || 20)
       }
     } catch (error) {
       console.error('Failed to load moderation queue:', error)
@@ -194,6 +196,9 @@ export default function ModerationDashboard() {
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Content Moderation</h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
           Review and moderate user-generated content
+        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          Claimed items auto-release after {claimTimeoutMinutes} minutes of inactivity.
         </p>
         {statusMessage && (
           <div

@@ -4,6 +4,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/database/PrismaService'
 
+const CLAIM_TIMEOUT_MINUTES = 20
+
+const getClaimExpiryCutoff = () => new Date(Date.now() - CLAIM_TIMEOUT_MINUTES * 60 * 1000)
+
+const isStaleClaim = (assignedAt?: Date | null) => Boolean(assignedAt && assignedAt.getTime() < getClaimExpiryCutoff().getTime())
+
 interface RouteParams {
   params: Promise<{
     id: string
@@ -30,6 +36,20 @@ export async function GET(request: NextRequest, props: RouteParams) {
     }
 
     const itemId = params.id
+
+    await prisma.contentModerationQueue.updateMany({
+      where: {
+        id: itemId,
+        status: 'in_review',
+        assignedTo: { not: null },
+        assignedAt: { lt: getClaimExpiryCutoff() },
+      },
+      data: {
+        assignedTo: null,
+        assignedAt: null,
+        status: 'queued',
+      },
+    })
 
     const moderationItem = await prisma.contentModerationQueue.findUnique({
       where: { id: itemId },
@@ -82,8 +102,10 @@ export async function GET(request: NextRequest, props: RouteParams) {
       moderationItem: {
         ...moderationItem,
         assignee,
+        isStaleAssignment: isStaleClaim(moderationItem.assignedAt),
       },
-      validations
+      validations,
+      claimTimeoutMinutes: CLAIM_TIMEOUT_MINUTES,
     })
 
   } catch (error) {
@@ -123,6 +145,20 @@ export async function PATCH(request: NextRequest, props: RouteParams) {
         { status: 400 }
       )
     }
+
+    await prisma.contentModerationQueue.updateMany({
+      where: {
+        id: itemId,
+        status: 'in_review',
+        assignedTo: { not: null },
+        assignedAt: { lt: getClaimExpiryCutoff() },
+      },
+      data: {
+        assignedTo: null,
+        assignedAt: null,
+        status: 'queued',
+      },
+    })
 
     const existingItem = await prisma.contentModerationQueue.findUnique({
       where: { id: itemId },
