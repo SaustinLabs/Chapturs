@@ -4,6 +4,62 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
 import { auth } from '@/auth'
 
+function normalizeUsername(value: string): string {
+  const normalized = value
+    .toLowerCase()
+    .replace(/[^a-z0-9_]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '')
+
+  return normalized.slice(0, 24) || 'reader'
+}
+
+async function ensureCommentUser(session: any): Promise<string> {
+  const sessionUserId = session?.user?.id
+  if (!sessionUserId) {
+    throw new Error('Missing session user id')
+  }
+
+  const existingById = await prisma.user.findUnique({ where: { id: sessionUserId } })
+  if (existingById) {
+    return existingById.id
+  }
+
+  const email = session?.user?.email
+  if (!email) {
+    throw new Error('Missing session user email for comment author')
+  }
+
+  const existingByEmail = await prisma.user.findUnique({ where: { email } })
+  if (existingByEmail) {
+    return existingByEmail.id
+  }
+
+  const seed = session?.user?.name || email.split('@')[0] || 'reader'
+  const baseUsername = normalizeUsername(seed)
+
+  let username = baseUsername
+  let attempt = 1
+  while (attempt < 50) {
+    const collision = await prisma.user.findUnique({ where: { username } })
+    if (!collision) break
+    attempt += 1
+    username = `${baseUsername}_${attempt}`.slice(0, 30)
+  }
+
+  const created = await prisma.user.create({
+    data: {
+      id: sessionUserId,
+      email,
+      username,
+      displayName: session?.user?.name || null,
+      avatar: session?.user?.image || null,
+    },
+  })
+
+  return created.id
+}
+
 // GET /api/works/[id]/comments - List comments
 export async function GET(
   request: NextRequest,
@@ -131,6 +187,7 @@ export async function POST(
 
     const body = await request.json()
     const { sectionId, content, parentId } = body
+    const commentUserId = await ensureCommentUser(session)
 
     // Validation
     if (!content || content.trim().length === 0) {
@@ -235,7 +292,7 @@ export async function POST(
       data: {
         workId: params.id,
         sectionId: sectionId || null,
-        userId: session.user.id,
+        userId: commentUserId,
         content: content.trim(),
         parentId: parentId || null
       },

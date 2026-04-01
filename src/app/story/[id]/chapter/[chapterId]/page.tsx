@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import ChapterBlockRenderer from '@/components/ChapterBlockRenderer'
@@ -66,6 +66,7 @@ export default function ChapterPage() {
   const [quickCommentError, setQuickCommentError] = useState('')
   const [submittingQuickComment, setSubmittingQuickComment] = useState(false)
   const [commentsRefreshKey, setCommentsRefreshKey] = useState(0)
+  const selectionRangeRef = useRef<Range | null>(null)
 
   useEffect(() => {
     const loadData = async () => {
@@ -220,12 +221,20 @@ export default function ChapterPage() {
 
       const selectedString = selection.toString().trim()
       const range = selection.getRangeAt(0)
+      selectionRangeRef.current = range.cloneRange()
       const rect = range.getBoundingClientRect()
 
       setSelectedText(selectedString)
       setSelectionPosition({
         top: rect.bottom + window.scrollY + 10,
         left: rect.left + window.scrollX
+      })
+
+      requestAnimationFrame(() => {
+        const activeSelection = window.getSelection()
+        if (!activeSelection || !selectionRangeRef.current) return
+        activeSelection.removeAllRanges()
+        activeSelection.addRange(selectionRangeRef.current)
       })
     }
 
@@ -251,9 +260,17 @@ export default function ChapterPage() {
   }, [loading, section])
 
   const clearSelection = () => {
+    selectionRangeRef.current = null
     setSelectedText('')
     setShowQuickComment(false)
     setQuickCommentError('')
+  }
+
+  const restoreSelectionHighlight = () => {
+    const activeSelection = window.getSelection()
+    if (!activeSelection || !selectionRangeRef.current) return
+    activeSelection.removeAllRanges()
+    activeSelection.addRange(selectionRangeRef.current)
   }
 
   const submitQuickComment = async () => {
@@ -593,6 +610,7 @@ export default function ChapterPage() {
 
                 setQuickCommentError('')
                 setShowQuickComment(true)
+                requestAnimationFrame(restoreSelectionHighlight)
               },
               variant: 'primary'
             },
