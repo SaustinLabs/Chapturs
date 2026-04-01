@@ -23,7 +23,6 @@ jobs:
           port: 22
           command_timeout: 45m
           timeout: 60m
-          script_stop: true
           
           # Run deployment script on VPS
           script: |
@@ -41,8 +40,7 @@ jobs:
             echo "Deploying from: $(pwd)"
 
             if [ -f ".github/scripts/deploy.sh" ]; then
-              chmod +x .github/scripts/deploy.sh
-              ./.github/scripts/deploy.sh
+              bash .github/scripts/deploy.sh
             else
               echo "deploy.sh not found, running inline deploy fallback"
               git pull origin main

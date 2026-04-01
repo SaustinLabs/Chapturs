@@ -26,6 +26,9 @@ fi
 echo -e "${YELLOW}Navigating to app directory: $APP_DIR${NC}"
 cd "$APP_DIR" || { echo -e "${RED}Failed to navigate to $APP_DIR${NC}"; exit 1; }
 
+# Avoid false git-dirty state caused by executable bit drift on some hosts
+git config core.fileMode false || true
+
 # Load production environment for CLI tools (Prisma/PM2 reload context)
 if [[ -f ".env.production" ]]; then
     echo -e "${YELLOW}Loading environment from .env.production${NC}"
@@ -45,6 +48,13 @@ fi
 
 # 2. Pull latest from GitHub main
 echo -e "${YELLOW}Pulling latest changes from GitHub...${NC}"
+
+# Ensure deployment script itself is not blocking pull if it was modified locally
+if ! git diff --quiet -- .github/scripts/deploy.sh; then
+    echo -e "${YELLOW}Resetting local changes in .github/scripts/deploy.sh before pull${NC}"
+    git restore -- .github/scripts/deploy.sh || true
+fi
+
 if git pull origin main; then
     echo -e "${GREEN}✓ Git pull successful${NC}"
 else
