@@ -3,6 +3,7 @@
 import { useUser } from '@/hooks/useUser'
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useToast } from '@/components/ui/Toast'
 import { 
   ArrowLeft, Search, Plus, Edit2, Trash2, Eye, 
   Loader2, FileText, TrendingUp, Hash, BookOpen
@@ -31,6 +32,7 @@ interface Work {
 export default function WorkGlossaryPage() {
   const params = useParams()
   const router = useRouter()
+  const { toast } = useToast()
   const { isAuthenticated, isLoading: userLoading } = useUser()
   const [work, setWork] = useState<Work | null>(null)
   const [terms, setTerms] = useState<GlossaryTerm[]>([])
@@ -64,6 +66,7 @@ export default function WorkGlossaryPage() {
       setTerms(termsData.entries || termsData.terms || [])
     } catch (error) {
       console.error('Failed to fetch:', error)
+      toast.error('Failed to load glossary terms.')
     } finally {
       setLoading(false)
     }
@@ -80,9 +83,10 @@ export default function WorkGlossaryPage() {
       
       // Refresh list
       await fetchWorkAndTerms()
+      toast.success('Glossary term deleted.')
     } catch (error) {
       console.error('Failed to delete term:', error)
-      alert('Failed to delete term')
+      toast.error('Failed to delete term.')
     }
   }
 

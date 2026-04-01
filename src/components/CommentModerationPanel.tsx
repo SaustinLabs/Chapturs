@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { AlertTriangle, Eye, Check, X } from 'lucide-react'
+import { useToast } from '@/components/ui/Toast'
 
 interface CommentReport {
   id: string
@@ -38,6 +39,7 @@ interface CommentReport {
 }
 
 export default function CommentModerationPanel() {
+  const { toast } = useToast()
   const [reports, setReports] = useState<CommentReport[]>([])
   const [loading, setLoading] = useState(true)
   const [status, setStatus] = useState<'pending' | 'reviewed' | 'actioned' | 'all'>('pending')
@@ -61,9 +63,11 @@ export default function CommentModerationPanel() {
         setCounts(data.counts)
       } else {
         console.error('Failed to fetch reports:', data.error)
+        toast.error(data.error || 'Failed to fetch moderation reports.')
       }
     } catch (error) {
       console.error('Error fetching reports:', error)
+      toast.error('Failed to fetch moderation reports.')
     } finally {
       setLoading(false)
     }
@@ -81,14 +85,21 @@ export default function CommentModerationPanel() {
       })
 
       if (response.ok) {
+        toast.success(
+          action === 'dismiss'
+            ? 'Report dismissed.'
+            : action === 'hide'
+              ? 'Comment hidden successfully.'
+              : 'Comment deleted successfully.'
+        )
         fetchReports() // Refresh list
       } else {
         const data = await response.json().catch(() => ({}))
-        alert(data?.error || 'Failed to process moderation action')
+        toast.error(data?.error || 'Failed to process moderation action.')
       }
     } catch (error) {
       console.error('Error processing moderation action:', error)
-      alert('Failed to process moderation action')
+      toast.error('Failed to process moderation action.')
     } finally {
       setProcessingReportId(null)
     }

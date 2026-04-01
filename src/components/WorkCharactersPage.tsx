@@ -3,6 +3,7 @@
 import { useUser } from '@/hooks/useUser'
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import { useToast } from '@/components/ui/Toast'
 import { 
   ArrowLeft, Search, Plus, Edit2, Trash2, Image as ImageIcon,
   Loader2, Users, BookOpen, Star
@@ -39,6 +40,7 @@ interface Work {
 
 export default function WorkCharactersPage() {
   const params = useParams()
+  const { toast } = useToast()
   const { isAuthenticated, isLoading: userLoading } = useUser()
   const [work, setWork] = useState<Work | null>(null)
   const [characters, setCharacters] = useState<CharacterProfile[]>([])
@@ -72,6 +74,7 @@ export default function WorkCharactersPage() {
       setCharacters(charsData.characters || [])
     } catch (error) {
       console.error('Failed to fetch:', error)
+      toast.error('Failed to load characters.')
     } finally {
       setLoading(false)
     }
@@ -88,9 +91,10 @@ export default function WorkCharactersPage() {
       
       // Refresh list
       await fetchWorkAndCharacters()
+      toast.success('Character deleted.')
     } catch (error) {
       console.error('Failed to delete character:', error)
-      alert('Failed to delete character')
+      toast.error('Failed to delete character.')
     }
   }
 
