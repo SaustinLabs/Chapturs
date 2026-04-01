@@ -96,8 +96,11 @@ export default function ChapterPage() {
   const [mobileGlossaryQuery, setMobileGlossaryQuery] = useState('')
   const [focusedTerm, setFocusedTerm] = useState('')
   const [selectedCharacterProfile, setSelectedCharacterProfile] = useState<ReaderCharacter | null>(null)
+  const [swipeHint, setSwipeHint] = useState('')
   const selectionRangeRef = useRef<Range | null>(null)
   const chapterContentRef = useRef<HTMLDivElement | null>(null)
+  const swipeStartRef = useRef<{ x: number; y: number; t: number } | null>(null)
+  const blockSwipeRef = useRef(false)
 
   const updateSelectionOverlay = () => {
     if (!selectionRangeRef.current) {
@@ -211,6 +214,37 @@ export default function ChapterPage() {
       loadData()
     }
   }, [storyId, chapterId])
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem('reader-settings-v1')
+      if (!stored) return
+      const parsed = JSON.parse(stored)
+      setReadingSettings((prev) => ({
+        ...prev,
+        fontSize: parsed?.fontSize || prev.fontSize,
+        lineHeight: typeof parsed?.lineHeight === 'number' ? parsed.lineHeight : prev.lineHeight,
+        theme: parsed?.theme || prev.theme,
+      }))
+    } catch (error) {
+      console.error('Failed to restore reader settings:', error)
+    }
+  }, [])
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        'reader-settings-v1',
+        JSON.stringify({
+          fontSize: readingSettings.fontSize,
+          lineHeight: readingSettings.lineHeight,
+          theme: readingSettings.theme,
+        })
+      )
+    } catch (error) {
+      console.error('Failed to store reader settings:', error)
+    }
+  }, [readingSettings])
 
   // Fetch translated content when targetLanguage changes
   useEffect(() => {
@@ -388,6 +422,95 @@ export default function ChapterPage() {
       window.removeEventListener('reader-open-mobile-glossary', handleOpenGlossaryEvent as EventListener)
     }
   }, [])
+
+  useEffect(() => {
+    const isSwipeBlocked = () => {
+      return (
+        showChapterList ||
+        showQuickComment ||
+        showFanArtUploadModal ||
+        showMobileGlossary ||
+        fanArtCharacterOptions.length > 0 ||
+        Boolean(selectedCharacterProfile)
+      )
+    }
+
+    const shouldIgnoreTarget = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement)) return false
+      const interactive = target.closest('input, textarea, button, a, select, [role="button"], [contenteditable="true"]')
+      return Boolean(interactive)
+    }
+
+    const handleTouchStart = (event: TouchEvent) => {
+      if (event.touches.length !== 1) return
+      if (window.innerWidth >= 1024) return
+
+      const touch = event.touches[0]
+      swipeStartRef.current = { x: touch.clientX, y: touch.clientY, t: Date.now() }
+      blockSwipeRef.current = shouldIgnoreTarget(event.target) || isSwipeBlocked()
+    }
+
+    const handleTouchEnd = (event: TouchEvent) => {
+      if (!swipeStartRef.current || blockSwipeRef.current) {
+        swipeStartRef.current = null
+        blockSwipeRef.current = false
+        return
+      }
+
+      if (event.changedTouches.length !== 1) return
+
+      const touch = event.changedTouches[0]
+      const dx = touch.clientX - swipeStartRef.current.x
+      const dy = touch.clientY - swipeStartRef.current.y
+      const dt = Date.now() - swipeStartRef.current.t
+
+      swipeStartRef.current = null
+
+      if (dt > 700) return
+      if (Math.abs(dx) < 72) return
+      if (Math.abs(dx) < Math.abs(dy) * 1.4) return
+
+      if (dx < 0) {
+        if (currentSectionIndex < allSections.length - 1) {
+          goToNext()
+        } else {
+          setSwipeHint('You are on the last chapter')
+        }
+        return
+      }
+
+      if (dx > 0) {
+        if (currentSectionIndex > 0) {
+          goToPrevious()
+        } else {
+          setSwipeHint('You are on the first chapter')
+        }
+      }
+    }
+
+    window.addEventListener('touchstart', handleTouchStart, { passive: true })
+    window.addEventListener('touchend', handleTouchEnd, { passive: true })
+
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart)
+      window.removeEventListener('touchend', handleTouchEnd)
+    }
+  }, [
+    allSections.length,
+    currentSectionIndex,
+    fanArtCharacterOptions.length,
+    selectedCharacterProfile,
+    showChapterList,
+    showFanArtUploadModal,
+    showMobileGlossary,
+    showQuickComment,
+  ])
+
+  useEffect(() => {
+    if (!swipeHint) return
+    const timeout = setTimeout(() => setSwipeHint(''), 1500)
+    return () => clearTimeout(timeout)
+  }, [swipeHint])
 
   const clearSelection = () => {
     selectionRangeRef.current = null
@@ -694,7 +817,7 @@ export default function ChapterPage() {
         />
       )}
 
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto pb-28 md:pb-0">
         <div className="sticky top-[64px] z-20 mb-4 mt-4 px-2">
           <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm p-3">
             <div className="flex items-center justify-between gap-3">
@@ -968,7 +1091,7 @@ export default function ChapterPage() {
           </div>
         )}
 
-        <div className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[min(94vw,420px)]">
+        <div className="md:hidden fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-40 w-[min(94vw,420px)]">
           <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg px-3 py-2 flex items-center justify-between">
             <button
               type="button"
@@ -999,6 +1122,12 @@ export default function ChapterPage() {
             </button>
           </div>
         </div>
+
+        {swipeHint && (
+          <div className="md:hidden fixed top-24 left-1/2 -translate-x-1/2 z-[70] px-3 py-2 rounded-lg bg-gray-900 text-white text-xs shadow-lg">
+            {swipeHint}
+          </div>
+        )}
 
         {showMobileGlossary && (
           <div className="fixed inset-0 z-[75] bg-black/55 flex items-end md:items-center justify-center">
