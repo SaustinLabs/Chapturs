@@ -18,7 +18,7 @@ import {
   ChevronRightIcon,
   ListBulletIcon,
 } from '@heroicons/react/24/outline'
-import { MessageSquare, Sparkles } from 'lucide-react'
+import { MessageSquare, Send, Sparkles } from 'lucide-react'
 
 interface ReaderCharacter {
   id: string
@@ -61,6 +61,11 @@ export default function ChapterPage() {
   const [selectionPosition, setSelectionPosition] = useState({ top: 0, left: 0 })
   const [selectedCharacter, setSelectedCharacter] = useState<ReaderCharacter | null>(null)
   const [fanArtCharacterOptions, setFanArtCharacterOptions] = useState<ReaderCharacter[]>([])
+  const [showQuickComment, setShowQuickComment] = useState(false)
+  const [quickCommentText, setQuickCommentText] = useState('')
+  const [quickCommentError, setQuickCommentError] = useState('')
+  const [submittingQuickComment, setSubmittingQuickComment] = useState(false)
+  const [commentsRefreshKey, setCommentsRefreshKey] = useState(0)
 
   useEffect(() => {
     const loadData = async () => {
@@ -247,6 +252,54 @@ export default function ChapterPage() {
 
   const clearSelection = () => {
     setSelectedText('')
+    setShowQuickComment(false)
+    setQuickCommentError('')
+  }
+
+  const submitQuickComment = async () => {
+    const content = quickCommentText.trim()
+    if (!content) {
+      setQuickCommentError('Please write a comment first.')
+      return
+    }
+
+    if (!session?.user?.id) {
+      setQuickCommentError('Please sign in to comment.')
+      return
+    }
+
+    setSubmittingQuickComment(true)
+    setQuickCommentError('')
+
+    try {
+      const quotedPrefix = selectedText ? `"${selectedText}"\n\n` : ''
+      const response = await fetch(`/api/works/${storyId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          sectionId: chapterId,
+          content: `${quotedPrefix}${content}`
+        })
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        setQuickCommentError(data?.error || 'Failed to post comment.')
+        return
+      }
+
+      setShowQuickComment(false)
+      setQuickCommentText('')
+      setSelectedText('')
+      setCommentsRefreshKey((value) => value + 1)
+    } catch (error) {
+      console.error('Failed to submit quick comment:', error)
+      setQuickCommentError('Failed to post comment. Please try again.')
+    } finally {
+      setSubmittingQuickComment(false)
+    }
   }
 
   const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim()
@@ -512,6 +565,7 @@ export default function ChapterPage() {
 
         <div id="comments" className="max-w-2xl mx-auto mt-12 mb-24 scroll-mt-24">
           <CommentSection
+            key={`chapter-comments-${commentsRefreshKey}`}
             workId={storyId}
             sectionId={chapterId}
             canComment={Boolean(session?.user?.id)}
@@ -528,14 +582,17 @@ export default function ChapterPage() {
               label: 'Comment',
               icon: <MessageSquare size={14} />,
               onClick: () => {
-                const commentsEl = document.getElementById('comments')
-                if (commentsEl) {
-                  window.history.replaceState(null, '', '#comments')
-                  commentsEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                if (!session?.user?.id) {
+                  const commentsEl = document.getElementById('comments')
+                  if (commentsEl) {
+                    window.history.replaceState(null, '', '#comments')
+                    commentsEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }
                   return
                 }
 
-                window.location.href = `/story/${storyId}/chapter/${chapterId}#comments`
+                setQuickCommentError('')
+                setShowQuickComment(true)
               },
               variant: 'primary'
             },
@@ -550,6 +607,50 @@ export default function ChapterPage() {
           ]}
           onClose={clearSelection}
         />
+
+        {showQuickComment && Boolean(selectedText) && (
+          <div
+            className="fixed z-[60] w-[min(380px,90vw)] bg-white border border-gray-200 rounded-lg shadow-xl p-3"
+            style={{ top: selectionPosition.top + 46, left: selectionPosition.left }}
+          >
+            <div className="text-xs text-gray-500 mb-2 line-clamp-2">"{selectedText}"</div>
+            <textarea
+              value={quickCommentText}
+              onChange={(event) => setQuickCommentText(event.target.value)}
+              placeholder="Write your comment..."
+              rows={4}
+              maxLength={5000}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <div className="mt-1 text-[11px] text-gray-500">{quickCommentText.length}/5000</div>
+            {quickCommentError && (
+              <div className="mt-1 text-xs text-red-600">{quickCommentError}</div>
+            )}
+            <div className="mt-2 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => {
+                  setShowQuickComment(false)
+                  setQuickCommentError('')
+                }}
+                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={submitQuickComment}
+                disabled={submittingQuickComment || !quickCommentText.trim()}
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Send size={14} />
+                {submittingQuickComment ? 'Posting...' : 'Post'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {selectedCharacter && (
           <CharacterProfileViewModal
