@@ -59,6 +59,13 @@ export async function GET(request: NextRequest, props: RouteParams) {
       return NextResponse.json({ error: 'Moderation item not found' }, { status: 404 })
     }
 
+    const assignee = moderationItem.assignedTo
+      ? await prisma.user.findUnique({
+          where: { id: moderationItem.assignedTo },
+          select: { id: true, displayName: true, username: true },
+        })
+      : null
+
     // Get validation results for this item
     const validations = await prisma.contentValidation.findMany({
       where: {
@@ -72,7 +79,10 @@ export async function GET(request: NextRequest, props: RouteParams) {
 
     return NextResponse.json({
       success: true,
-      moderationItem,
+      moderationItem: {
+        ...moderationItem,
+        assignee,
+      },
       validations
     })
 
@@ -105,12 +115,91 @@ export async function PATCH(request: NextRequest, props: RouteParams) {
 
     const itemId = params.id
     const body = await request.json()
-    const { action, notes } = body // action: 'approve', 'reject', 'flag'
+    const { action, notes } = body // action: 'approve', 'reject', 'flag', 'claim', 'release'
 
-    if (!['approve', 'reject', 'flag'].includes(action)) {
+    if (!['approve', 'reject', 'flag', 'claim', 'release'].includes(action)) {
       return NextResponse.json(
-        { error: 'Invalid action. Must be approve, reject, or flag' },
+        { error: 'Invalid action. Must be approve, reject, flag, claim, or release' },
         { status: 400 }
+      )
+    }
+
+    const existingItem = await prisma.contentModerationQueue.findUnique({
+      where: { id: itemId },
+      include: {
+        work: true,
+        section: true,
+      },
+    })
+
+    if (!existingItem) {
+      return NextResponse.json({ error: 'Moderation item not found' }, { status: 404 })
+    }
+
+    const isAdmin = user.role === 'admin'
+    const assignedToSomeoneElse = Boolean(existingItem.assignedTo && existingItem.assignedTo !== session.user.id)
+
+    if (action === 'claim') {
+      if (assignedToSomeoneElse && !isAdmin) {
+        return NextResponse.json(
+          { error: 'This item is already assigned to another moderator' },
+          { status: 409 }
+        )
+      }
+
+      const claimedItem = await prisma.contentModerationQueue.update({
+        where: { id: itemId },
+        data: {
+          assignedTo: session.user.id,
+          assignedAt: new Date(),
+          status: existingItem.status === 'queued' ? 'in_review' : existingItem.status,
+        },
+        include: {
+          work: true,
+          section: true,
+        },
+      })
+
+      return NextResponse.json({
+        success: true,
+        message: 'Item claimed for review',
+        moderationItem: claimedItem,
+      })
+    }
+
+    if (action === 'release') {
+      if (!isAdmin && existingItem.assignedTo !== session.user.id) {
+        return NextResponse.json(
+          { error: 'Only the assigned moderator can release this item' },
+          { status: 403 }
+        )
+      }
+
+      const releasedItem = await prisma.contentModerationQueue.update({
+        where: { id: itemId },
+        data: {
+          assignedTo: null,
+          assignedAt: null,
+          status: existingItem.status === 'in_review' ? 'queued' : existingItem.status,
+          notes,
+        },
+        include: {
+          work: true,
+          section: true,
+        },
+      })
+
+      return NextResponse.json({
+        success: true,
+        message: 'Item released back to queue',
+        moderationItem: releasedItem,
+      })
+    }
+
+    if (!isAdmin && existingItem.assignedTo !== session.user.id) {
+      return NextResponse.json(
+        { error: 'Claim this item before taking moderation action' },
+        { status: 409 }
       )
     }
 
@@ -120,7 +209,9 @@ export async function PATCH(request: NextRequest, props: RouteParams) {
       data: {
         status: action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'queued',
         completedAt: new Date(),
-        notes
+        notes,
+        assignedTo: existingItem.assignedTo || session.user.id,
+        assignedAt: existingItem.assignedAt || new Date(),
       },
       include: {
         work: true,

@@ -78,10 +78,43 @@ export async function GET(request: NextRequest) {
       take: limit
     })
 
+    const assignedUserIds = Array.from(
+      new Set(items.map((item) => item.assignedTo).filter(Boolean))
+    ) as string[]
+
+    const assignedUsers = assignedUserIds.length
+      ? await prisma.user.findMany({
+          where: { id: { in: assignedUserIds } },
+          select: {
+            id: true,
+            displayName: true,
+            username: true,
+          },
+        })
+      : []
+
+    const assigneeById = new Map(
+      assignedUsers.map((assignedUser) => [
+        assignedUser.id,
+        {
+          id: assignedUser.id,
+          displayName: assignedUser.displayName,
+          username: assignedUser.username,
+        },
+      ])
+    )
+
+    const hydratedItems = items.map((item) => ({
+      ...item,
+      assignee: item.assignedTo ? assigneeById.get(item.assignedTo) || null : null,
+    }))
+
     return NextResponse.json({
       success: true,
-      items,
-      total: items.length
+      items: hydratedItems,
+      total: hydratedItems.length,
+      currentUserId: session.user.id,
+      currentUserRole: user.role,
     })
 
   } catch (error) {

@@ -10,6 +10,13 @@ interface ModerationItem {
   priority: string
   reason: string
   status: string
+  assignedTo?: string | null
+  assignedAt?: string | null
+  assignee?: {
+    id: string
+    displayName?: string | null
+    username: string
+  } | null
   createdAt: string
   work?: {
     id: string
@@ -56,6 +63,8 @@ export default function ModerationDashboard() {
   const [validations, setValidations] = useState<ValidationResult[]>([])
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string>('')
+  const [currentUserRole, setCurrentUserRole] = useState<string>('')
 
   useEffect(() => {
     loadModerationQueue()
@@ -67,6 +76,8 @@ export default function ModerationDashboard() {
       if (response.ok) {
         const data = await response.json()
         setQueue(data.items || [])
+        setCurrentUserId(data.currentUserId || '')
+        setCurrentUserRole(data.currentUserRole || '')
       }
     } catch (error) {
       console.error('Failed to load moderation queue:', error)
@@ -88,7 +99,7 @@ export default function ModerationDashboard() {
     }
   }
 
-  const handleModerationAction = async (itemId: string, action: 'approve' | 'reject' | 'flag', notes?: string) => {
+  const handleModerationAction = async (itemId: string, action: 'approve' | 'reject' | 'flag' | 'claim' | 'release', notes?: string) => {
     setProcessing(true)
     try {
       const response = await fetch(`/api/moderation/queue/${itemId}`, {
@@ -100,8 +111,12 @@ export default function ModerationDashboard() {
       if (response.ok) {
         // Refresh the queue
         await loadModerationQueue()
-        setSelectedItem(null)
-        setValidations([])
+        if (['approve', 'reject', 'flag'].includes(action)) {
+          setSelectedItem(null)
+          setValidations([])
+        } else {
+          await loadItemDetails(itemId)
+        }
       } else {
         const error = await response.json()
         alert(`Failed to ${action}: ${error.error}`)
@@ -131,6 +146,16 @@ export default function ModerationDashboard() {
       default: return 'bg-gray-100 text-gray-800'
     }
   }
+
+  const canResolveSelected = Boolean(
+    selectedItem && (
+      currentUserRole === 'admin' ||
+      selectedItem.assignedTo === currentUserId
+    )
+  )
+
+  const isSelectedAssignedToCurrentUser = Boolean(selectedItem && selectedItem.assignedTo === currentUserId)
+  const isSelectedUnassigned = Boolean(selectedItem && !selectedItem.assignedTo)
 
   if (loading) {
     return (
@@ -188,6 +213,11 @@ export default function ModerationDashboard() {
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           {item.work?.author?.displayName || item.section?.work?.author?.displayName}
                         </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {item.assignee
+                            ? `Assigned: ${item.assignee.displayName || item.assignee.username}`
+                            : 'Unassigned'}
+                        </p>
                         <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                           {new Date(item.createdAt).toLocaleDateString()}
                         </p>
@@ -209,10 +239,33 @@ export default function ModerationDashboard() {
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                     Content Review
                   </h2>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mr-3">
+                    {selectedItem.assignee
+                      ? `Assigned to ${selectedItem.assignee.displayName || selectedItem.assignee.username}`
+                      : 'Unassigned'}
+                  </div>
                   <div className="flex space-x-2">
+                    {(isSelectedUnassigned || !isSelectedAssignedToCurrentUser) && (
+                      <button
+                        onClick={() => handleModerationAction(selectedItem.id, 'claim')}
+                        disabled={processing}
+                        className="px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 disabled:opacity-50"
+                      >
+                        Claim
+                      </button>
+                    )}
+                    {isSelectedAssignedToCurrentUser && (
+                      <button
+                        onClick={() => handleModerationAction(selectedItem.id, 'release')}
+                        disabled={processing}
+                        className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 disabled:opacity-50"
+                      >
+                        Release
+                      </button>
+                    )}
                     <button
                       onClick={() => handleModerationAction(selectedItem.id, 'approve')}
-                      disabled={processing}
+                      disabled={processing || !canResolveSelected}
                       className="flex items-center space-x-2 px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50"
                     >
                       <CheckCircleIcon className="w-4 h-4" />
@@ -220,7 +273,7 @@ export default function ModerationDashboard() {
                     </button>
                     <button
                       onClick={() => handleModerationAction(selectedItem.id, 'reject')}
-                      disabled={processing}
+                      disabled={processing || !canResolveSelected}
                       className="flex items-center space-x-2 px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 disabled:opacity-50"
                     >
                       <XCircleIcon className="w-4 h-4" />
@@ -228,7 +281,7 @@ export default function ModerationDashboard() {
                     </button>
                     <button
                       onClick={() => handleModerationAction(selectedItem.id, 'flag')}
-                      disabled={processing}
+                      disabled={processing || !canResolveSelected}
                       className="flex items-center space-x-2 px-3 py-1 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700 disabled:opacity-50"
                     >
                       <ExclamationTriangleIcon className="w-4 h-4" />
