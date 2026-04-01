@@ -40,6 +40,31 @@ interface ReaderGlossaryTerm {
   firstMentionedChapter?: number
 }
 
+type ReaderTheme = 'auto' | 'paper' | 'night'
+
+interface ReaderSettings {
+  fontSize: 'small' | 'medium' | 'large' | 'xl'
+  fontFamily: string
+  lineHeight: number
+  theme: ReaderTheme
+  brightness: number
+}
+
+const DEFAULT_READER_SETTINGS: ReaderSettings = {
+  fontSize: 'medium',
+  fontFamily: 'Inter',
+  lineHeight: 1.7,
+  theme: 'auto',
+  brightness: 100,
+}
+
+const FONT_FAMILY_OPTIONS = [
+  'Inter',
+  'Merriweather',
+  'Georgia',
+  'system-ui',
+]
+
 export default function ChapterPage() {
   const params = useParams()
   const router = useRouter()
@@ -58,12 +83,7 @@ export default function ChapterPage() {
   const [currentAudiobookId, setCurrentAudiobookId] = useState<string | null>(null)
   const [currentNarratorName, setCurrentNarratorName] = useState('Official AI Voice')
   const [showChapterList, setShowChapterList] = useState(false)
-  const [readingSettings, setReadingSettings] = useState({
-    fontSize: 'medium',
-    fontFamily: 'Inter',
-    lineHeight: 1.7,
-    theme: 'auto'
-  })
+  const [readingSettings, setReadingSettings] = useState<ReaderSettings>(DEFAULT_READER_SETTINGS)
   const [targetLanguage, setTargetLanguage] = useState('en')
   const [baseSection, setBaseSection] = useState<Section | null>(null)
   const [loading, setLoading] = useState(true)
@@ -100,6 +120,8 @@ export default function ChapterPage() {
   const [showMiniMap, setShowMiniMap] = useState(false)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const [showOnboardingHint, setShowOnboardingHint] = useState(false)
+  const [showReaderSettingsDrawer, setShowReaderSettingsDrawer] = useState(false)
+  const [showDeferredPanels, setShowDeferredPanels] = useState(false)
   const selectionRangeRef = useRef<Range | null>(null)
   const chapterContentRef = useRef<HTMLDivElement | null>(null)
   const swipeStartRef = useRef<{ x: number; y: number; t: number } | null>(null)
@@ -254,8 +276,10 @@ export default function ChapterPage() {
       setReadingSettings((prev) => ({
         ...prev,
         fontSize: parsed?.fontSize || prev.fontSize,
+        fontFamily: parsed?.fontFamily || prev.fontFamily,
         lineHeight: typeof parsed?.lineHeight === 'number' ? parsed.lineHeight : prev.lineHeight,
-        theme: parsed?.theme || prev.theme,
+        theme: (parsed?.theme as ReaderTheme) || prev.theme,
+        brightness: typeof parsed?.brightness === 'number' ? parsed.brightness : prev.brightness,
       }))
     } catch (error) {
       console.error('Failed to restore reader settings:', error)
@@ -268,8 +292,10 @@ export default function ChapterPage() {
         'reader-settings-v1',
         JSON.stringify({
           fontSize: readingSettings.fontSize,
+          fontFamily: readingSettings.fontFamily,
           lineHeight: readingSettings.lineHeight,
           theme: readingSettings.theme,
+          brightness: readingSettings.brightness,
         })
       )
     } catch (error) {
@@ -429,6 +455,44 @@ export default function ChapterPage() {
   }, [loading, section])
 
   useEffect(() => {
+    if (!storyId || allSections.length === 0) return
+
+    const prevSection = allSections[currentSectionIndex - 1]
+    const nextSection = allSections[currentSectionIndex + 1]
+    const sectionsToPrefetch = [prevSection, nextSection].filter(Boolean) as Section[]
+
+    sectionsToPrefetch.forEach((sec) => {
+      router.prefetch(`/story/${storyId}/chapter/${sec.id}`)
+    })
+  }, [allSections, currentSectionIndex, router, storyId])
+
+  useEffect(() => {
+    if (loading || !section?.id) return
+    setShowDeferredPanels(false)
+
+    let cancelled = false
+    const enable = () => {
+      if (!cancelled) setShowDeferredPanels(true)
+    }
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      const idleId = (window as any).requestIdleCallback(enable, { timeout: 1200 })
+      return () => {
+        cancelled = true
+        if ((window as any).cancelIdleCallback) {
+          (window as any).cancelIdleCallback(idleId)
+        }
+      }
+    }
+
+    const timeout = window.setTimeout(enable, 700)
+    return () => {
+      cancelled = true
+      window.clearTimeout(timeout)
+    }
+  }, [loading, section?.id])
+
+  useEffect(() => {
     const handleOpenGlossaryEvent = (event: Event) => {
       const customEvent = event as CustomEvent
       const detail = customEvent?.detail || {}
@@ -462,6 +526,8 @@ export default function ChapterPage() {
         showQuickComment ||
         showFanArtUploadModal ||
         showMobileGlossary ||
+        showReaderSettingsDrawer ||
+        showOnboardingHint ||
         fanArtCharacterOptions.length > 0 ||
         Boolean(selectedCharacterProfile)
       )
@@ -539,6 +605,8 @@ export default function ChapterPage() {
     showChapterList,
     showFanArtUploadModal,
     showMobileGlossary,
+    showOnboardingHint,
+    showReaderSettingsDrawer,
     showQuickComment,
   ])
 
@@ -795,8 +863,29 @@ export default function ChapterPage() {
   }
 
   const getLineHeightStyle = () => ({
-    lineHeight: readingSettings.lineHeight
+    lineHeight: readingSettings.lineHeight,
+    fontFamily: readingSettings.fontFamily,
   })
+
+  const getReaderContainerClasses = () => {
+    if (readingSettings.theme === 'paper') {
+      return 'bg-amber-50 dark:bg-amber-100 border-amber-200 dark:border-amber-200'
+    }
+    if (readingSettings.theme === 'night') {
+      return 'bg-slate-950 border-slate-800'
+    }
+    return 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+  }
+
+  const getReaderTextColorClasses = () => {
+    if (readingSettings.theme === 'night') {
+      return 'text-slate-100'
+    }
+    if (readingSettings.theme === 'paper') {
+      return 'text-amber-950'
+    }
+    return 'text-gray-900 dark:text-gray-100'
+  }
 
   const shiftFontSize = (direction: -1 | 1) => {
     const options = ['small', 'medium', 'large', 'xl'] as const
@@ -819,6 +908,11 @@ export default function ChapterPage() {
     window.scrollTo({ top: Math.max(0, target), behavior: 'smooth' })
     setSwipeHint(`Jumped to ${Math.round(percent * 100)}%`)
     triggerHaptic([8, 24, 8])
+  }
+
+  const resetReaderSettings = () => {
+    setReadingSettings(DEFAULT_READER_SETTINGS)
+    triggerHaptic([8, 20, 8])
   }
 
   const filteredCharacters = characters.filter((character) => {
@@ -1011,9 +1105,13 @@ export default function ChapterPage() {
         )}
 
         {/* Chapter Content */}
-        <div ref={chapterContentRef} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 mb-6">
+        <div
+          ref={chapterContentRef}
+          className={`rounded-lg border p-8 mb-6 ${getReaderContainerClasses()}`}
+          style={{ filter: `brightness(${readingSettings.brightness}%)` }}
+        >
           <div
-            className={`${getFontSizeClass()} text-gray-900 dark:text-gray-100`}
+            className={`${getFontSizeClass()} ${getReaderTextColorClasses()}`}
             style={getLineHeightStyle()}
           >
             <ChapterBlockRenderer 
@@ -1063,19 +1161,28 @@ export default function ChapterPage() {
         </div>
 
         {/* Rating Section */}
-        <div className="max-w-2xl mx-auto mt-12 mb-24">
-          <WorkRatingSystem workId={storyId} />
-        </div>
+        {showDeferredPanels ? (
+          <>
+            <div className="max-w-2xl mx-auto mt-12 mb-24">
+              <WorkRatingSystem workId={storyId} />
+            </div>
 
-        <div id="comments" className="max-w-2xl mx-auto mt-12 mb-24 scroll-mt-24">
-          <CommentSection
-            key={`chapter-comments-${commentsRefreshKey}`}
-            workId={storyId}
-            sectionId={chapterId}
-            canComment={Boolean(session?.user?.id)}
-            currentUserId={session?.user?.id}
-          />
-        </div>
+            <div id="comments" className="max-w-2xl mx-auto mt-12 mb-24 scroll-mt-24">
+              <CommentSection
+                key={`chapter-comments-${commentsRefreshKey}`}
+                workId={storyId}
+                sectionId={chapterId}
+                canComment={Boolean(session?.user?.id)}
+                currentUserId={session?.user?.id}
+              />
+            </div>
+          </>
+        ) : (
+          <div className="max-w-2xl mx-auto mt-12 mb-24 space-y-4">
+            <div className="h-24 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 animate-pulse" />
+            <div className="h-48 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 animate-pulse" />
+          </div>
+        )}
 
         <SelectionActionToolbar
           visible={Boolean(selectedText)}
@@ -1204,6 +1311,16 @@ export default function ChapterPage() {
               className="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200"
             >
               Jump
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowReaderSettingsDrawer(true)
+                triggerHaptic(10)
+              }}
+              className="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200"
+            >
+              Display
             </button>
           </div>
         </div>
@@ -1363,6 +1480,134 @@ export default function ChapterPage() {
                 ) : (
                   <div className="text-sm text-gray-500 dark:text-gray-400">No matching glossary terms.</div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showReaderSettingsDrawer && (
+          <div
+            className="md:hidden fixed inset-0 z-[80] bg-black/55 flex items-end"
+            onClick={() => setShowReaderSettingsDrawer(false)}
+          >
+            <div
+              className="reader-sheet-rise w-full bg-white dark:bg-gray-900 rounded-t-2xl border border-gray-200 dark:border-gray-700 shadow-2xl max-h-[82vh] overflow-y-auto"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="py-2 flex justify-center">
+                <div className="w-10 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
+              </div>
+              <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Reader Display</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowReaderSettingsDrawer(false)}
+                  className="px-2 py-1 text-xs text-gray-600 dark:text-gray-300"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="p-4 space-y-5">
+                <div>
+                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Font Size</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {(['small', 'medium', 'large', 'xl'] as const).map((size) => (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => {
+                          setReadingSettings((prev) => ({ ...prev, fontSize: size }))
+                          triggerHaptic(8)
+                        }}
+                        className={`px-2 py-2 rounded-lg text-xs font-semibold capitalize ${
+                          readingSettings.fontSize === size
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Font Family</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {FONT_FAMILY_OPTIONS.map((font) => (
+                      <button
+                        key={font}
+                        type="button"
+                        onClick={() => {
+                          setReadingSettings((prev) => ({ ...prev, fontFamily: font }))
+                          triggerHaptic(8)
+                        }}
+                        className={`px-3 py-2 rounded-lg text-xs border ${
+                          readingSettings.fontFamily === font
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-200'
+                            : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200'
+                        }`}
+                        style={{ fontFamily: font }}
+                      >
+                        {font}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Theme</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {([
+                      { id: 'auto', label: 'Auto' },
+                      { id: 'paper', label: 'Paper' },
+                      { id: 'night', label: 'Night' },
+                    ] as const).map((themeOption) => (
+                      <button
+                        key={themeOption.id}
+                        type="button"
+                        onClick={() => {
+                          setReadingSettings((prev) => ({ ...prev, theme: themeOption.id }))
+                          triggerHaptic(8)
+                        }}
+                        className={`px-2 py-2 rounded-lg text-xs font-semibold ${
+                          readingSettings.theme === themeOption.id
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200'
+                        }`}
+                      >
+                        {themeOption.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">Brightness</p>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{readingSettings.brightness}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={80}
+                    max={120}
+                    step={1}
+                    value={readingSettings.brightness}
+                    onChange={(event) =>
+                      setReadingSettings((prev) => ({ ...prev, brightness: Number(event.target.value) }))
+                    }
+                    className="w-full"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={resetReaderSettings}
+                  className="w-full py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-semibold text-gray-700 dark:text-gray-200"
+                >
+                  Reset to Defaults
+                </button>
               </div>
             </div>
           </div>
