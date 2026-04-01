@@ -39,6 +39,16 @@ jobs:
             cd "$APP_DIR"
             echo "Deploying from: $(pwd)"
 
+            # One-time safety: ensure local deploy script drift cannot block pull.
+            if [ -d ".git" ]; then
+              git config core.fileMode false || true
+              if ! git diff --quiet -- .github/scripts/deploy.sh; then
+                echo "Local changes detected in .github/scripts/deploy.sh, restoring before pull"
+                git restore -- .github/scripts/deploy.sh || true
+              fi
+              git pull origin main
+            fi
+
             if [ -f ".github/scripts/deploy.sh" ]; then
               bash .github/scripts/deploy.sh
             else
