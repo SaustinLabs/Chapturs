@@ -26,6 +26,7 @@ interface ReaderCharacter {
   aliases?: string[]
   allowUserSubmissions?: boolean
   workId?: string
+  isSuggestionOption?: boolean
   [key: string]: any
 }
 
@@ -248,6 +249,15 @@ export default function ChapterPage() {
   }, [])
 
   useEffect(() => {
+    if (!selectedText || !selectionRangeRef.current) return
+
+    // Re-apply native selection after component rerenders so highlight remains visible.
+    requestAnimationFrame(() => {
+      restoreSelectionHighlight()
+    })
+  }, [selectedText, selectionPosition, showQuickComment])
+
+  useEffect(() => {
     if (loading || !section) return
     if (window.location.hash !== '#comments') return
 
@@ -384,6 +394,17 @@ export default function ChapterPage() {
 
     if (fuzzy.length > 1) {
       setFanArtCharacterOptions(fuzzy)
+      return
+    }
+
+    if (selectedText.trim()) {
+      setFanArtCharacterOptions([
+        {
+          id: '__suggest_character__',
+          name: selectedText.trim(),
+          isSuggestionOption: true,
+        },
+      ])
       return
     }
 
@@ -699,13 +720,36 @@ export default function ChapterPage() {
                   <button
                     key={character.id}
                     onClick={() => {
+                      if (character.isSuggestionOption) {
+                        if (!session?.user?.id) {
+                          const commentsEl = document.getElementById('comments')
+                          if (commentsEl) {
+                            window.history.replaceState(null, '', '#comments')
+                            commentsEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                          }
+                          setFanArtCharacterOptions([])
+                          return
+                        }
+
+                        const suggestedName = character.name || selectedText
+                        setQuickCommentText(`Fan art request: please add character \"${suggestedName}\" to the character list so readers can submit art.`)
+                        setShowQuickComment(true)
+                        setFanArtCharacterOptions([])
+                        requestAnimationFrame(restoreSelectionHighlight)
+                        return
+                      }
+
                       setSelectedCharacter({ ...character, workId: character.workId || storyId })
                       setFanArtCharacterOptions([])
                     }}
                     className="w-full text-left px-3 py-2 rounded border border-gray-200 hover:bg-gray-50"
                   >
-                    <div className="font-medium text-gray-900">{character.name}</div>
-                    {character.aliases && character.aliases.length > 0 && (
+                    <div className="font-medium text-gray-900">
+                      {character.isSuggestionOption ? `Use \"${character.name}\" as a new character request` : character.name}
+                    </div>
+                    {character.isSuggestionOption ? (
+                      <div className="text-xs text-amber-600">This will open a prefilled comment request for the author.</div>
+                    ) : character.aliases && character.aliases.length > 0 && (
                       <div className="text-xs text-gray-500">aka {character.aliases.slice(0, 3).join(', ')}</div>
                     )}
                   </button>

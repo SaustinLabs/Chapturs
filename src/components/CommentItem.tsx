@@ -69,7 +69,7 @@ export default function CommentItem({
     }
   }, [comment.reactions])
 
-  const [isContentBlurred, setIsContentBlurred] = useState(true)
+  const [isContentBlurred, setIsContentBlurred] = useState(false)
 
   const isOwner = currentUserId === comment.userId
   const canEdit = isOwner && !comment.isEdited && isWithinEditWindow()
