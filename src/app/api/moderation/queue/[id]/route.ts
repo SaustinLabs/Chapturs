@@ -94,7 +94,14 @@ export async function PATCH(request: NextRequest, props: RouteParams) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // TODO: Check if user is a moderator
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true }
+    })
+
+    if (!user || !['moderator', 'admin'].includes(user.role)) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
+    }
 
     const itemId = params.id
     const body = await request.json()

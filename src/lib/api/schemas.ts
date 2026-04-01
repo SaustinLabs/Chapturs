@@ -45,6 +45,11 @@ export const toggleSubscriptionSchema = z.object({
   authorId: z.string().min(1, 'Author ID is required')
 })
 
+export const updateSubscriptionPreferencesSchema = z.object({
+  authorId: z.string().min(1, 'Author ID is required'),
+  notificationsEnabled: z.boolean()
+})
+
 // Like schemas
 export const toggleLikeSchema = z.object({
   workId: z.string().min(1, 'Work ID is required')

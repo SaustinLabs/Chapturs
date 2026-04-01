@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
-import { Story, Subscription } from '@/types'
-import DataService from '@/lib/api/DataService'
 import { useUser } from '@/hooks/useUser'
 import { signIn } from 'next-auth/react'
 import { 
@@ -75,26 +74,106 @@ export default function SubscriptionsPage() {
 }
 
 function AuthenticatedSubscriptionsView() {
-  const [subscriptions, setSubscriptions] = useState<(Subscription & { story: Story })[]>([])
+  const router = useRouter()
+  const [subscriptions, setSubscriptions] = useState<Array<{
+    id: string
+    subscribedAt: string
+    notificationsEnabled: boolean
+    author: {
+      id: string
+      username: string
+      displayName?: string | null
+      avatar?: string | null
+    }
+    story: {
+      id: string
+      title: string
+      description: string
+      coverImage?: string | null
+      status: string
+      updatedAt: string
+      genres: string[]
+      tags: string[]
+      chapterCount: number
+      firstSectionId: string | null
+      statistics: {
+        views: number
+        subscribers: number
+        averageRating: number
+        ratingCount: number
+      }
+    }
+  }>>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<'updated' | 'subscribed' | 'alphabetical'>('updated')
 
   useEffect(() => {
-    // TODO: Load real subscription data from database
-    setSubscriptions([])
+    const loadSubscriptions = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const response = await fetch('/api/subscriptions')
+        if (!response.ok) {
+          throw new Error('Failed to load subscriptions')
+        }
+        const payload = await response.json()
+        const items = payload?.data?.items || payload?.items || []
+        setSubscriptions(items)
+      } catch (fetchError) {
+        console.error('Failed to load subscriptions:', fetchError)
+        setError('Could not load your subscriptions right now. Please try again.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadSubscriptions()
   }, [])
 
-  const toggleNotifications = async (subscriptionId: string) => {
-    setSubscriptions(prev => 
-      prev.map(sub => 
-        sub.id === subscriptionId 
-          ? { ...sub, notificationsEnabled: !sub.notificationsEnabled }
-          : sub
+  const toggleNotifications = async (authorId: string, currentState: boolean) => {
+    try {
+      const response = await fetch('/api/subscriptions', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          authorId,
+          notificationsEnabled: !currentState,
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update notification preferences')
+      }
+
+      setSubscriptions((prev) =>
+        prev.map((sub) =>
+          sub.author.id === authorId
+            ? { ...sub, notificationsEnabled: !currentState }
+            : sub
+        )
       )
-    )
+    } catch (toggleError) {
+      console.error('Failed to toggle notifications:', toggleError)
+    }
   }
 
-  const unsubscribe = async (subscriptionId: string) => {
-    setSubscriptions(prev => prev.filter(sub => sub.id !== subscriptionId))
+  const unsubscribe = async (authorId: string) => {
+    try {
+      const response = await fetch('/api/subscriptions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ authorId })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to unsubscribe')
+      }
+
+      setSubscriptions((prev) => prev.filter((sub) => sub.author.id !== authorId))
+    } catch (unsubscribeError) {
+      console.error('Failed to unsubscribe:', unsubscribeError)
+    }
   }
 
   const sortedSubscriptions = [...subscriptions].sort((a, b) => {
@@ -110,9 +189,18 @@ function AuthenticatedSubscriptionsView() {
     }
   })
 
-  const getReadingStatus = (subscription: Subscription & { story: Story }) => {
-    const totalChapters = subscription.story.chapters.length
-    const lastRead = subscription.lastReadChapter || 0
+  const getReadingStatus = (subscription: (typeof subscriptions)[number]) => {
+    const totalChapters = subscription.story.chapterCount
+    let lastRead = 0
+
+    try {
+      const lastSection = window.localStorage.getItem(`reader-last-chapter-${subscription.story.id}`)
+      if (lastSection) {
+        lastRead = Math.min(subscription.story.chapterCount, 1)
+      }
+    } catch {
+      // ignore local storage read errors
+    }
     
     if (lastRead === 0) {
       return { status: 'unread', text: 'Not started', color: 'text-gray-500' }
@@ -152,8 +240,22 @@ function AuthenticatedSubscriptionsView() {
           </div>
         </div>
 
+        {loading && (
+          <div className="space-y-4">
+            {[...Array(3)].map((_, index) => (
+              <div key={index} className="h-32 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 animate-pulse" />
+            ))}
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-sm">
+            {error}
+          </div>
+        )}
+
         {/* Subscriptions List */}
-        {subscriptions.length === 0 ? (
+        {!loading && subscriptions.length === 0 ? (
           <div className="text-center py-12 text-gray-500 dark:text-gray-400">
             <div className="text-6xl mb-4">📚</div>
             <h3 className="text-lg font-medium mb-2">No subscriptions yet</h3>
@@ -227,7 +329,7 @@ function AuthenticatedSubscriptionsView() {
                         {/* Action Buttons */}
                         <div className="flex items-center space-x-2 ml-4">
                           <button
-                            onClick={() => toggleNotifications(subscription.id)}
+                            onClick={() => toggleNotifications(subscription.author.id, subscription.notificationsEnabled)}
                             className={`p-2 rounded-lg transition-colors ${
                               subscription.notificationsEnabled
                                 ? 'text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20'
@@ -243,7 +345,7 @@ function AuthenticatedSubscriptionsView() {
                           </button>
                           
                           <button
-                            onClick={() => unsubscribe(subscription.id)}
+                            onClick={() => unsubscribe(subscription.author.id)}
                             className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                           >
                             Unsubscribe
@@ -252,8 +354,11 @@ function AuthenticatedSubscriptionsView() {
                           <button
                             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                             onClick={() => {
-                              // Navigate to continue reading
-                              console.log('Continue reading:', subscription.story.title)
+                              if (subscription.story.firstSectionId) {
+                                router.push(`/story/${subscription.story.id}/chapter/${subscription.story.firstSectionId}`)
+                                return
+                              }
+                              router.push(`/story/${subscription.story.id}`)
                             }}
                           >
                             {readingStatus.status === 'unread' ? 'Start Reading' : 'Continue'}
