@@ -68,6 +68,15 @@ extract_env_var_from_file() {
     return 0
 }
 
+mask_url_scheme() {
+    local url="$1"
+    if [[ "$url" =~ ^([a-zA-Z0-9+.-]+://) ]]; then
+        printf '%s' "${BASH_REMATCH[1]}***"
+    else
+        printf '%s' "(unrecognized-url-format)"
+    fi
+}
+
 # Check if running as root (recommended for PM2)
 if [[ $EUID -ne 0 ]]; then
    echo -e "${YELLOW}Warning: Not running as root. Some operations may require sudo.${NC}"
@@ -130,21 +139,39 @@ fi
 
 # 6. Run Prisma migrations (safe on Supabase)
 echo -e "${YELLOW}Syncing Prisma schema with database...${NC}"
-if [[ -z "${DATABASE_URL:-}" ]]; then
-    DATABASE_URL=$(extract_env_var_from_file ".env.production" "DATABASE_URL" || extract_env_var_from_file ".env" "DATABASE_URL" || true)
-    export DATABASE_URL
+RESOLVED_DATABASE_URL="${DATABASE_URL:-}"
+if [[ -z "$RESOLVED_DATABASE_URL" ]]; then
+    RESOLVED_DATABASE_URL=$(extract_env_var_from_file ".env.production" "DATABASE_URL" || extract_env_var_from_file ".env" "DATABASE_URL" || true)
 fi
 
-if [[ -z "${DATABASE_URL:-}" ]]; then
+RESOLVED_DIRECT_URL="${DIRECT_URL:-}"
+if [[ -z "$RESOLVED_DIRECT_URL" ]]; then
+    RESOLVED_DIRECT_URL=$(extract_env_var_from_file ".env.production" "DIRECT_URL" || extract_env_var_from_file ".env" "DIRECT_URL" || true)
+fi
+
+if [[ -z "$RESOLVED_DATABASE_URL" ]]; then
     echo -e "${YELLOW}Skipping Prisma sync: DATABASE_URL is not set in shell or env files.${NC}"
-elif [[ ! "${DATABASE_URL}" =~ ^postgres(ql)?:// ]]; then
-    echo -e "${YELLOW}Skipping Prisma sync: DATABASE_URL is not a PostgreSQL URL.${NC}"
+elif [[ "$RESOLVED_DATABASE_URL" =~ ^prisma\+postgres:// ]]; then
+    if [[ "$RESOLVED_DIRECT_URL" =~ ^postgres(ql)?:// ]]; then
+        echo -e "${YELLOW}DATABASE_URL uses Prisma Accelerate. Using DIRECT_URL for Prisma sync.${NC}"
+        export DATABASE_URL="$RESOLVED_DIRECT_URL"
+    else
+        echo -e "${YELLOW}Skipping Prisma sync: DATABASE_URL is prisma+postgres:// but DIRECT_URL is missing/invalid.${NC}"
+        echo -e "${YELLOW}Detected DATABASE_URL scheme: $(mask_url_scheme "$RESOLVED_DATABASE_URL")${NC}"
+    fi
+elif [[ "${RESOLVED_DATABASE_URL}" =~ ^postgres(ql)?:// ]]; then
+    export DATABASE_URL="$RESOLVED_DATABASE_URL"
 else
+    echo -e "${YELLOW}Skipping Prisma sync: DATABASE_URL is not a supported Postgres URL.${NC}"
+    echo -e "${YELLOW}Detected DATABASE_URL scheme: $(mask_url_scheme "$RESOLVED_DATABASE_URL")${NC}"
+fi
+
+if [[ -n "${DATABASE_URL:-}" && "${DATABASE_URL}" =~ ^postgres(ql)?:// ]]; then
     if npx prisma validate --schema prisma/schema.prisma && npx prisma db push --skip-generate --schema prisma/schema.prisma; then
         echo -e "${GREEN}✓ Prisma sync successful${NC}"
     else
         echo -e "${RED}✗ Prisma sync failed (continuing anyway)${NC}"
-        echo -e "${YELLOW}Hint: Verify DATABASE_URL and connectivity to your Postgres instance.${NC}"
+        echo -e "${YELLOW}Hint: Verify DATABASE_URL/DIRECT_URL and connectivity to your Postgres instance.${NC}"
         # Don't exit - DB migrations might not be critical for restart
     fi
 fi
