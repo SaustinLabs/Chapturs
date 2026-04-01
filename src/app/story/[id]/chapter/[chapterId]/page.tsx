@@ -7,6 +7,8 @@ import ChapterBlockRenderer from '@/components/ChapterBlockRenderer'
 import ChapterTopBar from '@/components/ChapterTopBar'
 import StickyAudioScrubber from '@/components/StickyAudioScrubber'
 import WorkRatingSystem from '@/components/WorkRatingSystem'
+import SelectionActionToolbar from '@/components/SelectionActionToolbar'
+import CharacterProfileViewModal from '@/components/CharacterProfileViewModal'
 import { Work, Section } from '@/types'
 import DataService from '@/lib/api/DataService'
 import { 
@@ -14,6 +16,16 @@ import {
   ChevronRightIcon,
   ListBulletIcon,
 } from '@heroicons/react/24/outline'
+import { MessageSquare, Sparkles } from 'lucide-react'
+
+interface ReaderCharacter {
+  id: string
+  name: string
+  aliases?: string[]
+  allowUserSubmissions?: boolean
+  workId?: string
+  [key: string]: any
+}
 
 export default function ChapterPage() {
   const params = useParams()
@@ -41,6 +53,11 @@ export default function ChapterPage() {
   const [targetLanguage, setTargetLanguage] = useState('en')
   const [baseSection, setBaseSection] = useState<Section | null>(null)
   const [loading, setLoading] = useState(true)
+  const [characters, setCharacters] = useState<ReaderCharacter[]>([])
+  const [selectedText, setSelectedText] = useState('')
+  const [selectionPosition, setSelectionPosition] = useState({ top: 0, left: 0 })
+  const [selectedCharacter, setSelectedCharacter] = useState<ReaderCharacter | null>(null)
+  const [fanArtCharacterOptions, setFanArtCharacterOptions] = useState<ReaderCharacter[]>([])
 
   useEffect(() => {
     const loadData = async () => {
@@ -85,6 +102,7 @@ export default function ChapterPage() {
                 if (charactersRes.ok) {
                   const charactersData = await charactersRes.json()
                   const characters = charactersData?.characters || []
+                  setCharacters(characters)
                   try { (window as any).__CURRENT_CHARACTERS__ = characters } catch (e) {}
                 }
               } catch (e) {
@@ -184,6 +202,112 @@ export default function ChapterPage() {
       controller.abort()
     }
   }, [targetLanguage, baseSection, storyId, chapterId])
+
+  useEffect(() => {
+    const handleTextSelection = () => {
+      const selection = window.getSelection()
+      if (!selection || selection.isCollapsed || !selection.toString().trim()) {
+        return
+      }
+
+      const selectedString = selection.toString().trim()
+      const range = selection.getRangeAt(0)
+      const rect = range.getBoundingClientRect()
+
+      setSelectedText(selectedString)
+      setSelectionPosition({
+        top: rect.bottom + window.scrollY + 10,
+        left: rect.left + window.scrollX
+      })
+    }
+
+    globalThis.document.addEventListener('mouseup', handleTextSelection)
+    globalThis.document.addEventListener('touchend', handleTextSelection)
+
+    return () => {
+      globalThis.document.removeEventListener('mouseup', handleTextSelection)
+      globalThis.document.removeEventListener('touchend', handleTextSelection)
+    }
+  }, [])
+
+  const clearSelection = () => {
+    setSelectedText('')
+  }
+
+  const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim()
+
+  const resolveCharacterFromSelection = () => {
+    const selected = normalize(selectedText)
+    if (!selected) return null
+
+    return (
+      characters.find((char) => {
+        const directMatch = normalize(char.name || '') === selected
+        const aliasMatch = Array.isArray(char.aliases)
+          ? char.aliases.some((alias) => normalize(alias) === selected)
+          : false
+        return directMatch || aliasMatch
+      }) || null
+    )
+  }
+
+  const getFuzzyCharacterMatches = () => {
+    const selected = normalize(selectedText)
+    if (!selected) return []
+    const selectedTokens = selected.split(/\s+/).filter(Boolean)
+
+    return characters
+      .map((char) => {
+        const candidateNames = [char.name, ...(char.aliases || [])].filter(Boolean)
+        const bestScore = candidateNames.reduce((score, rawCandidate) => {
+          const candidate = normalize(rawCandidate)
+          if (!candidate) return score
+
+          if (candidate === selected) return Math.max(score, 1)
+          if (candidate.includes(selected) || selected.includes(candidate)) return Math.max(score, 0.78)
+
+          const candidateTokens = candidate.split(/\s+/).filter(Boolean)
+          const overlap = selectedTokens.filter((token) => candidateTokens.includes(token)).length
+          if (overlap > 0) {
+            const tokenScore = overlap / Math.max(selectedTokens.length, candidateTokens.length)
+            return Math.max(score, tokenScore * 0.72)
+          }
+
+          return score
+        }, 0)
+
+        return { char, score: bestScore }
+      })
+      .filter((entry) => entry.score >= 0.55)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5)
+      .map((entry) => entry.char)
+  }
+
+  const handleFanArtIntent = () => {
+    const matched = resolveCharacterFromSelection()
+    if (matched) {
+      setSelectedCharacter({ ...matched, workId: matched.workId || storyId })
+      clearSelection()
+      return
+    }
+
+    const fuzzy = getFuzzyCharacterMatches()
+    if (fuzzy.length === 1) {
+      setSelectedCharacter({ ...fuzzy[0], workId: fuzzy[0].workId || storyId })
+      clearSelection()
+      return
+    }
+
+    if (fuzzy.length > 1) {
+      setFanArtCharacterOptions(fuzzy)
+      clearSelection()
+      return
+    }
+
+    alert('No matching character found in this chapter selection. Try selecting the exact character name.')
+    clearSelection()
+  }
 
   const navigateToSection = (newIndex: number) => {
     if (newIndex >= 0 && newIndex < allSections.length) {
@@ -374,6 +498,75 @@ export default function ChapterPage() {
         <div className="max-w-2xl mx-auto mt-12 mb-24">
           <WorkRatingSystem workId={storyId} />
         </div>
+
+        <SelectionActionToolbar
+          visible={Boolean(selectedText)}
+          position={selectionPosition}
+          actions={[
+            {
+              id: 'comment',
+              label: 'Discuss',
+              icon: <MessageSquare size={14} />,
+              onClick: () => {
+                window.location.href = `/story/${storyId}`
+                clearSelection()
+              },
+              variant: 'primary'
+            },
+            {
+              id: 'fan-art',
+              label: 'Fan Art',
+              icon: <Sparkles size={14} />,
+              onClick: handleFanArtIntent
+            }
+          ]}
+          onClose={clearSelection}
+        />
+
+        {selectedCharacter && (
+          <CharacterProfileViewModal
+            character={selectedCharacter}
+            isOpen={Boolean(selectedCharacter)}
+            onClose={() => setSelectedCharacter(null)}
+          />
+        )}
+
+        {fanArtCharacterOptions.length > 0 && (
+          <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+            <div className="w-full max-w-md bg-white rounded-lg shadow-xl border border-gray-200 p-4">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <h3 className="text-base font-semibold text-gray-900">Choose Character</h3>
+                  <p className="text-sm text-gray-600">Select who this fan art is for.</p>
+                </div>
+                <button
+                  onClick={() => setFanArtCharacterOptions([])}
+                  className="p-1 text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {fanArtCharacterOptions.map((character) => (
+                  <button
+                    key={character.id}
+                    onClick={() => {
+                      setSelectedCharacter({ ...character, workId: character.workId || storyId })
+                      setFanArtCharacterOptions([])
+                    }}
+                    className="w-full text-left px-3 py-2 rounded border border-gray-200 hover:bg-gray-50"
+                  >
+                    <div className="font-medium text-gray-900">{character.name}</div>
+                    {character.aliases && character.aliases.length > 0 && (
+                      <div className="text-xs text-gray-500">aka {character.aliases.slice(0, 3).join(', ')}</div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AppLayout>
   )

@@ -43,7 +43,9 @@ export default function ChapterBlockRenderer({ content, className = '' }: Chapte
   return (
     <div className={`space-y-6 ${className}`}>
       {content.map((block, index) => (
-        <BlockRenderer key={block.id || index} block={block} />
+        <div key={block.id || index} data-block-id={block.id || `block-${index}`}>
+          <BlockRenderer block={block} />
+        </div>
       ))}
     </div>
   )
