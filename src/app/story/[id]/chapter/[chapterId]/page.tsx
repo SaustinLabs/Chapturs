@@ -706,19 +706,19 @@ export default function ChapterPage() {
 
         {showQuickComment && Boolean(selectedText) && (
           <div
-            className="fixed z-[60] w-[min(380px,90vw)] bg-white border border-gray-200 rounded-lg shadow-xl p-3"
+            className="fixed z-[60] w-[min(380px,90vw)] bg-white border border-gray-300 rounded-lg shadow-xl p-3 text-gray-900"
             style={{ top: selectionPosition.top + 46, left: selectionPosition.left }}
           >
-            <div className="text-xs text-gray-500 mb-2 line-clamp-2">"{selectedText}"</div>
+            <div className="text-xs text-gray-700 mb-2 line-clamp-2">"{selectedText}"</div>
             <textarea
               value={quickCommentText}
               onChange={(event) => setQuickCommentText(event.target.value)}
               placeholder="Write your comment..."
               rows={4}
               maxLength={5000}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 bg-white border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <div className="mt-1 text-[11px] text-gray-500">{quickCommentText.length}/5000</div>
+            <div className="mt-1 text-[11px] text-gray-600">{quickCommentText.length}/5000</div>
             {quickCommentError && (
               <div className="mt-1 text-xs text-red-600">{quickCommentError}</div>
             )}
@@ -730,7 +730,7 @@ export default function ChapterPage() {
                   setShowQuickComment(false)
                   setQuickCommentError('')
                 }}
-                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800"
+                className="px-3 py-1.5 text-sm text-gray-700 hover:text-gray-900"
               >
                 Cancel
               </button>
@@ -758,15 +758,15 @@ export default function ChapterPage() {
 
         {fanArtCharacterOptions.length > 0 && (
           <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-            <div className="w-full max-w-md bg-white rounded-lg shadow-xl border border-gray-200 p-4">
+            <div className="w-full max-w-md bg-white rounded-lg shadow-xl border border-gray-300 p-4 text-gray-900">
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <h3 className="text-base font-semibold text-gray-900">Choose Character</h3>
-                  <p className="text-sm text-gray-600">Select who this fan art is for.</p>
+                  <p className="text-sm text-gray-700">Select who this fan art is for.</p>
                 </div>
                 <button
                   onClick={() => setFanArtCharacterOptions([])}
-                  className="p-1 text-gray-400 hover:text-gray-600"
+                  className="p-1 text-gray-500 hover:text-gray-800"
                 >
                   ✕
                 </button>
@@ -799,15 +799,15 @@ export default function ChapterPage() {
                       setSelectedCharacter({ ...character, workId: character.workId || storyId })
                       setFanArtCharacterOptions([])
                     }}
-                    className="w-full text-left px-3 py-2 rounded border border-gray-200 hover:bg-gray-50"
+                    className="w-full text-left px-3 py-2 rounded border border-gray-300 hover:bg-gray-50"
                   >
                     <div className="font-medium text-gray-900">
                       {character.isSuggestionOption ? `Use \"${character.name}\" as a new character request` : character.name}
                     </div>
                     {character.isSuggestionOption ? (
-                      <div className="text-xs text-amber-600">This will open a prefilled comment request for the author.</div>
+                      <div className="text-xs text-amber-700">This will open a prefilled comment request for the author.</div>
                     ) : character.aliases && character.aliases.length > 0 && (
-                      <div className="text-xs text-gray-500">aka {character.aliases.slice(0, 3).join(', ')}</div>
+                      <div className="text-xs text-gray-700">aka {character.aliases.slice(0, 3).join(', ')}</div>
                     )}
                   </button>
                 ))}
