@@ -50,6 +50,14 @@ interface ReaderSettings {
   brightness: number
 }
 
+interface ReaderPerfMetric {
+  variant: 'deferred' | 'immediate'
+  storyId: string
+  chapterId: string
+  msToSecondaryPanels: number
+  capturedAt: string
+}
+
 const DEFAULT_READER_SETTINGS: ReaderSettings = {
   fontSize: 'medium',
   fontFamily: 'Inter',
@@ -122,12 +130,15 @@ export default function ChapterPage() {
   const [showOnboardingHint, setShowOnboardingHint] = useState(false)
   const [showReaderSettingsDrawer, setShowReaderSettingsDrawer] = useState(false)
   const [showDeferredPanels, setShowDeferredPanels] = useState(false)
+  const [deferPanelsEnabled, setDeferPanelsEnabled] = useState(true)
+  const [lastPerfMs, setLastPerfMs] = useState<number | null>(null)
   const selectionRangeRef = useRef<Range | null>(null)
   const chapterContentRef = useRef<HTMLDivElement | null>(null)
   const swipeStartRef = useRef<{ x: number; y: number; t: number } | null>(null)
   const blockSwipeRef = useRef(false)
   const glossarySheetRef = useRef<HTMLDivElement | null>(null)
   const glossaryDragStartRef = useRef<{ y: number; t: number } | null>(null)
+  const chapterOpenStartRef = useRef<number | null>(null)
 
   const updateSelectionOverlay = () => {
     if (!selectionRangeRef.current) {
@@ -455,6 +466,19 @@ export default function ChapterPage() {
   }, [loading, section])
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('deferPanels') === '0') {
+      setDeferPanelsEnabled(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    chapterOpenStartRef.current = performance.now()
+    setLastPerfMs(null)
+  }, [storyId, chapterId])
+
+  useEffect(() => {
     if (!storyId || allSections.length === 0) return
 
     const prevSection = allSections[currentSectionIndex - 1]
@@ -468,6 +492,12 @@ export default function ChapterPage() {
 
   useEffect(() => {
     if (loading || !section?.id) return
+
+    if (!deferPanelsEnabled) {
+      setShowDeferredPanels(true)
+      return
+    }
+
     setShowDeferredPanels(false)
 
     let cancelled = false
@@ -490,7 +520,33 @@ export default function ChapterPage() {
       cancelled = true
       window.clearTimeout(timeout)
     }
-  }, [loading, section?.id])
+  }, [deferPanelsEnabled, loading, section?.id])
+
+  useEffect(() => {
+    if (!showDeferredPanels) return
+    if (!chapterOpenStartRef.current) return
+
+    const elapsed = Math.round(performance.now() - chapterOpenStartRef.current)
+    setLastPerfMs(elapsed)
+
+    const metric: ReaderPerfMetric = {
+      variant: deferPanelsEnabled ? 'deferred' : 'immediate',
+      storyId,
+      chapterId,
+      msToSecondaryPanels: elapsed,
+      capturedAt: new Date().toISOString(),
+    }
+
+    try {
+      const key = 'reader-perf-metrics-v1'
+      const raw = window.localStorage.getItem(key)
+      const existing = raw ? (JSON.parse(raw) as ReaderPerfMetric[]) : []
+      const next = [...existing, metric].slice(-40)
+      window.localStorage.setItem(key, JSON.stringify(next))
+    } catch {
+      // ignore storage errors
+    }
+  }, [chapterId, deferPanelsEnabled, showDeferredPanels, storyId])
 
   useEffect(() => {
     const handleOpenGlossaryEvent = (event: Event) => {
@@ -915,6 +971,17 @@ export default function ChapterPage() {
     triggerHaptic([8, 20, 8])
   }
 
+  const shiftLineHeight = (direction: -1 | 1) => {
+    setReadingSettings((prev) => {
+      const nextValue = Math.max(1.35, Math.min(2.15, Number((prev.lineHeight + direction * 0.1).toFixed(2))))
+      return {
+        ...prev,
+        lineHeight: nextValue,
+      }
+    })
+    triggerHaptic(8)
+  }
+
   const filteredCharacters = characters.filter((character) => {
     if (!mobileGlossaryQuery.trim()) return true
     const query = mobileGlossaryQuery.toLowerCase()
@@ -1008,6 +1075,76 @@ export default function ChapterPage() {
                   <PlusIcon className="w-4 h-4" />
                 </button>
               </div>
+            </div>
+
+            <div className="hidden md:flex mt-3 items-center gap-2 flex-wrap">
+              <label className="text-[11px] text-gray-500 dark:text-gray-400">Font</label>
+              <select
+                value={readingSettings.fontFamily}
+                onChange={(event) => setReadingSettings((prev) => ({ ...prev, fontFamily: event.target.value }))}
+                className="px-2 py-1.5 text-xs rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
+              >
+                {FONT_FAMILY_OPTIONS.map((font) => (
+                  <option key={font} value={font}>{font}</option>
+                ))}
+              </select>
+
+              <label className="text-[11px] text-gray-500 dark:text-gray-400">Theme</label>
+              <select
+                value={readingSettings.theme}
+                onChange={(event) => setReadingSettings((prev) => ({ ...prev, theme: event.target.value as ReaderTheme }))}
+                className="px-2 py-1.5 text-xs rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
+              >
+                <option value="auto">Auto</option>
+                <option value="paper">Paper</option>
+                <option value="night">Night</option>
+              </select>
+
+              <label className="text-[11px] text-gray-500 dark:text-gray-400">Line</label>
+              <button
+                type="button"
+                onClick={() => shiftLineHeight(-1)}
+                className="p-1 rounded border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+                aria-label="Decrease line height"
+              >
+                <MinusIcon className="w-3 h-3" />
+              </button>
+              <span className="text-[11px] text-gray-600 dark:text-gray-300 w-10 text-center">{readingSettings.lineHeight.toFixed(2)}</span>
+              <button
+                type="button"
+                onClick={() => shiftLineHeight(1)}
+                className="p-1 rounded border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+                aria-label="Increase line height"
+              >
+                <PlusIcon className="w-3 h-3" />
+              </button>
+
+              <label className="text-[11px] text-gray-500 dark:text-gray-400">Light</label>
+              <input
+                type="range"
+                min={80}
+                max={120}
+                step={1}
+                value={readingSettings.brightness}
+                onChange={(event) =>
+                  setReadingSettings((prev) => ({ ...prev, brightness: Number(event.target.value) }))
+                }
+                className="w-28"
+              />
+
+              <button
+                type="button"
+                onClick={resetReaderSettings}
+                className="px-2 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-[11px] font-semibold text-gray-700 dark:text-gray-200"
+              >
+                Reset
+              </button>
+
+              {lastPerfMs !== null && (
+                <span className="text-[11px] text-emerald-700 dark:text-emerald-300">
+                  Panels: {lastPerfMs}ms ({deferPanelsEnabled ? 'deferred' : 'immediate'})
+                </span>
+              )}
             </div>
 
             <div className="mt-2">
@@ -1599,6 +1736,42 @@ export default function ChapterPage() {
                     }
                     className="w-full"
                   />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">Line Height</p>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{readingSettings.lineHeight.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => shiftLineHeight(-1)}
+                      className="p-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+                      aria-label="Decrease line height"
+                    >
+                      <MinusIcon className="w-4 h-4" />
+                    </button>
+                    <input
+                      type="range"
+                      min={1.35}
+                      max={2.15}
+                      step={0.05}
+                      value={readingSettings.lineHeight}
+                      onChange={(event) =>
+                        setReadingSettings((prev) => ({ ...prev, lineHeight: Number(event.target.value) }))
+                      }
+                      className="flex-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => shiftLineHeight(1)}
+                      className="p-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
+                      aria-label="Increase line height"
+                    >
+                      <PlusIcon className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
                 <button
