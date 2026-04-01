@@ -106,6 +106,13 @@ function AuthenticatedSubscriptionsView() {
   }>>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
+  const [page, setPage] = useState(1)
+  const [limit] = useState(12)
+  const [total, setTotal] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
+  const [hasNextPage, setHasNextPage] = useState(false)
+  const [hasPrevPage, setHasPrevPage] = useState(false)
   const [sortBy, setSortBy] = useState<'updated' | 'subscribed' | 'alphabetical'>('updated')
 
   useEffect(() => {
@@ -113,13 +120,27 @@ function AuthenticatedSubscriptionsView() {
       try {
         setLoading(true)
         setError(null)
-        const response = await fetch('/api/subscriptions')
+        const params = new URLSearchParams({
+          page: String(page),
+          limit: String(limit),
+          sort: sortBy,
+        })
+        if (query.trim()) {
+          params.set('q', query.trim())
+        }
+
+        const response = await fetch(`/api/subscriptions?${params.toString()}`)
         if (!response.ok) {
           throw new Error('Failed to load subscriptions')
         }
         const payload = await response.json()
-        const items = payload?.data?.items || payload?.items || []
+        const data = payload?.data || payload || {}
+        const items = data?.items || []
         setSubscriptions(items)
+        setTotal(data?.total || 0)
+        setTotalPages(data?.totalPages || 1)
+        setHasNextPage(Boolean(data?.hasNextPage))
+        setHasPrevPage(Boolean(data?.hasPrevPage))
       } catch (fetchError) {
         console.error('Failed to load subscriptions:', fetchError)
         setError('Could not load your subscriptions right now. Please try again.')
@@ -129,7 +150,7 @@ function AuthenticatedSubscriptionsView() {
     }
 
     loadSubscriptions()
-  }, [])
+  }, [limit, page, query, sortBy])
 
   const toggleNotifications = async (authorId: string, currentState: boolean) => {
     try {
@@ -176,19 +197,6 @@ function AuthenticatedSubscriptionsView() {
     }
   }
 
-  const sortedSubscriptions = [...subscriptions].sort((a, b) => {
-    switch (sortBy) {
-      case 'updated':
-        return new Date(b.story.updatedAt).getTime() - new Date(a.story.updatedAt).getTime()
-      case 'subscribed':
-        return new Date(b.subscribedAt).getTime() - new Date(a.subscribedAt).getTime()
-      case 'alphabetical':
-        return a.story.title.localeCompare(b.story.title)
-      default:
-        return 0
-    }
-  })
-
   const getReadingStatus = (subscription: (typeof subscriptions)[number]) => {
     const totalChapters = subscription.story.chapterCount
     let lastRead = 0
@@ -228,9 +236,21 @@ function AuthenticatedSubscriptionsView() {
             </p>
           </div>
           <div className="flex items-center space-x-4">
+            <input
+              value={query}
+              onChange={(e) => {
+                setPage(1)
+                setQuery(e.target.value)
+              }}
+              placeholder="Search title, author, genre..."
+              className="w-60 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            />
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+              onChange={(e) => {
+                setPage(1)
+                setSortBy(e.target.value as any)
+              }}
               className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             >
               <option value="updated">Recently Updated</option>
@@ -265,7 +285,7 @@ function AuthenticatedSubscriptionsView() {
           </div>
         ) : (
           <div className="space-y-4">
-            {sortedSubscriptions.map((subscription) => {
+            {subscriptions.map((subscription) => {
               const readingStatus = getReadingStatus(subscription)
               
               return (
@@ -287,11 +307,11 @@ function AuthenticatedSubscriptionsView() {
                           </h3>
                           <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
                             <img
-                              src={subscription.story.author.avatar || '/default-avatar.png'}
-                              alt={subscription.story.author.username}
+                              src={subscription.author.avatar || '/default-avatar.png'}
+                              alt={subscription.author.username}
                               className="w-5 h-5 rounded-full"
                             />
-                            <span>{subscription.story.author.username}</span>
+                            <span>{subscription.author.displayName || subscription.author.username}</span>
                             <span>•</span>
                             <span className={readingStatus.color}>
                               {readingStatus.text}
@@ -370,6 +390,35 @@ function AuthenticatedSubscriptionsView() {
                 </div>
               )
             })}
+
+            {!loading && subscriptions.length > 0 && (
+              <div className="flex items-center justify-between pt-2">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Showing {subscriptions.length} of {total} subscriptions
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                    disabled={!hasPrevPage}
+                    className="px-3 py-1.5 text-sm rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-sm text-gray-600 dark:text-gray-300">
+                    Page {page} of {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setPage((prev) => prev + 1)}
+                    disabled={!hasNextPage}
+                    className="px-3 py-1.5 text-sm rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

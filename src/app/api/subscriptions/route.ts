@@ -90,6 +90,10 @@ export async function GET(request: NextRequest) {
     // Validation
     const { searchParams } = new URL(request.url)
     const authorId = searchParams.get('authorId')
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
+    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '12', 10)))
+    const query = (searchParams.get('q') || '').trim().toLowerCase()
+    const sort = searchParams.get('sort') || 'updated'
 
     if (!authorId) {
       const subscriptions = await prisma.subscription.findMany({
@@ -190,9 +194,46 @@ export async function GET(request: NextRequest) {
         })
       })
 
+      const filteredItems = query
+        ? items.filter((item) => {
+            const title = item.story.title.toLowerCase()
+            const description = item.story.description.toLowerCase()
+            const authorName = (item.author.displayName || item.author.username || '').toLowerCase()
+            const genreText = item.story.genres.join(' ').toLowerCase()
+
+            return (
+              title.includes(query) ||
+              description.includes(query) ||
+              authorName.includes(query) ||
+              genreText.includes(query)
+            )
+          })
+        : items
+
+      const sortedItems = [...filteredItems].sort((a, b) => {
+        if (sort === 'subscribed') {
+          return new Date(b.subscribedAt).getTime() - new Date(a.subscribedAt).getTime()
+        }
+        if (sort === 'alphabetical') {
+          return a.story.title.localeCompare(b.story.title)
+        }
+        return new Date(b.story.updatedAt).getTime() - new Date(a.story.updatedAt).getTime()
+      })
+
+      const total = sortedItems.length
+      const totalPages = Math.max(1, Math.ceil(total / limit))
+      const safePage = Math.min(page, totalPages)
+      const start = (safePage - 1) * limit
+      const pageItems = sortedItems.slice(start, start + limit)
+
       const response = createSuccessResponse({
-        items,
-        total: items.length,
+        items: pageItems,
+        total,
+        page: safePage,
+        limit,
+        totalPages,
+        hasNextPage: safePage < totalPages,
+        hasPrevPage: safePage > 1,
       }, undefined, requestId)
 
       return addCorsHeaders(response)
