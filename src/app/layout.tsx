@@ -7,6 +7,7 @@ import { validateEnvironment } from '@/lib/config'
 import { auth } from '@/auth-edge'
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Analytics } from '@vercel/analytics/react'
+import ChunkRecovery from '@/components/ChunkRecovery'
 
 
 export const metadata: Metadata = {
@@ -74,6 +75,7 @@ export default async function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-sans h-full" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+        <ChunkRecovery />
         <AuthProvider session={session}>
           <UsernameGuard>
             {children}
