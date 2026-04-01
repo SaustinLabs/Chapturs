@@ -14,6 +14,7 @@ import PrePublishChecklist from './PrePublishChecklist'
 import { Activity, Clock } from 'lucide-react'
 import { measureTextRows } from '@/hooks/usePretext'
 import { buildEditorSelectionActions } from '@/lib/selectionActionRegistry'
+import { useToast } from '@/components/ui/Toast'
 
 interface ChaptursEditorProps {
   workId: string
@@ -30,6 +31,7 @@ export default function ChaptursEditor({
   onSave,
   onPublish 
 }: ChaptursEditorProps) {
+  const { toast } = useToast()
   
   // Initialize editor state
   const [editorState, setEditorState] = useState<EditorState>(() => ({
@@ -210,11 +212,11 @@ export default function ChaptursEditor({
         setGlossaryRefreshKey(prev => prev + 1)
       } else {
         const error = await response.json()
-        alert(`Failed to save glossary entry: ${error.error}`)
+        toast.error(`Failed to save glossary entry: ${error.error || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('Error saving glossary:', error)
-      alert('Failed to save glossary entry. Please try again.')
+      toast.error('Failed to save glossary entry. Please try again.')
     }
   }
 
@@ -305,13 +307,13 @@ export default function ChaptursEditor({
       }))
     } catch (error) {
       console.error('Failed to save:', error)
-      // TODO: Show error toast
+      toast.error('Failed to save. Please try again.')
     }
-  }, [editorState.document, onSave])
+  }, [editorState.document, onSave, toast])
 
   const handleRunQualityCheck = async () => {
     if (!chapterId) {
-      alert("Please save the chapter first before running an assessment.")
+      toast.warning('Please save the chapter before running an assessment.')
       return
     }
     
@@ -331,12 +333,12 @@ export default function ChaptursEditor({
         setAssessmentData(data.assessment)
       } else {
         const err = await response.json()
-        alert(`Assessment failed: ${err.error}`)
+        toast.error(`Assessment failed: ${err.error || 'Unknown error'}`)
         setShowQualityModal(false)
       }
     } catch (error) {
       console.error(error)
-      alert("Failed to connect to assessment service.")
+      toast.error('Failed to connect to assessment service.')
       setShowQualityModal(false)
     } finally {
       setIsAssessing(false)
@@ -567,10 +569,11 @@ export default function ChaptursEditor({
                 body: JSON.stringify({ scheduledDate })
               })
               if (res.ok) {
-                alert(`Scheduled for ${new Date(scheduledDate).toLocaleString()}`)
+                toast.success(`Scheduled for ${new Date(scheduledDate).toLocaleString()}`)
               }
             } catch (e) {
               console.error('Scheduling failed')
+              toast.error('Scheduling failed. Please try again.')
             }
           } else if (onPublish) {
             // Immediate publish

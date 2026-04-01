@@ -6,6 +6,7 @@ import ChaptursEditor from '@/components/ChaptursEditor'
 import ConfirmMatureModal from '@/components/ConfirmMatureModal'
 import AdvancedUploader from '@/components/AdvancedUploader'
 import AppLayout from '@/components/AppLayout'
+import { useToast } from '@/components/ui/Toast'
 import { ContentFormat } from '@/types'
 import { ChaptDocument } from '@/types/chapt'
 import {
@@ -34,6 +35,7 @@ interface EditorMode {
 export default function CreatorEditorPage() {
   const params = useParams()
   const searchParams = useSearchParams()
+  const { toast } = useToast()
   
   // URL parameters - with safe fallbacks
   const workId = searchParams?.get('workId') || (params?.workId as string | undefined) || undefined
@@ -220,12 +222,12 @@ export default function CreatorEditorPage() {
           }
         } else {
           console.error('Chapter not found:', chapterId)
-          alert('Chapter not found')
+          toast.error('Chapter not found.')
         }
       }
     } catch (error) {
       console.error('Error loading chapter:', error)
-      alert('Failed to load chapter')
+      toast.error('Failed to load chapter.')
     }
   }
 
@@ -321,14 +323,14 @@ export default function CreatorEditorPage() {
           // Update URL with draftId and reload
           const newDraftId = result.draft?.id
           if (newDraftId) {
-            alert('Draft created! Reloading to continue editing...')
+            toast.success('Draft created. Reloading to continue editing...')
             window.location.href = `/creator/editor?draftId=${newDraftId}&format=${currentWork.formatType}`
             return
           }
         } else {
           const error = await response.json()
           console.error('Failed to create draft:', error)
-          alert(`Failed to save draft: ${error.error}`)
+          toast.error(`Failed to save draft: ${error.error || 'Unknown error'}`)
           return
         }
       } else if (draftId) {
@@ -336,7 +338,7 @@ export default function CreatorEditorPage() {
         console.log('Saving chapter to draft:', draftId)
         
         // For now, just show success since we need the sections API
-        alert('Chapter content saved! (Backend integration pending)')
+        toast.info('Chapter content saved. Full draft chapter API integration is still pending.')
         setProjectStats(prev => ({
           ...prev,
           lastSaved: new Date(),
@@ -385,12 +387,12 @@ export default function CreatorEditorPage() {
         } else {
           const error = await response.json()
           console.error('Failed to save chapter:', error)
-          alert(`Failed to save chapter: ${error.error}`)
+          toast.error(`Failed to save chapter: ${error.error || 'Unknown error'}`)
         }
       }
     } catch (error) {
       console.error('Error saving:', error)
-      alert('Failed to save. Please try again.')
+      toast.error('Failed to save. Please try again.')
     }
     
     setProjectStats(prev => ({
@@ -410,7 +412,7 @@ export default function CreatorEditorPage() {
     
     // Check if work has content before publishing
     if (!currentWork.hasContent) {
-      alert('Cannot publish work without content. Please add at least one chapter or section first.')
+      toast.warning('Cannot publish without content. Add at least one chapter or section first.')
       return
     }
 
@@ -455,7 +457,7 @@ export default function CreatorEditorPage() {
             successMessage += ` ${result.assessment.message}`
           }
 
-          alert(successMessage)
+          toast.success(successMessage)
           
           // No need to manually queue - assessment already ran synchronously during publish
           console.log('[EDITOR] Redirecting to story page:', result.workId)
@@ -464,15 +466,15 @@ export default function CreatorEditorPage() {
         } else {
           const error = await response.json()
           console.error('[EDITOR] Publish failed with error:', error)
-          alert(`Failed to publish: ${error.error}`)
+          toast.error(`Failed to publish: ${error.error || 'Unknown error'}`)
         }
       } catch (error) {
         console.error('[EDITOR] Error publishing work:', error)
-        alert('Failed to publish work. Please try again.')
+        toast.error('Failed to publish work. Please try again.')
       }
     } else {
       // For existing works, just update the content
-      alert('Content saved and updated!')
+      toast.success('Content saved and updated.')
     }
   }
 
@@ -490,23 +492,23 @@ export default function CreatorEditorPage() {
       })
       if (overrideResp.ok) {
         const final = await overrideResp.json()
-        alert('Work published successfully!')
+        toast.success('Work published successfully.')
         window.location.href = `/work/${final.workId}`
         return
       } else {
         const err = await overrideResp.json()
-        alert(`Failed to publish after confirmation: ${err.error || JSON.stringify(err)}`)
+        toast.error(`Failed to publish after confirmation: ${err.error || 'Unknown error'}`)
         return
       }
     } catch (e) {
       console.error('Error confirming publish:', e)
-      alert('Failed to publish after confirmation. Please try again.')
+      toast.error('Failed to publish after confirmation. Please try again.')
     }
   }
 
   const handleModalCancel = () => {
     setModalState(prev => ({ ...prev, open: false }))
-    alert('Publishing cancelled. You can edit your content or explicitly mark the work as mature in settings.')
+    toast.info('Publishing cancelled. You can edit content or mark the work as mature in settings.')
   }
 
   const handleUploadComplete = (results: any[]) => {
@@ -828,7 +830,7 @@ export default function CreatorEditorPage() {
                         successMessage += '\n\n⏱️ Quality assessment queued for later (rate limited)'
                       }
 
-                      alert(successMessage)
+                      toast.success(successMessage)
                       // Redirect to the published work story page (has proper navigation)
                       window.location.href = `/story/${workId}`
                     } else {
@@ -841,19 +843,19 @@ export default function CreatorEditorPage() {
                         console.error('Validation details:', error.details)
                         
                         const errorDetails = error.validationErrors.join('\n• ')
-                        alert(`Failed to publish chapter: ${error.error}\n\nIssues found:\n• ${errorDetails}\n\nCheck the console for more details.`)
+                        toast.error(`Failed to publish chapter: ${error.error}. Issues: ${errorDetails}`)
                       } else {
-                        alert(`Failed to publish chapter: ${error.error}`)
+                        toast.error(`Failed to publish chapter: ${error.error || 'Unknown error'}`)
                       }
                     }
                   } catch (error) {
                     console.error('Error publishing chapter:', error)
-                    alert('Failed to publish chapter. Please try again.')
+                    toast.error('Failed to publish chapter. Please try again.')
                   }
                 } else {
                   // No workId or draftId - need to create work first
                   console.error('Cannot publish: No workId or draftId')
-                  alert('Please save your work as a draft first before publishing.')
+                  toast.warning('Please save your work as a draft first before publishing.')
                 }
               }}
             />

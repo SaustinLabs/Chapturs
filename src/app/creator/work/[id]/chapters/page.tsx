@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import { useUser } from '@/hooks/useUser'
 import { Edit, Trash2, Plus, Eye } from 'lucide-react'
+import { useToast } from '@/components/ui/Toast'
 
 interface Chapter {
   id: string
@@ -19,6 +20,7 @@ interface Chapter {
 export default function ManageChaptersPage() {
   const params = useParams()
   const router = useRouter()
+  const { toast } = useToast()
   const workId = params?.id as string
   const { userId, isAuthenticated, isLoading: userLoading } = useUser()
   
@@ -47,6 +49,7 @@ export default function ManageChaptersPage() {
         }
       } catch (error) {
         console.error('Failed to fetch data:', error)
+        toast.error('Failed to load chapter data.')
       } finally {
         setLoading(false)
       }
@@ -65,13 +68,13 @@ export default function ManageChaptersPage() {
 
       if (response.ok) {
         setChapters(chapters.filter(ch => ch.id !== chapterId))
-        alert('Chapter deleted successfully')
+        toast.success('Chapter deleted successfully.')
       } else {
-        alert('Failed to delete chapter')
+        toast.error('Failed to delete chapter.')
       }
     } catch (error) {
       console.error('Error deleting chapter:', error)
-      alert('Failed to delete chapter')
+      toast.error('Failed to delete chapter.')
     }
   }
 

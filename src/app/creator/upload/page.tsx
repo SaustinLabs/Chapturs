@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import CoverUploadField from '@/components/CoverUploadField'
+import { useToast } from '@/components/ui/Toast'
 import { ContentFormat } from '@/types'
 import { 
   XMarkIcon,
@@ -34,6 +35,7 @@ const getFormatIcon = (format: ContentFormat): string => {
 
 export default function UploadPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [newWork, setNewWork] = useState<NewWork>({
     title: '',
     description: '',
@@ -54,7 +56,7 @@ export default function UploadPage() {
 
   const handleCreateWork = async () => {
     if (!newWork.title || !newWork.description) {
-      alert('Please fill in the title and description')
+      toast.warning('Please fill in the title and description.')
       return
     }
 
@@ -108,15 +110,15 @@ export default function UploadPage() {
           const errorList = error.details
             .map((detail: any) => `• ${detail.field}: ${detail.message}`)
             .join('\n')
-          alert(`Please fix the following errors:\n\n${errorList}`)
+          toast.error(`Please fix the following errors: ${errorList}`)
         } else {
           // Generic error
-          alert(error.message || 'Failed to create work. Please try again.')
+          toast.error(error.message || 'Failed to create work. Please try again.')
         }
       }
     } catch (error) {
       console.error('Error creating work:', error)
-      alert('Failed to create work. Please try again.')
+      toast.error('Failed to create work. Please try again.')
     } finally {
       setIsSubmitting(false)
     }

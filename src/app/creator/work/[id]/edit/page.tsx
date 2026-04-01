@@ -5,10 +5,12 @@ import { useParams, useRouter } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import { useUser } from '@/hooks/useUser'
 import ImageUpload from '@/components/upload/ImageUpload'
+import { useToast } from '@/components/ui/Toast'
 
 export default function EditWorkPage() {
   const params = useParams()
   const router = useRouter()
+  const { toast } = useToast()
   const workId = params?.id as string
   const { userId, isAuthenticated, isLoading: userLoading } = useUser()
   
@@ -47,6 +49,7 @@ export default function EditWorkPage() {
         }
       } catch (error) {
         console.error('Failed to fetch work:', error)
+        toast.error('Failed to load work details.')
       } finally {
         setLoading(false)
       }
@@ -68,16 +71,16 @@ export default function EditWorkPage() {
       if (response.ok) {
         const result = await response.json()
         console.log('Save successful:', result)
-        alert('Work updated successfully!')
+        toast.success('Work updated successfully.')
         router.push('/creator/works')
       } else {
         const error = await response.json()
         console.error('Save failed:', error)
-        alert(`Failed to update work: ${error.error}`)
+        toast.error(`Failed to update work: ${error.error || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('Error saving work:', error)
-      alert('Failed to save changes')
+      toast.error('Failed to save changes.')
     } finally {
       setSaving(false)
     }
@@ -174,7 +177,7 @@ export default function EditWorkPage() {
               }}
               onUploadError={(error) => {
                 console.error('Cover upload error:', error)
-                alert(`Failed to upload cover: ${error}`)
+                toast.error(`Failed to upload cover: ${error}`)
               }}
               label="Book Cover"
               hint="Recommended: 640×1024px (portrait) or similar book cover ratio"
