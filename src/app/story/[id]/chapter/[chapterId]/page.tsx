@@ -17,6 +17,8 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ListBulletIcon,
+  MinusIcon,
+  PlusIcon,
 } from '@heroicons/react/24/outline'
 import { MessageSquare, Send, Sparkles } from 'lucide-react'
 
@@ -78,7 +80,9 @@ export default function ChapterPage() {
   const [fanArtSubmitting, setFanArtSubmitting] = useState(false)
   const [commentsRefreshKey, setCommentsRefreshKey] = useState(0)
   const [selectionRects, setSelectionRects] = useState<Array<{ top: number; left: number; width: number; height: number }>>([])
+  const [readingProgress, setReadingProgress] = useState(0)
   const selectionRangeRef = useRef<Range | null>(null)
+  const chapterContentRef = useRef<HTMLDivElement | null>(null)
 
   const updateSelectionOverlay = () => {
     if (!selectionRangeRef.current) {
@@ -303,6 +307,33 @@ export default function ChapterPage() {
       window.removeEventListener('resize', handleViewportChange)
     }
   }, [selectedText])
+
+  useEffect(() => {
+    const calculateProgress = () => {
+      if (!chapterContentRef.current) return
+
+      const rect = chapterContentRef.current.getBoundingClientRect()
+      const viewportHeight = window.innerHeight
+      const totalScrollable = rect.height + viewportHeight
+      if (totalScrollable <= 0) {
+        setReadingProgress(0)
+        return
+      }
+
+      const travelled = viewportHeight - rect.top
+      const nextProgress = Math.min(100, Math.max(0, (travelled / totalScrollable) * 100))
+      setReadingProgress(nextProgress)
+    }
+
+    calculateProgress()
+    window.addEventListener('scroll', calculateProgress, true)
+    window.addEventListener('resize', calculateProgress)
+
+    return () => {
+      window.removeEventListener('scroll', calculateProgress, true)
+      window.removeEventListener('resize', calculateProgress)
+    }
+  }, [section?.id])
 
   useEffect(() => {
     if (loading || !section) return
@@ -547,6 +578,18 @@ export default function ChapterPage() {
     lineHeight: readingSettings.lineHeight
   })
 
+  const shiftFontSize = (direction: -1 | 1) => {
+    const options = ['small', 'medium', 'large', 'xl'] as const
+    const currentIndex = options.indexOf(readingSettings.fontSize as (typeof options)[number])
+    const safeIndex = currentIndex === -1 ? 1 : currentIndex
+    const nextIndex = Math.max(0, Math.min(options.length - 1, safeIndex + direction))
+
+    setReadingSettings((prev) => ({
+      ...prev,
+      fontSize: options[nextIndex]
+    }))
+  }
+
   if (!work || !section) {
     return (
       <AppLayout>
@@ -591,6 +634,52 @@ export default function ChapterPage() {
       )}
 
       <div className="max-w-4xl mx-auto">
+        <div className="sticky top-[64px] z-20 mb-4 mt-4 px-2">
+          <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm p-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Reading Progress</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                  Chapter {section.chapterNumber}: {section.title}
+                </p>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => shiftFontSize(-1)}
+                  className="p-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  aria-label="Decrease font size"
+                >
+                  <MinusIcon className="w-4 h-4" />
+                </button>
+                <span className="text-xs text-gray-600 dark:text-gray-300 w-10 text-center capitalize">
+                  {readingSettings.fontSize}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => shiftFontSize(1)}
+                  className="p-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  aria-label="Increase font size"
+                >
+                  <PlusIcon className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-2">
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div
+                  className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-emerald-500 transition-all duration-200"
+                  style={{ width: `${readingProgress}%` }}
+                />
+              </div>
+              <div className="mt-1 text-[11px] text-gray-600 dark:text-gray-400 text-right">
+                {Math.round(readingProgress)}%
+              </div>
+            </div>
+          </div>
+        </div>
+
         {selectionRects.length > 0 && (
           <div className="pointer-events-none fixed inset-0 z-30">
             {selectionRects.map((rect, index) => (
@@ -672,7 +761,7 @@ export default function ChapterPage() {
         )}
 
         {/* Chapter Content */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 mb-6">
+        <div ref={chapterContentRef} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 mb-6">
           <div
             className={`${getFontSizeClass()} text-gray-900 dark:text-gray-100`}
             style={getLineHeightStyle()}

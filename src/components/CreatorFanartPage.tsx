@@ -37,12 +37,15 @@ interface StatusCounts {
   rejected: number
 }
 
+type ConfirmationFilter = 'all' | 'needs-confirmation' | 'auto-confirmed' | 'manual-confirmed'
+
 export default function CreatorFanartPage() {
   const { isAuthenticated, isLoading } = useUser()
   const [submissions, setSubmissions] = useState<FanartSubmission[]>([])
   const [counts, setCounts] = useState<StatusCounts>({ pending: 0, approved: 0, rejected: 0 })
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending')
+  const [confirmationFilter, setConfirmationFilter] = useState<ConfirmationFilter>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set())
 
@@ -138,6 +141,35 @@ export default function CreatorFanartPage() {
   }
 
   const filteredSubmissions = submissions.filter(sub => {
+    const meta = (() => {
+      if (!sub.characterMetadata) return null
+      if (typeof sub.characterMetadata === 'string') {
+        try {
+          return JSON.parse(sub.characterMetadata)
+        } catch {
+          return null
+        }
+      }
+      return sub.characterMetadata
+    })()
+
+    const pendingAuthorConfirmation = Boolean(meta?.pendingAuthorConfirmation)
+    const confirmationSource = meta?.confirmationSource as string | undefined
+
+    const confirmationMatch = (() => {
+      if (confirmationFilter === 'all') return true
+      if (confirmationFilter === 'needs-confirmation') return pendingAuthorConfirmation
+      if (confirmationFilter === 'auto-confirmed') {
+        return !pendingAuthorConfirmation && confirmationSource === 'fanart-submit-anyway'
+      }
+      if (confirmationFilter === 'manual-confirmed') {
+        return !pendingAuthorConfirmation && confirmationSource === 'creator-fanart-review'
+      }
+      return true
+    })()
+
+    if (!confirmationMatch) return false
+
     if (!searchQuery) return true
     const query = searchQuery.toLowerCase()
     return (
@@ -254,6 +286,31 @@ export default function CreatorFanartPage() {
             />
           </div>
         </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          {[
+            { id: 'all', label: 'All Confirm States' },
+            { id: 'needs-confirmation', label: 'Needs Confirmation' },
+            { id: 'auto-confirmed', label: 'Auto-Confirmed' },
+            { id: 'manual-confirmed', label: 'Manual Confirmed' },
+          ].map((option) => {
+            const active = confirmationFilter === option.id
+            return (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => setConfirmationFilter(option.id as ConfirmationFilter)}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
+                  active
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'
+                }`}
+              >
+                {option.label}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* Submissions Grid */}
@@ -323,6 +380,13 @@ function SubmissionCard({
   const confirmationSource = characterMeta?.confirmationSource as string | undefined
   const confirmedAt = characterMeta?.confirmedAt as string | undefined
   const isConfirmed = !needsCharacterConfirmation && Boolean(confirmedAt)
+  const confirmationPill = needsCharacterConfirmation
+    ? { label: 'Needs Confirmation', className: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' }
+    : confirmationSource === 'fanart-submit-anyway'
+      ? { label: 'Auto-Confirmed', className: 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300' }
+      : confirmationSource === 'creator-fanart-review'
+        ? { label: 'Manual Confirmed', className: 'bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300' }
+        : null
 
   const statusColors = {
     pending: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
@@ -357,6 +421,11 @@ function SubmissionCard({
             <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
               {submission.characterName}
             </h3>
+            {confirmationPill && (
+              <span className={`inline-flex mb-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${confirmationPill.className}`}>
+                {confirmationPill.label}
+              </span>
+            )}
             <Link 
               href={`/creator/works/${submission.workId}`}
               className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
