@@ -10,6 +10,7 @@ export interface SelectionAction {
   onClick: () => void
   variant?: 'primary' | 'secondary'
   disabled?: boolean
+  className?: string
 }
 
 interface SelectionActionToolbarProps {
@@ -37,12 +38,16 @@ export default function SelectionActionToolbar({
       {actions.map((action) => (
         <button
           key={action.id}
+          onMouseDown={(event) => {
+            // Keep the current text selection active while clicking toolbar actions.
+            event.preventDefault()
+          }}
           onClick={action.onClick}
           disabled={action.disabled}
           className={
             action.variant === 'primary'
-              ? 'px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed'
-              : 'px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed'
+              ? `px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed ${action.className || ''}`
+              : `px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed ${action.className || ''}`
           }
         >
           {action.icon}
@@ -51,6 +56,9 @@ export default function SelectionActionToolbar({
       ))}
 
       <button
+        onMouseDown={(event) => {
+          event.preventDefault()
+        }}
         onClick={onClose}
         className="p-1.5 text-gray-400 hover:text-gray-600"
       >

@@ -288,25 +288,21 @@ export default function ChapterPage() {
     const matched = resolveCharacterFromSelection()
     if (matched) {
       setSelectedCharacter({ ...matched, workId: matched.workId || storyId })
-      clearSelection()
       return
     }
 
     const fuzzy = getFuzzyCharacterMatches()
     if (fuzzy.length === 1) {
       setSelectedCharacter({ ...fuzzy[0], workId: fuzzy[0].workId || storyId })
-      clearSelection()
       return
     }
 
     if (fuzzy.length > 1) {
       setFanArtCharacterOptions(fuzzy)
-      clearSelection()
       return
     }
 
     alert('No matching character found in this chapter selection. Try selecting the exact character name.')
-    clearSelection()
   }
 
   const navigateToSection = (newIndex: number) => {
@@ -505,19 +501,20 @@ export default function ChapterPage() {
           actions={[
             {
               id: 'comment',
-              label: 'Discuss',
+              label: 'Comment',
               icon: <MessageSquare size={14} />,
               onClick: () => {
-                window.location.href = `/story/${storyId}`
-                clearSelection()
+                window.location.href = `/story/${storyId}#comments`
               },
               variant: 'primary'
             },
             {
               id: 'fan-art',
-              label: 'Fan Art',
+              label: 'Submit Art',
               icon: <Sparkles size={14} />,
-              onClick: handleFanArtIntent
+              onClick: handleFanArtIntent,
+              variant: 'primary',
+              className: 'bg-emerald-600 hover:bg-emerald-700 border border-emerald-600'
             }
           ]}
           onClose={clearSelection}
