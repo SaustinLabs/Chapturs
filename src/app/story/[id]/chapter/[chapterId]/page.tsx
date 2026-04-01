@@ -9,7 +9,7 @@ import StickyAudioScrubber from '@/components/StickyAudioScrubber'
 import WorkRatingSystem from '@/components/WorkRatingSystem'
 import CommentSection from '@/components/CommentSection'
 import SelectionActionToolbar from '@/components/SelectionActionToolbar'
-import CharacterProfileViewModal from '@/components/CharacterProfileViewModal'
+import ImageUpload from '@/components/upload/ImageUpload'
 import { Work, Section } from '@/types'
 import DataService from '@/lib/api/DataService'
 import { useSession } from 'next-auth/react'
@@ -26,7 +26,6 @@ interface ReaderCharacter {
   aliases?: string[]
   allowUserSubmissions?: boolean
   workId?: string
-  isSuggestionOption?: boolean
   [key: string]: any
 }
 
@@ -60,12 +59,23 @@ export default function ChapterPage() {
   const [characters, setCharacters] = useState<ReaderCharacter[]>([])
   const [selectedText, setSelectedText] = useState('')
   const [selectionPosition, setSelectionPosition] = useState({ top: 0, left: 0 })
-  const [selectedCharacter, setSelectedCharacter] = useState<ReaderCharacter | null>(null)
   const [fanArtCharacterOptions, setFanArtCharacterOptions] = useState<ReaderCharacter[]>([])
   const [showQuickComment, setShowQuickComment] = useState(false)
   const [quickCommentText, setQuickCommentText] = useState('')
   const [quickCommentError, setQuickCommentError] = useState('')
   const [submittingQuickComment, setSubmittingQuickComment] = useState(false)
+  const [showFanArtUploadModal, setShowFanArtUploadModal] = useState(false)
+  const [fanArtTargetCharacterId, setFanArtTargetCharacterId] = useState<string | null>(null)
+  const [fanArtTargetCharacterName, setFanArtTargetCharacterName] = useState('')
+  const [fanArtSubmission, setFanArtSubmission] = useState({
+    imageUrl: '',
+    artistName: '',
+    artistLink: '',
+    artistHandle: '',
+    notes: ''
+  })
+  const [fanArtSubmitError, setFanArtSubmitError] = useState('')
+  const [fanArtSubmitting, setFanArtSubmitting] = useState(false)
   const [commentsRefreshKey, setCommentsRefreshKey] = useState(0)
   const [selectionRects, setSelectionRects] = useState<Array<{ top: number; left: number; width: number; height: number }>>([])
   const selectionRangeRef = useRef<Range | null>(null)
@@ -369,6 +379,72 @@ export default function ChapterPage() {
 
   const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim()
 
+  const openFanArtUploadModal = (characterName: string, characterId?: string) => {
+    setFanArtTargetCharacterName(characterName)
+    setFanArtTargetCharacterId(characterId || null)
+    setFanArtSubmitError('')
+    setFanArtSubmission({
+      imageUrl: '',
+      artistName: '',
+      artistLink: '',
+      artistHandle: '',
+      notes: ''
+    })
+    setShowFanArtUploadModal(true)
+  }
+
+  const submitFanArt = async () => {
+    if (!session?.user?.id) {
+      setFanArtSubmitError('Please sign in to submit fan art.')
+      return
+    }
+
+    if (!fanArtSubmission.imageUrl || !fanArtSubmission.artistName.trim()) {
+      setFanArtSubmitError('Image and artist name are required.')
+      return
+    }
+
+    if (!fanArtTargetCharacterName.trim() && !fanArtTargetCharacterId) {
+      setFanArtSubmitError('Character name is required.')
+      return
+    }
+
+    setFanArtSubmitting(true)
+    setFanArtSubmitError('')
+
+    try {
+      const response = await fetch(`/api/works/${storyId}/fanart`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          sectionId: chapterId,
+          selectedText,
+          characterId: fanArtTargetCharacterId,
+          characterName: fanArtTargetCharacterName.trim(),
+          ...fanArtSubmission
+        })
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        setFanArtSubmitError(data?.error || 'Failed to submit fan art.')
+        return
+      }
+
+      setShowFanArtUploadModal(false)
+      setFanArtCharacterOptions([])
+      clearSelection()
+      alert(data?.message || 'Fan art submitted. The author will review it.')
+    } catch (error) {
+      console.error('Fan art submission failed:', error)
+      setFanArtSubmitError('Failed to submit fan art. Please try again.')
+    } finally {
+      setFanArtSubmitting(false)
+    }
+  }
+
   const resolveCharacterFromSelection = () => {
     const selected = normalize(selectedText)
     if (!selected) return null
@@ -420,13 +496,13 @@ export default function ChapterPage() {
   const handleFanArtIntent = () => {
     const matched = resolveCharacterFromSelection()
     if (matched) {
-      setSelectedCharacter({ ...matched, workId: matched.workId || storyId })
+      openFanArtUploadModal(matched.name, matched.id)
       return
     }
 
     const fuzzy = getFuzzyCharacterMatches()
     if (fuzzy.length === 1) {
-      setSelectedCharacter({ ...fuzzy[0], workId: fuzzy[0].workId || storyId })
+      openFanArtUploadModal(fuzzy[0].name, fuzzy[0].id)
       return
     }
 
@@ -436,13 +512,7 @@ export default function ChapterPage() {
     }
 
     if (selectedText.trim()) {
-      setFanArtCharacterOptions([
-        {
-          id: '__suggest_character__',
-          name: selectedText.trim(),
-          isSuggestionOption: true,
-        },
-      ])
+      openFanArtUploadModal(selectedText.trim())
       return
     }
 
@@ -748,14 +818,6 @@ export default function ChapterPage() {
           </div>
         )}
 
-        {selectedCharacter && (
-          <CharacterProfileViewModal
-            character={selectedCharacter}
-            isOpen={Boolean(selectedCharacter)}
-            onClose={() => setSelectedCharacter(null)}
-          />
-        )}
-
         {fanArtCharacterOptions.length > 0 && (
           <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
             <div className="w-full max-w-md bg-white rounded-lg shadow-xl border border-gray-300 p-4 text-gray-900">
@@ -777,40 +839,118 @@ export default function ChapterPage() {
                   <button
                     key={character.id}
                     onClick={() => {
-                      if (character.isSuggestionOption) {
-                        if (!session?.user?.id) {
-                          const commentsEl = document.getElementById('comments')
-                          if (commentsEl) {
-                            window.history.replaceState(null, '', '#comments')
-                            commentsEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                          }
-                          setFanArtCharacterOptions([])
-                          return
-                        }
-
-                        const suggestedName = character.name || selectedText
-                        setQuickCommentText(`[Character Suggestion]\nName: ${suggestedName}\nReason: Reader wants to submit fan art for this character.\nAction requested: Add to character glossary/profile and enable fan art submissions.`)
-                        setShowQuickComment(true)
-                        setFanArtCharacterOptions([])
-                        requestAnimationFrame(restoreSelectionHighlight)
-                        return
-                      }
-
-                      setSelectedCharacter({ ...character, workId: character.workId || storyId })
+                      openFanArtUploadModal(character.name, character.id)
                       setFanArtCharacterOptions([])
                     }}
                     className="w-full text-left px-3 py-2 rounded border border-gray-300 hover:bg-gray-50"
                   >
-                    <div className="font-medium text-gray-900">
-                      {character.isSuggestionOption ? `Use \"${character.name}\" as a new character request` : character.name}
-                    </div>
-                    {character.isSuggestionOption ? (
-                      <div className="text-xs text-amber-700">This will open a prefilled comment request for the author.</div>
-                    ) : character.aliases && character.aliases.length > 0 && (
+                    <div className="font-medium text-gray-900">{character.name}</div>
+                    {character.aliases && character.aliases.length > 0 && (
                       <div className="text-xs text-gray-700">aka {character.aliases.slice(0, 3).join(', ')}</div>
                     )}
                   </button>
                 ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showFanArtUploadModal && (
+          <div className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4">
+            <div className="w-full max-w-lg bg-white rounded-lg shadow-xl border border-gray-300 p-4 text-gray-900 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <h3 className="text-base font-semibold text-gray-900">Submit Fan Art</h3>
+                  <p className="text-sm text-gray-700">Submit now. The author can review and confirm character details later.</p>
+                </div>
+                <button
+                  onClick={() => setShowFanArtUploadModal(false)}
+                  className="p-1 text-gray-500 hover:text-gray-800"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Character Name</label>
+                  <input
+                    type="text"
+                    value={fanArtTargetCharacterName}
+                    onChange={(event) => setFanArtTargetCharacterName(event.target.value)}
+                    className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    placeholder="Character name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Fan Art Image</label>
+                  <ImageUpload
+                    entityType="fanart"
+                    entityId={fanArtTargetCharacterId || chapterId}
+                    currentImage={fanArtSubmission.imageUrl}
+                    onUploadComplete={(image) => {
+                      setFanArtSubmission((prev) => ({ ...prev, imageUrl: image.urls.optimized }))
+                    }}
+                    onUploadError={(error) => {
+                      console.error('Fan art upload error:', error)
+                      setFanArtSubmitError(`Image upload failed: ${error}`)
+                    }}
+                    label="Upload Fan Art"
+                    hint="Any size, 1200px recommended. Max 8MB."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Artist Name</label>
+                  <input
+                    type="text"
+                    value={fanArtSubmission.artistName}
+                    onChange={(event) => setFanArtSubmission((prev) => ({ ...prev, artistName: event.target.value }))}
+                    className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    placeholder="Your name or handle"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Artist Link (Optional)</label>
+                  <input
+                    type="url"
+                    value={fanArtSubmission.artistLink}
+                    onChange={(event) => setFanArtSubmission((prev) => ({ ...prev, artistLink: event.target.value }))}
+                    className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    placeholder="https://your-portfolio.example"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-800 mb-1">Notes (Optional)</label>
+                  <textarea
+                    rows={3}
+                    value={fanArtSubmission.notes}
+                    onChange={(event) => setFanArtSubmission((prev) => ({ ...prev, notes: event.target.value }))}
+                    className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    placeholder="Any context for the author"
+                  />
+                </div>
+
+                {fanArtSubmitError && <div className="text-sm text-red-600">{fanArtSubmitError}</div>}
+
+                <div className="pt-2 flex justify-end gap-2">
+                  <button
+                    onClick={() => setShowFanArtUploadModal(false)}
+                    className="px-3 py-1.5 text-sm text-gray-700 hover:text-gray-900"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={submitFanArt}
+                    disabled={fanArtSubmitting}
+                    className="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 disabled:opacity-50"
+                  >
+                    {fanArtSubmitting ? 'Submitting...' : 'Submit Art'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

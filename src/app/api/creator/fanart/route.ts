@@ -50,6 +50,8 @@ export async function GET(request: Request) {
         w.title as "workTitle",
         cp.id as "characterId",
         cp.name as "characterName",
+        cp.metadata as "characterMetadata",
+        cp."allowUserSubmissions" as "characterAllowUserSubmissions",
         u.name as "submitterName",
         u.email as "submitterEmail"
       FROM image_submissions ims

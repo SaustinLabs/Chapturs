@@ -25,6 +25,8 @@ interface FanartSubmission {
   workTitle: string
   characterId: string
   characterName: string
+  characterMetadata?: any
+  characterAllowUserSubmissions?: boolean
   submitterName?: string
   submitterEmail?: string
 }
@@ -254,6 +256,20 @@ function SubmissionCard({
 }) {
   const [showFullImage, setShowFullImage] = useState(false)
 
+  const characterMeta = (() => {
+    if (!submission.characterMetadata) return null
+    if (typeof submission.characterMetadata === 'string') {
+      try {
+        return JSON.parse(submission.characterMetadata)
+      } catch {
+        return null
+      }
+    }
+    return submission.characterMetadata
+  })()
+
+  const needsCharacterConfirmation = Boolean(characterMeta?.pendingAuthorConfirmation)
+
   const statusColors = {
     pending: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
     approved: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
@@ -324,6 +340,19 @@ function SubmissionCard({
             <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded text-sm text-gray-700 dark:text-gray-300">
               <p className="font-medium mb-1">Artist's Note:</p>
               <p className="text-sm">{submission.notes}</p>
+            </div>
+          )}
+
+          {needsCharacterConfirmation && (
+            <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded text-sm text-amber-900 dark:text-amber-200">
+              <p className="font-medium mb-1">Character confirmation needed</p>
+              <p className="mb-2">This submission created a provisional character. Confirm or edit it in Character Management.</p>
+              <Link
+                href={`/creator/works/${submission.workId}/characters`}
+                className="inline-flex items-center gap-1 text-amber-800 dark:text-amber-300 underline"
+              >
+                Open character management
+              </Link>
             </div>
           )}
 
