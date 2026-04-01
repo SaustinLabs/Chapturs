@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
+import { useToast } from '@/components/ui/Toast'
 
 type Rule = {
   id: string
@@ -12,6 +13,7 @@ type Rule = {
 }
 
 export default function ValidationRulesAdmin() {
+  const { toast } = useToast()
   const [rules, setRules] = useState<Rule[]>([])
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState<Partial<Rule>>({ isActive: true, severity: 'medium' })
@@ -22,8 +24,10 @@ export default function ValidationRulesAdmin() {
       const res = await fetch('/api/admin/validation-rules')
       const data = await res.json()
       if (data?.rules) setRules(data.rules)
+      else toast.error('Failed to load validation rules.')
     } catch (err) {
       console.error(err)
+      toast.error('Failed to load validation rules.')
     } finally {
       setLoading(false)
     }
@@ -47,13 +51,14 @@ export default function ValidationRulesAdmin() {
           console.warn('Failed to call invalidate endpoint', e)
         }
         setForm({ isActive: true, severity: 'medium' })
+        toast.success('Validation rule saved.')
         load()
       } else {
-        alert('Failed to save rule')
+        toast.error('Failed to save rule.')
       }
     } catch (err) {
       console.error(err)
-      alert('Failed to save rule')
+      toast.error('Failed to save rule.')
     }
   }
 
@@ -86,9 +91,9 @@ export default function ValidationRulesAdmin() {
               try {
                 const r = await fetch('/api/admin/validation-rules/invalidate', { method: 'POST' })
                 const d = await r.json()
-                if (d?.success) alert('Invalidated rule cache')
-                else alert('Failed to invalidate')
-              } catch (e) { console.error(e); alert('Failed to invalidate') }
+                if (d?.success) toast.success('Validation rule cache invalidated.')
+                else toast.error('Failed to invalidate cache.')
+              } catch (e) { console.error(e); toast.error('Failed to invalidate cache.') }
             }} className="px-3 py-2 bg-gray-200 rounded">Invalidate Cache</button>
           </div>
 

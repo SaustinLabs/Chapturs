@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import AppLayout from '@/components/AppLayout'
 import { PlusIcon, PencilIcon, TrashIcon, CheckCircleIcon, TrophyIcon, UsersIcon } from '@heroicons/react/24/outline'
+import { useToast } from '@/components/ui/Toast'
 
 interface Contest {
   id: string
@@ -15,6 +16,7 @@ interface Contest {
 }
 
 export default function AdminContestsPage() {
+  const { toast } = useToast()
   const [contests, setContests] = useState<Contest[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -36,9 +38,12 @@ export default function AdminContestsPage() {
       if (res.ok) {
         const data = await res.json()
         setContests(data.data.contests)
+      } else {
+        toast.error('Failed to load contests.')
       }
     } catch (e) {
       console.error('Failed to load contests')
+      toast.error('Failed to load contests.')
     } finally {
       setLoading(false)
     }
@@ -58,10 +63,14 @@ export default function AdminContestsPage() {
       })
       if (res.ok) {
         setShowCreateModal(false)
+        toast.success('Contest created successfully.')
         fetchContests()
+      } else {
+        toast.error('Failed to create contest.')
       }
     } catch (e) {
       console.error('Failed to create contest')
+      toast.error('Failed to create contest.')
     }
   }
 
@@ -72,9 +81,15 @@ export default function AdminContestsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
       })
-      if (res.ok) fetchContests()
+      if (res.ok) {
+        toast.success('Contest status updated.')
+        fetchContests()
+      } else {
+        toast.error('Failed to update contest status.')
+      }
     } catch (e) {
       console.error('Update failed')
+      toast.error('Failed to update contest status.')
     }
   }
 
@@ -82,9 +97,15 @@ export default function AdminContestsPage() {
     if (!confirm('Are you sure you want to delete this contest?')) return
     try {
       const res = await fetch(`/api/admin/contests/${id}`, { method: 'DELETE' })
-      if (res.ok) fetchContests()
+      if (res.ok) {
+        toast.success('Contest deleted.')
+        fetchContests()
+      } else {
+        toast.error('Failed to delete contest.')
+      }
     } catch (e) {
       console.error('Delete failed')
+      toast.error('Failed to delete contest.')
     }
   }
 

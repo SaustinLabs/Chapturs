@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { ShieldAlert, MessageSquare, FileText, CheckCircle, Trash2, XCircle } from 'lucide-react'
+import { useToast } from '@/components/ui/Toast'
 
 export default function ModeratorDashboard() {
+  const { toast } = useToast()
   const [commentReports, setCommentReports] = useState<any[]>([])
   const [contentReports, setContentReports] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -19,9 +21,12 @@ export default function ModeratorDashboard() {
         const data = await res.json()
         setCommentReports(data.commentReports || [])
         setContentReports(data.contentReports || [])
+      } else {
+        toast.error('Failed to load moderation reports.')
       }
     } catch (err) {
       console.error(err)
+      toast.error('Failed to load moderation reports.')
     } finally {
       setLoading(false)
     }
@@ -34,9 +39,15 @@ export default function ModeratorDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action })
       })
-      if (res.ok) fetchReports()
+      if (res.ok) {
+        toast.success(action === 'dismiss' ? 'Comment report dismissed.' : 'Comment deleted.')
+        fetchReports()
+      } else {
+        toast.error('Failed to apply comment action.')
+      }
     } catch (err) {
       console.error(err)
+      toast.error('Failed to apply comment action.')
     }
   }
 
@@ -47,9 +58,15 @@ export default function ModeratorDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action })
       })
-      if (res.ok) fetchReports()
+      if (res.ok) {
+        toast.success(action === 'approve' ? 'Content report dismissed.' : 'Content rejected.')
+        fetchReports()
+      } else {
+        toast.error('Failed to apply content action.')
+      }
     } catch (err) {
       console.error(err)
+      toast.error('Failed to apply content action.')
     }
   }
 
