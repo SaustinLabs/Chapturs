@@ -22,8 +22,15 @@ export function CharacterTooltip({
 }: CharacterTooltipProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [position, setPosition] = useState({ x: 0, y: 0 })
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
   const tooltipRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLSpanElement>(null)
+  const pinchDistanceRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    setIsTouchDevice(window.matchMedia('(pointer: coarse)').matches)
+  }, [])
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -58,6 +65,41 @@ export function CharacterTooltip({
     }
   }
 
+  const emitOpenGlossary = () => {
+    if (typeof window === 'undefined') return
+    window.dispatchEvent(
+      new CustomEvent('reader-open-mobile-glossary', {
+        detail: {
+          type: 'character',
+          characterId: character.id,
+          characterName: character.name,
+        },
+      })
+    )
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const [a, b] = [e.touches[0], e.touches[1]]
+      pinchDistanceRef.current = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY)
+    }
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length !== 2 || pinchDistanceRef.current == null) return
+
+    const [a, b] = [e.touches[0], e.touches[1]]
+    const nextDistance = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY)
+    if (Math.abs(nextDistance - pinchDistanceRef.current) > 18) {
+      pinchDistanceRef.current = null
+      emitOpenGlossary()
+    }
+  }
+
+  const handleTouchEnd = () => {
+    pinchDistanceRef.current = null
+  }
+
   // Auto-fill quickGlance if empty: "First seen in Chapter X"
   const displayText = character.quickGlance || 
     (character.firstAppearance ? `First seen in Chapter ${character.firstAppearance}` : 'Character profile')
@@ -69,12 +111,16 @@ export function CharacterTooltip({
         onMouseEnter={() => setIsVisible(true)}
         onMouseLeave={() => setIsVisible(false)}
         onClick={handleClick}
+        onDoubleClick={emitOpenGlossary}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         className="cursor-pointer border-b-2 border-dotted border-green-500 text-green-600 dark:text-green-400 hover:border-solid hover:text-green-700 dark:hover:text-green-300 transition-all font-medium"
       >
         {children}
       </span>
       
-      {isVisible && (
+      {isVisible && !isTouchDevice && (
         <div
           ref={tooltipRef}
           className="fixed z-50 w-80 p-4 bg-gray-900 text-white rounded-lg shadow-xl pointer-events-none"

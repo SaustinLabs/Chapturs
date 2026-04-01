@@ -10,6 +10,7 @@ import WorkRatingSystem from '@/components/WorkRatingSystem'
 import CommentSection from '@/components/CommentSection'
 import SelectionActionToolbar from '@/components/SelectionActionToolbar'
 import ImageUpload from '@/components/upload/ImageUpload'
+import CharacterProfileViewModal from '@/components/CharacterProfileViewModal'
 import { Work, Section } from '@/types'
 import DataService from '@/lib/api/DataService'
 import { useSession } from 'next-auth/react'
@@ -29,6 +30,14 @@ interface ReaderCharacter {
   allowUserSubmissions?: boolean
   workId?: string
   [key: string]: any
+}
+
+interface ReaderGlossaryTerm {
+  id?: string
+  term: string
+  definition: string
+  category?: string
+  firstMentionedChapter?: number
 }
 
 export default function ChapterPage() {
@@ -59,6 +68,7 @@ export default function ChapterPage() {
   const [baseSection, setBaseSection] = useState<Section | null>(null)
   const [loading, setLoading] = useState(true)
   const [characters, setCharacters] = useState<ReaderCharacter[]>([])
+  const [glossaryTerms, setGlossaryTerms] = useState<ReaderGlossaryTerm[]>([])
   const [selectedText, setSelectedText] = useState('')
   const [selectionPosition, setSelectionPosition] = useState({ top: 0, left: 0 })
   const [fanArtCharacterOptions, setFanArtCharacterOptions] = useState<ReaderCharacter[]>([])
@@ -81,6 +91,11 @@ export default function ChapterPage() {
   const [commentsRefreshKey, setCommentsRefreshKey] = useState(0)
   const [selectionRects, setSelectionRects] = useState<Array<{ top: number; left: number; width: number; height: number }>>([])
   const [readingProgress, setReadingProgress] = useState(0)
+  const [showMobileGlossary, setShowMobileGlossary] = useState(false)
+  const [mobileGlossaryTab, setMobileGlossaryTab] = useState<'characters' | 'terms'>('characters')
+  const [mobileGlossaryQuery, setMobileGlossaryQuery] = useState('')
+  const [focusedTerm, setFocusedTerm] = useState('')
+  const [selectedCharacterProfile, setSelectedCharacterProfile] = useState<ReaderCharacter | null>(null)
   const selectionRangeRef = useRef<Range | null>(null)
   const chapterContentRef = useRef<HTMLDivElement | null>(null)
 
@@ -133,6 +148,7 @@ export default function ChapterPage() {
                 if (glossaryRes.ok) {
                   const glossaryData = await glossaryRes.json()
                   const entries = glossaryData?.entries || []
+                  setGlossaryTerms(entries)
                   try { (window as any).__CURRENT_GLOSSARY_TERMS__ = entries } catch (e) {}
                 }
               } catch (e) {
@@ -346,6 +362,32 @@ export default function ChapterPage() {
 
     return () => clearTimeout(timeout)
   }, [loading, section])
+
+  useEffect(() => {
+    const handleOpenGlossaryEvent = (event: Event) => {
+      const customEvent = event as CustomEvent
+      const detail = customEvent?.detail || {}
+      setShowMobileGlossary(true)
+
+      if (detail.type === 'term') {
+        setMobileGlossaryTab('terms')
+        if (detail.term) {
+          setFocusedTerm(detail.term)
+          setMobileGlossaryQuery(detail.term)
+        }
+      } else {
+        setMobileGlossaryTab('characters')
+        if (detail.characterName) {
+          setMobileGlossaryQuery(detail.characterName)
+        }
+      }
+    }
+
+    window.addEventListener('reader-open-mobile-glossary', handleOpenGlossaryEvent as EventListener)
+    return () => {
+      window.removeEventListener('reader-open-mobile-glossary', handleOpenGlossaryEvent as EventListener)
+    }
+  }, [])
 
   const clearSelection = () => {
     selectionRangeRef.current = null
@@ -589,6 +631,25 @@ export default function ChapterPage() {
       fontSize: options[nextIndex]
     }))
   }
+
+  const filteredCharacters = characters.filter((character) => {
+    if (!mobileGlossaryQuery.trim()) return true
+    const query = mobileGlossaryQuery.toLowerCase()
+    return (
+      character.name?.toLowerCase().includes(query) ||
+      (character.aliases || []).some((alias) => alias.toLowerCase().includes(query))
+    )
+  })
+
+  const filteredTerms = glossaryTerms.filter((term) => {
+    if (!mobileGlossaryQuery.trim()) return true
+    const query = mobileGlossaryQuery.toLowerCase()
+    return (
+      term.term?.toLowerCase().includes(query) ||
+      term.definition?.toLowerCase().includes(query) ||
+      term.category?.toLowerCase().includes(query)
+    )
+  })
 
   if (!work || !section) {
     return (
@@ -905,6 +966,146 @@ export default function ChapterPage() {
               </button>
             </div>
           </div>
+        )}
+
+        <div className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[min(94vw,420px)]">
+          <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg px-3 py-2 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setShowChapterList((value) => !value)}
+              className="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200"
+            >
+              Chapters
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMobileGlossaryTab('characters')
+                setShowMobileGlossary(true)
+              }}
+              className="px-3 py-2 text-xs font-semibold text-blue-700 dark:text-blue-300"
+            >
+              Glossary
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const commentsEl = document.getElementById('comments')
+                commentsEl?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }}
+              className="px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200"
+            >
+              Comments
+            </button>
+          </div>
+        </div>
+
+        {showMobileGlossary && (
+          <div className="fixed inset-0 z-[75] bg-black/55 flex items-end md:items-center justify-center">
+            <div className="w-full md:max-w-2xl bg-white dark:bg-gray-900 rounded-t-2xl md:rounded-2xl border border-gray-200 dark:border-gray-700 shadow-2xl max-h-[85vh] overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Story Glossary</h3>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMobileGlossary(false)
+                    setFocusedTerm('')
+                    setMobileGlossaryQuery('')
+                  }}
+                  className="px-2 py-1 text-xs text-gray-600 dark:text-gray-300"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setMobileGlossaryTab('characters')}
+                    className={`px-3 py-2 rounded-lg text-xs font-semibold ${
+                      mobileGlossaryTab === 'characters'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    Characters ({characters.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMobileGlossaryTab('terms')}
+                    className={`px-3 py-2 rounded-lg text-xs font-semibold ${
+                      mobileGlossaryTab === 'terms'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    Terms ({glossaryTerms.length})
+                  </button>
+                </div>
+
+                <input
+                  type="text"
+                  value={mobileGlossaryQuery}
+                  onChange={(event) => setMobileGlossaryQuery(event.target.value)}
+                  placeholder={mobileGlossaryTab === 'characters' ? 'Search characters...' : 'Search terms...'}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                />
+              </div>
+
+              <div className="overflow-y-auto p-4 space-y-3">
+                {mobileGlossaryTab === 'characters' ? (
+                  filteredCharacters.length > 0 ? (
+                    filteredCharacters.map((character) => (
+                      <button
+                        key={character.id}
+                        type="button"
+                        onClick={() => setSelectedCharacterProfile(character)}
+                        className="w-full text-left rounded-xl border border-gray-200 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-800"
+                      >
+                        <div className="text-sm font-semibold text-gray-900 dark:text-white">{character.name}</div>
+                        {character.quickGlance && (
+                          <div className="text-xs mt-1 text-gray-600 dark:text-gray-300 line-clamp-2">{character.quickGlance}</div>
+                        )}
+                        {character.aliases && character.aliases.length > 0 && (
+                          <div className="text-[11px] mt-1 text-gray-500 dark:text-gray-400">aka {character.aliases.slice(0, 3).join(', ')}</div>
+                        )}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="text-sm text-gray-500 dark:text-gray-400">No matching characters.</div>
+                  )
+                ) : filteredTerms.length > 0 ? (
+                  filteredTerms.map((term) => (
+                    <div
+                      key={term.id || term.term}
+                      className={`rounded-xl border p-3 ${
+                        focusedTerm && focusedTerm.toLowerCase() === term.term.toLowerCase()
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                          : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800'
+                      }`}
+                    >
+                      <div className="text-sm font-semibold text-gray-900 dark:text-white">{term.term}</div>
+                      <div className="text-xs mt-1 text-gray-700 dark:text-gray-300">{term.definition}</div>
+                      {term.category && (
+                        <div className="text-[11px] mt-2 text-gray-500 dark:text-gray-400">Category: {term.category}</div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-sm text-gray-500 dark:text-gray-400">No matching glossary terms.</div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {selectedCharacterProfile && (
+          <CharacterProfileViewModal
+            character={selectedCharacterProfile as any}
+            isOpen={Boolean(selectedCharacterProfile)}
+            onClose={() => setSelectedCharacterProfile(null)}
+          />
         )}
 
         {fanArtCharacterOptions.length > 0 && (

@@ -13,6 +13,7 @@ interface GlossaryTooltipProps {
 export function GlossaryTooltip({ term, definition, children }: GlossaryTooltipProps) {
   const [isVisible, setIsVisible] = useState(false)
   const [position, setPosition] = useState({ x: 0, y: 0 })
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
   const tooltipText = useMemo(() => `${term}\n${definition}`, [term, definition])
   const tooltipHeight = useMemo(() => {
     const measurement = measureTextHeight(tooltipText, '14px Inter', 320, 20, { whiteSpace: 'pre-wrap' })
@@ -22,6 +23,11 @@ export function GlossaryTooltip({ term, definition, children }: GlossaryTooltipP
     const longestSegment = Math.max(term.length, ...definition.split(/\s+/).map(w => w.length))
     return Math.min(320, Math.max(180, longestSegment * 8 + 48))
   }, [term, definition])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    setIsTouchDevice(window.matchMedia('(pointer: coarse)').matches)
+  }, [])
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -51,17 +57,61 @@ export function GlossaryTooltip({ term, definition, children }: GlossaryTooltipP
     return () => document.removeEventListener('mousemove', handleMouseMove)
   }, [isVisible])
 
+  const openMobileGlossary = () => {
+    if (typeof window === 'undefined') return
+    window.dispatchEvent(
+      new CustomEvent('reader-open-mobile-glossary', {
+        detail: {
+          type: 'term',
+          term,
+        },
+      })
+    )
+  }
+
+  const [pinchDistance, setPinchDistance] = useState<number | null>(null)
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const [a, b] = [e.touches[0], e.touches[1]]
+      setPinchDistance(Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY))
+    }
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length !== 2 || pinchDistance == null) return
+    const [a, b] = [e.touches[0], e.touches[1]]
+    const nextDistance = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY)
+    if (Math.abs(nextDistance - pinchDistance) > 18) {
+      setPinchDistance(null)
+      openMobileGlossary()
+    }
+  }
+
+  const handleTouchEnd = () => {
+    setPinchDistance(null)
+  }
+
   return (
     <span className="relative">
       <span
         onMouseEnter={() => setIsVisible(true)}
         onMouseLeave={() => setIsVisible(false)}
+        onClick={() => {
+          if (isTouchDevice) {
+            openMobileGlossary()
+          }
+        }}
+        onDoubleClick={openMobileGlossary}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         className="cursor-help border-b border-dotted border-blue-500 text-blue-600 dark:text-blue-400 hover:border-solid transition-all"
       >
         {children}
       </span>
       
-      {isVisible && (
+      {isVisible && !isTouchDevice && (
         <div
           className="fixed z-50 max-w-sm p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg pointer-events-none"
           style={{ 
