@@ -465,7 +465,7 @@ export default function StoryPage() {
               story.sections.map((section, index) => (
                 <div
                   key={section.id}
-                  className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                  className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-[0.98] active:bg-gray-100 dark:active:bg-gray-600 cursor-pointer transition-all duration-100 select-none"
                   onClick={() => openChapterWithTransition(section.id)}
                 >
                   <div className="flex items-center justify-between">

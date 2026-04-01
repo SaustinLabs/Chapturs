@@ -99,10 +99,13 @@ export default function ChapterPage() {
   const [swipeHint, setSwipeHint] = useState('')
   const [showMiniMap, setShowMiniMap] = useState(false)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  const [showOnboardingHint, setShowOnboardingHint] = useState(false)
   const selectionRangeRef = useRef<Range | null>(null)
   const chapterContentRef = useRef<HTMLDivElement | null>(null)
   const swipeStartRef = useRef<{ x: number; y: number; t: number } | null>(null)
   const blockSwipeRef = useRef(false)
+  const glossarySheetRef = useRef<HTMLDivElement | null>(null)
+  const glossaryDragStartRef = useRef<{ y: number; t: number } | null>(null)
 
   const updateSelectionOverlay = () => {
     if (!selectionRangeRef.current) {
@@ -544,6 +547,24 @@ export default function ChapterPage() {
     const timeout = setTimeout(() => setSwipeHint(''), 1500)
     return () => clearTimeout(timeout)
   }, [swipeHint])
+
+  useEffect(() => {
+    if (loading || !section) return
+    try {
+      const seen = window.localStorage.getItem('reader-onboarding-v1')
+      if (!seen) {
+        const timeout = setTimeout(() => setShowOnboardingHint(true), 900)
+        return () => clearTimeout(timeout)
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, [loading, section])
+
+  const dismissOnboarding = () => {
+    setShowOnboardingHint(false)
+    try { window.localStorage.setItem('reader-onboarding-v1', '1') } catch {}
+  }
 
   const clearSelection = () => {
     selectionRangeRef.current = null
@@ -1221,8 +1242,25 @@ export default function ChapterPage() {
             }}
           >
             <div
+              ref={glossarySheetRef}
               className="reader-sheet-rise w-full md:max-w-2xl bg-white dark:bg-gray-900 rounded-t-2xl md:rounded-2xl border border-gray-200 dark:border-gray-700 shadow-2xl max-h-[85vh] overflow-hidden"
               onClick={(event) => event.stopPropagation()}
+              onTouchStart={(event) => {
+                if (event.touches.length !== 1) return
+                glossaryDragStartRef.current = { y: event.touches[0].clientY, t: Date.now() }
+              }}
+              onTouchEnd={(event) => {
+                if (!glossaryDragStartRef.current || event.changedTouches.length !== 1) return
+                const dy = event.changedTouches[0].clientY - glossaryDragStartRef.current.y
+                const dt = Date.now() - glossaryDragStartRef.current.t
+                glossaryDragStartRef.current = null
+                if (dy > 72 && dt < 500) {
+                  setShowMobileGlossary(false)
+                  setFocusedTerm('')
+                  setMobileGlossaryQuery('')
+                  triggerHaptic([8, 20, 8])
+                }
+              }}
             >
               <div className="py-2 flex justify-center">
                 <div className="w-10 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
@@ -1326,6 +1364,42 @@ export default function ChapterPage() {
                   <div className="text-sm text-gray-500 dark:text-gray-400">No matching glossary terms.</div>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {showOnboardingHint && (
+          <div
+            className="md:hidden fixed inset-0 z-[95] bg-black/75 flex flex-col items-center justify-center px-8 text-center"
+            onClick={dismissOnboarding}
+          >
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4">
+              <h3 className="text-base font-bold text-gray-900 dark:text-white">Reader Controls</h3>
+              <div className="space-y-3 text-left">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">👈👉</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Swipe left/right to jump between chapters</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">👆</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Tap highlighted names to view character profiles</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">🤏</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Pinch on a name to open the full glossary</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">⬇️</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Swipe down on glossary to dismiss it</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={dismissOnboarding}
+                className="w-full py-2.5 mt-2 rounded-xl bg-blue-600 text-white text-sm font-semibold"
+              >
+                Got it!
+              </button>
             </div>
           </div>
         )}
