@@ -20,8 +20,8 @@ export class PaymentService {
       payment_method_types: ['card'],
       line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
       mode: 'subscription',
-      success_url: `${BASE_URL}/profile?premium=success`,
-      cancel_url: `${BASE_URL}/profile?premium=canceled`,
+      success_url: `${BASE_URL}/reader/settings?premium=success`,
+      cancel_url: `${BASE_URL}/reader/settings?premium=canceled`,
       metadata: { userId },
     })
 
