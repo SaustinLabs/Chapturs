@@ -19,6 +19,7 @@ import {
 } from '@heroicons/react/24/solid'
 import Image from 'next/image'
 import { resolveCoverSrc } from '@/lib/images'
+import StoryPageSkeleton from '@/components/ui/StoryPageSkeleton'
 
 export default function StoryPage() {
   const params = useParams()
@@ -205,9 +206,7 @@ export default function StoryPage() {
   if (loading) {
     return (
       <AppLayout>
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        </div>
+        <StoryPageSkeleton />
       </AppLayout>
     )
   }

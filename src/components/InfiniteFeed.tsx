@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { FeedItem } from '@/types'
 import FeedCard from './FeedCard'
+import FeedCardSkeleton from './ui/FeedCardSkeleton'
 import DataService from '@/lib/api/DataService'
 import { useUser } from '@/hooks/useUser'
 
@@ -114,6 +115,23 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
         action: "Upload Story"
       }
     }
+  }
+
+  // Show skeleton grid on initial load (before any items are fetched)
+  if ((loading || authLoading) && items.length === 0) {
+    return (
+      <div className="w-full">
+        <div className="mb-6">
+          <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2" />
+          <div className="h-4 w-72 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <FeedCardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    )
   }
 
   if (error && items.length === 0) {
