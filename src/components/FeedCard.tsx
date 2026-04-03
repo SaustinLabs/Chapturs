@@ -11,6 +11,7 @@ import { useUser } from '@/hooks/useUser'
 import { signIn } from 'next-auth/react'
 import { useSignalTracker, RecommendationTracker } from '@/hooks/useRecommendationTracking'
 import PretextClampText from './PretextClampText'
+import ReportButton from './ReportButton'
 
 interface FeedCardProps {
   item: FeedItem
@@ -451,6 +452,7 @@ export default function FeedCard({ item, onClick, recommendationRank = 0 }: Feed
                 Subscribe
               </button>
             )}
+            <ReportButton targetType="work" targetId={item.work.id} />
           </div>
         </div>
       </div>

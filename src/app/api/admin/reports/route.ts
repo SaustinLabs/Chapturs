@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: 'desc' }
     })
 
-    const contentReports = await prisma.contentModerationQueue.findMany({
+    const contentModerationQueue = await prisma.contentModerationQueue.findMany({
       where: { status: 'queued' },
       include: {
         work: { select: { title: true, id: true } },
@@ -35,9 +35,18 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: 'desc' }
     })
 
+    const contentReports = await prisma.contentReport.findMany({
+      where: { status: 'pending' },
+      include: {
+        reporter: { select: { username: true, id: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    })
+
     return NextResponse.json({ 
       commentReports, 
-      contentReports 
+      contentReports,
+      contentModerationQueue
     })
 
   } catch (error) {

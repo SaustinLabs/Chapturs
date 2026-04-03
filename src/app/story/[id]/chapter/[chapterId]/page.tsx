@@ -26,6 +26,7 @@ import {
   PlusIcon,
 } from '@heroicons/react/24/outline'
 import { MessageSquare, Send, Sparkles, Edit3, Globe } from 'lucide-react'
+import ReportButton from '@/components/ReportButton'
 
 interface ReaderCharacter {
   id: string
@@ -1065,6 +1066,7 @@ export default function ChapterPage() {
                 </p>
               </div>
               <div className="flex items-center gap-1 shrink-0">
+                <ReportButton targetType="section" targetId={chapterId} className="mr-1" />
                 <button
                   type="button"
                   onClick={() => shiftFontSize(-1)}

@@ -20,7 +20,37 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields', requestId }, { status: 400 })
     }
 
-    // Handle Comment Reports
+    const validTargetTypes = ['work', 'section', 'comment', 'user']
+    const validReasons = ['spam', 'harassment', 'explicit', 'misinformation', 'copyright', 'other']
+
+    if (!validTargetTypes.includes(targetType)) {
+      return NextResponse.json({ error: 'Invalid targetType', requestId }, { status: 400 })
+    }
+    if (!validReasons.includes(reason)) {
+      return NextResponse.json({ error: 'Invalid reason', requestId }, { status: 400 })
+    }
+
+    // Check for duplicate reports from the same user
+    const existingContentReport = await prisma.contentReport.findFirst({
+      where: { reportedBy: session.user.id, targetType, targetId }
+    })
+    if (existingContentReport) {
+      return NextResponse.json({ error: 'You have already reported this', requestId }, { status: 400 })
+    }
+
+    // Persist to unified ContentReport table
+    await prisma.contentReport.create({
+      data: {
+        reportedBy: session.user.id,
+        targetType,
+        targetId,
+        reason,
+        details: details || null,
+        status: 'pending'
+      }
+    })
+
+    // Handle Comment Reports (also write to CommentReport for backward compat)
     if (targetType === 'comment') {
       const existingReport = await prisma.commentReport.findFirst({
         where: { commentId: targetId, userId: session.user.id }
@@ -41,6 +71,11 @@ export async function POST(req: NextRequest) {
       })
 
       return createSuccessResponse(null, 'Comment report submitted successfully', requestId)
+    }
+
+    // For 'user' reports, the ContentReport record is sufficient
+    if (targetType === 'user') {
+      return createSuccessResponse(null, 'User report submitted successfully', requestId)
     }
 
     // Handle Work and Section (Chapter) Reports via ModerationQueue
@@ -79,6 +114,47 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('[Moderation Report API Error]:', error)
+    return createErrorResponse(error, requestId)
+  }
+}
+
+export async function GET(req: NextRequest) {
+  const requestId = generateRequestId()
+
+  try {
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized', requestId }, { status: 401 })
+    }
+
+    // Admin only
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true }
+    })
+    if (user?.role !== 'admin' && user?.role !== 'moderator') {
+      return NextResponse.json({ error: 'Forbidden', requestId }, { status: 403 })
+    }
+
+    const { searchParams } = new URL(req.url)
+    const status = searchParams.get('status') || 'pending'
+    const targetType = searchParams.get('targetType') || undefined
+
+    const reports = await prisma.contentReport.findMany({
+      where: {
+        status,
+        ...(targetType ? { targetType } : {})
+      },
+      include: {
+        reporter: { select: { id: true, username: true, displayName: true, avatar: true } }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100
+    })
+
+    return createSuccessResponse({ reports }, 'Reports fetched', requestId)
+  } catch (error) {
+    console.error('[Moderation Report GET Error]:', error)
     return createErrorResponse(error, requestId)
   }
 }

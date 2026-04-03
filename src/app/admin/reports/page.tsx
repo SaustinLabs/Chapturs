@@ -7,7 +7,8 @@ import { useToast } from '@/components/ui/Toast'
 export default function ModeratorDashboard() {
   const { toast } = useToast()
   const [commentReports, setCommentReports] = useState<any[]>([])
-  const [contentReports, setContentReports] = useState<any[]>([])
+  const [userReports, setUserReports] = useState<any[]>([])
+  const [contentModerationQueue, setContentModerationQueue] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -20,7 +21,8 @@ export default function ModeratorDashboard() {
       if (res.ok) {
         const data = await res.json()
         setCommentReports(data.commentReports || [])
-        setContentReports(data.contentReports || [])
+        setUserReports(data.contentReports || [])
+        setContentModerationQueue(data.contentModerationQueue || [])
       } else {
         toast.error('Failed to load moderation reports.')
       }
@@ -130,21 +132,21 @@ export default function ModeratorDashboard() {
           </div>
         </section>
 
-        {/* Content Reports */}
+        {/* Content Moderation Queue */}
         <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center gap-2 mb-6">
             <FileText className="w-5 h-5 text-indigo-500" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Reported Content</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Moderation Queue</h2>
             <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-full ml-auto">
-              {contentReports.length} pending
+              {contentModerationQueue.length} pending
             </span>
           </div>
 
           <div className="space-y-4">
-            {contentReports.length === 0 ? (
-              <p className="text-gray-500 text-sm">No pending content reports.</p>
+            {contentModerationQueue.length === 0 ? (
+              <p className="text-gray-500 text-sm">No pending content reviews.</p>
             ) : (
-              contentReports.map((report) => (
+              contentModerationQueue.map((report) => (
                 <div key={report.id} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-700">
                   <div className="flex justify-between items-start mb-2">
                     <span className="text-xs font-semibold text-red-600 uppercase tracking-wider">Priority: {report.priority}</span>
@@ -185,6 +187,58 @@ export default function ModeratorDashboard() {
           </div>
         </section>
       </div>
+
+      {/* User-Filed Reports */}
+      <section className="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="flex items-center gap-2 mb-6">
+          <ShieldAlert className="w-5 h-5 text-orange-500" />
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">User-Filed Reports</h2>
+          <span className="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-1 rounded-full ml-auto">
+            {userReports.length} pending
+          </span>
+        </div>
+
+        <div className="space-y-3">
+          {userReports.length === 0 ? (
+            <p className="text-gray-500 text-sm">No pending user reports.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
+                    <th className="pb-3 pr-4">Reporter</th>
+                    <th className="pb-3 pr-4">Target Type</th>
+                    <th className="pb-3 pr-4">Target ID</th>
+                    <th className="pb-3 pr-4">Reason</th>
+                    <th className="pb-3 pr-4">Details</th>
+                    <th className="pb-3">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {userReports.map((report) => (
+                    <tr key={report.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                      <td className="py-3 pr-4 text-gray-900 dark:text-gray-100 font-medium">
+                        {report.reporter?.username || 'Unknown'}
+                      </td>
+                      <td className="py-3 pr-4">
+                        <span className="capitalize px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                          {report.targetType}
+                        </span>
+                      </td>
+                      <td className="py-3 pr-4 text-gray-500 font-mono text-xs truncate max-w-[120px]">{report.targetId}</td>
+                      <td className="py-3 pr-4">
+                        <span className="text-red-600 font-semibold capitalize">{report.reason}</span>
+                      </td>
+                      <td className="py-3 pr-4 text-gray-600 dark:text-gray-400 max-w-[200px] truncate">{report.details || '—'}</td>
+                      <td className="py-3 text-gray-500 text-xs">{new Date(report.createdAt).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   )
 }

@@ -59,6 +59,9 @@ model User {
   commentLikes   CommentLike[]
   commentReports CommentReport[]
 
+  // Content reporting
+  contentReports ContentReport[] @relation("ContentReportReporter")
+
   // Sprint 3 additions
   contestEntries ContestEntry[]
   workRatings    WorkRating[]
@@ -1737,4 +1740,34 @@ model PremiumRevenuePool {
 
   @@unique([month])
   @@map("premium_revenue_pools")
+}
+
+// ============================================================================
+// CONTENT REPORTING
+// ============================================================================
+
+model ContentReport {
+  id           String   @id @default(cuid())
+  reportedBy   String
+  // What's being reported
+  targetType   String   // 'work' | 'chapter' | 'comment' | 'user'
+  targetId     String
+  // Why it's being reported
+  reason       String   // 'spam' | 'harassment' | 'explicit' | 'misinformation' | 'copyright' | 'other'
+  details      String?  @db.Text
+  // Resolution
+  status       String   @default("pending") // 'pending' | 'reviewed' | 'actioned' | 'dismissed'
+  reviewedBy   String?
+  reviewedAt   DateTime?
+  reviewNotes  String?  @db.Text
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  reporter     User     @relation("ContentReportReporter", fields: [reportedBy], references: [id], onDelete: Cascade)
+
+  @@index([targetType, targetId])
+  @@index([reportedBy])
+  @@index([status])
+  @@map("content_reports")
 }
