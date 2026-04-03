@@ -12,28 +12,54 @@ const aiTranslationCache = new Map<string, { translatedText: string; timestamp: 
 // Cache duration (1 hour)
 const CACHE_DURATION_MS = 60 * 60 * 1000
 
-// Fake AI translation function - replace with real LLM call later
 async function generateAITranslation(originalText: string, targetLang: string): Promise<string> {
-  // Check cache first
   const cacheKey = `${originalText}:${targetLang}`
   const cached = aiTranslationCache.get(cacheKey)
   if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION_MS) {
     return cached.translatedText
   }
 
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 100))
-  
-  // For now, just return a placeholder with language tag
-  // In production, this would call OpenRouter or another LLM service
-  const translatedText = `[${targetLang.toUpperCase()}] ${originalText}`
-  
-  // Cache the result
-  aiTranslationCache.set(cacheKey, {
-    translatedText,
-    timestamp: Date.now()
+  const apiKey = process.env.OPENROUTER_API_KEY
+  if (!apiKey) {
+    return `[${targetLang.toUpperCase()}] ${originalText}`
+  }
+
+  const LANG_NAMES: Record<string, string> = {
+    es: 'Spanish', fr: 'French', de: 'German', ja: 'Japanese',
+    zh: 'Chinese (Simplified)', pt: 'Portuguese', ko: 'Korean',
+    it: 'Italian', ru: 'Russian', ar: 'Arabic',
+  }
+  const langName = LANG_NAMES[targetLang] || targetLang
+
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://chapturs.com',
+      'X-Title': 'Chapturs Translation',
+    },
+    body: JSON.stringify({
+      model: 'google/gemma-2-9b-it:free',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a literary translator. Translate the following text into ${langName}. Preserve the tone, style, and formatting. Return only the translation — no commentary, no quotes, no explanations.`,
+        },
+        { role: 'user', content: originalText },
+      ],
+      max_tokens: 2048,
+    }),
   })
-  
+
+  if (!response.ok) {
+    throw new Error(`OpenRouter API error: ${response.status}`)
+  }
+
+  const data = await response.json()
+  const translatedText = data.choices?.[0]?.message?.content?.trim() || `[${targetLang.toUpperCase()}] ${originalText}`
+
+  aiTranslationCache.set(cacheKey, { translatedText, timestamp: Date.now() })
   return translatedText
 }
 

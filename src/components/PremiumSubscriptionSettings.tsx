@@ -1,70 +1,109 @@
 'use client'
 
-import React, { useEffect, useState } from 'react';
-import { PaymentService } from '@/lib/payment';
-import { useToast } from '@/components/ui/Toast';
+import React, { useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
+import { useToast } from '@/components/ui/Toast'
+
+const BENEFITS = [
+  'No ads — ever',
+  '70% of your subscription split among authors you read',
+  'Early access to creator announcements',
+  'Premium badge on your profile',
+]
 
 const PremiumSubscriptionSettings: React.FC = () => {
-  const [isPremium, setIsPremium] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
-  const { toast } = useToast();
+  const { data: session } = useSession()
+  const [isPremium, setIsPremium] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [processing, setProcessing] = useState(false)
+  const { toast } = useToast()
 
   useEffect(() => {
     fetch('/api/user/monetization')
       .then(res => res.json())
       .then(data => {
-        setIsPremium(!!data.isPremium);
-        setLoading(false);
-      });
-  }, []);
+        setIsPremium(!!data.isPremium)
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
 
   const goPremium = async () => {
-    setProcessing(true);
-    try {
-      // TODO: Get user ID from auth context
-      const result = await PaymentService.createPremiumSubscription('user_id_placeholder');
-      if (result.success) {
-        await fetch('/api/user/monetization', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ isPremium: true }),
-        });
-        setIsPremium(true);
-      } else {
-        toast.error('Payment failed. Please try again.');
-      }
-    } catch (error) {
-      console.error('Payment error:', error);
-      toast.error('An error occurred. Please try again.');
+    if (!session?.user) {
+      toast.error('Please sign in to subscribe.')
+      return
     }
-    setProcessing(false);
-  };
+    setProcessing(true)
+    try {
+      const res = await fetch('/api/stripe/checkout', { method: 'POST' })
+      if (!res.ok) throw new Error(await res.text())
+      const { url } = await res.json()
+      window.location.href = url
+    } catch {
+      toast.error('Could not start checkout. Please try again.')
+      setProcessing(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="animate-pulse space-y-3">
+        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-48" />
+        <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold">Premium Subscription</h2>
-      {loading && <div>Loading subscription status...</div>}
+      <h2 className="text-xl font-bold">Premium Membership</h2>
       {isPremium ? (
-        <div className="bg-green-50 border border-green-200 rounded p-4">
-          <p className="text-green-700 font-medium mb-2">You are a Premium member!</p>
-          <p>No ads will be shown. Your $5/month supports your favorite creators directly.</p>
+        <div className="rounded-xl border border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 p-5 space-y-3">
+          <p className="text-emerald-600 dark:text-emerald-400 text-lg font-semibold">✓ Active Member</p>
+          <ul className="space-y-1 text-sm text-emerald-800 dark:text-emerald-300">
+            {BENEFITS.map(b => (
+              <li key={b} className="flex items-center gap-2">
+                <span className="text-emerald-500">✓</span> {b}
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-emerald-700 dark:text-emerald-400">
+            To cancel, manage your subscription in your Stripe customer portal.
+          </p>
         </div>
       ) : (
-        <div className="space-y-2">
-          <p>Go ad-free and support creators for just <span className="font-semibold">$5/month</span>.</p>
-          <button 
-            onClick={goPremium} 
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5 space-y-4">
+          <div>
+            <p className="font-semibold text-gray-900 dark:text-gray-100">
+              Go ad-free and support the authors you love —{' '}
+              <span className="text-indigo-600 dark:text-indigo-400">$5 / month</span>
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Your subscription is split among the authors you actually read.
+            </p>
+          </div>
+          <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
+            {BENEFITS.map(b => (
+              <li key={b} className="flex items-center gap-2">
+                <span className="text-indigo-400">✓</span> {b}
+              </li>
+            ))}
+          </ul>
+          <button
+            onClick={goPremium}
             disabled={processing}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition disabled:opacity-50"
+            className="w-full rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold py-2.5 px-4 transition-colors"
           >
-            {processing ? 'Processing...' : 'Go Premium'}
+            {processing ? 'Redirecting to checkout…' : 'Become a Member'}
           </button>
-          <p className="text-xs text-gray-500 mt-1">Subscription revenue is split among creators you read, just like ad revenue.</p>
+          <p className="text-xs text-center text-gray-400">
+            Secure checkout powered by Stripe. Cancel any time.
+          </p>
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default PremiumSubscriptionSettings;
+export default PremiumSubscriptionSettings
+

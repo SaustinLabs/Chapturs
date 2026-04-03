@@ -142,28 +142,12 @@ export default function FeedCard({ item, onClick, recommendationRank = 0 }: Feed
 
   const handleBookmark = async (e: React.MouseEvent) => {
     e.stopPropagation()
-    console.log('Bookmark button clicked! isAuthenticated:', isAuthenticated, 'userId:', userId, 'isAuthLoading:', isAuthLoading)
-    
-    // Wait for auth to finish loading
-    if (isAuthLoading) {
-      console.log('Authentication still loading, please wait...')
-      return
-    }
-    
-    if (!isAuthenticated || !userId) {
-      console.log('Not authenticated or no userId, prompting sign in')
-      promptSignIn('bookmark')
-      return
-    }
-    
+    if (isAuthLoading) return
+    if (!isAuthenticated || !userId) { promptSignIn('bookmark'); return }
     setIsLoading(true)
     try {
-      console.log('Making bookmark API call with workId:', item.work.id, 'userId:', userId)
       const newBookmarkState = await DataService.toggleBookmark(item.work.id, userId!)
-      console.log('Bookmark API result:', newBookmarkState)
       setIsBookmarkedState(newBookmarkState)
-      
-      // Track bookmark action for recommendations
       trackEngagement('bookmark', item.work.id, item.work.author.id)
     } catch (error) {
       console.error('Failed to toggle bookmark:', error)
@@ -174,28 +158,12 @@ export default function FeedCard({ item, onClick, recommendationRank = 0 }: Feed
 
   const handleSubscribe = async (e: React.MouseEvent) => {
     e.stopPropagation()
-    console.log('Subscribe button clicked! isAuthenticated:', isAuthenticated, 'userId:', userId, 'isAuthLoading:', isAuthLoading)
-    
-    // Wait for auth to finish loading
-    if (isAuthLoading) {
-      console.log('Authentication still loading, please wait...')
-      return
-    }
-    
-    if (!isAuthenticated || !userId) {
-      console.log('Not authenticated or no userId, prompting sign in')
-      promptSignIn('subscribe to')
-      return
-    }
-    
+    if (isAuthLoading) return
+    if (!isAuthenticated || !userId) { promptSignIn('subscribe to'); return }
     setIsLoading(true)
     try {
-      console.log('Making subscription API call with authorId:', item.work.author.id, 'userId:', userId)
       const newSubscriptionState = await DataService.toggleSubscription(item.work.author.id, userId!)
-      console.log('Subscription API result:', newSubscriptionState)
       setIsSubscribedState(newSubscriptionState)
-      
-      // Track subscription action for recommendations
       trackEngagement('subscribe', item.work.id, item.work.author.id)
     } catch (error) {
       console.error('Failed to toggle subscription:', error)
@@ -206,28 +174,12 @@ export default function FeedCard({ item, onClick, recommendationRank = 0 }: Feed
 
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation()
-    console.log('Like button clicked! isAuthenticated:', isAuthenticated, 'userId:', userId, 'isAuthLoading:', isAuthLoading)
-    
-    // Wait for auth to finish loading
-    if (isAuthLoading) {
-      console.log('Authentication still loading, please wait...')
-      return
-    }
-    
-    if (!isAuthenticated || !userId) {
-      console.log('Not authenticated or no userId, prompting sign in')
-      promptSignIn('like')
-      return
-    }
-    
+    if (isAuthLoading) return
+    if (!isAuthenticated || !userId) { promptSignIn('like'); return }
     setIsLoading(true)
     try {
-      console.log('Making like API call with workId:', item.work.id, 'userId:', userId)
       const newLikeState = await DataService.toggleLike(item.work.id, userId!)
-      console.log('Like API result:', newLikeState)
       setIsLiked(newLikeState)
-      
-      // Track like action for recommendations
       trackEngagement('like', item.work.id, item.work.author.id)
     } catch (error) {
       console.error('Failed to toggle like:', error)

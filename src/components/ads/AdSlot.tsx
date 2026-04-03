@@ -12,9 +12,37 @@ interface AdSlotProps {
   children?: React.ReactNode
 }
 
-function AdSkeleton({ className }: { className?: string }) {
+function useAdBlockDetected(): boolean {
+  const [blocked, setBlocked] = useState(false)
+
+  useEffect(() => {
+    const el = document.createElement('div')
+    el.className =
+      'pub_300x250 pub_300x250m pub_728x90 text-ad textAd text_ad text_ads text-ads ad-unit ad-zone ad-space adsbox'
+    el.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;'
+    document.body.appendChild(el)
+    const timer = setTimeout(() => {
+      if (el.offsetHeight === 0) setBlocked(true)
+      el.remove()
+    }, 200)
+    return () => {
+      clearTimeout(timer)
+      if (el.parentNode) el.remove()
+    }
+  }, [])
+
+  return blocked
+}
+
+function AdSkeleton({
+  placement,
+  className,
+}: {
+  placement: AdSlotProps['placement']
+  className?: string
+}) {
   return (
-    <div 
+    <div
       className={`animate-pulse bg-gray-200 dark:bg-gray-800 rounded ${className || ''}`}
       style={{ minHeight: placement === 'sidebar' ? '250px' : '90px' }}
       aria-hidden="true"
@@ -22,43 +50,64 @@ function AdSkeleton({ className }: { className?: string }) {
   )
 }
 
-function AdSlotInner({ 
-  placement, 
-  maturityRating, 
+function AdBlockPlaceholder({
+  placement,
+  className,
+}: {
+  placement: AdSlotProps['placement']
+  className?: string
+}) {
+  return (
+    <div
+      className={`flex flex-col items-center justify-center gap-2 rounded border border-dashed border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-4 text-center ${className || ''}`}
+      style={{ minHeight: placement === 'sidebar' ? '250px' : '90px' }}
+    >
+      <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+        Ads on Chapturs go directly to authors — 70% of every impression
+      </p>
+      <p className="text-xs text-amber-700 dark:text-amber-400">
+        Consider whitelisting us to support the writers you love
+      </p>
+    </div>
+  )
+}
+
+function AdSlotInner({
+  placement,
+  maturityRating,
   adSlotId,
   className,
-  children 
+  children,
 }: AdSlotProps) {
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState(false)
-  
+  const adBlocked = useAdBlockDetected()
+
   const pubId = process.env.NEXT_PUBLIC_ADSENSE_PUB_ID
   const slotId = adSlotId || process.env.NEXT_PUBLIC_ADSENSE_SLOT_ID
 
   useEffect(() => {
     if (!loaded || !pubId) return
-    
     try {
       // @ts-ignore - adsbygoogle is injected by Google script
-      (window.adsbygoogle = window.adsbygoogle || []).push({})
-    } catch (e) {
-      console.warn('AdSense push failed:', e)
+      ;(window.adsbygoogle = window.adsbygoogle || []).push({})
+    } catch {
       setError(true)
     }
   }, [loaded, pubId])
 
-  // If content is explicit, don't show ads at all
   if (!shouldShowAdsense(maturityRating)) {
     return <>{children}</> || null
   }
 
-  // If no publisher ID configured, show fallback
-  if (!pubId || !slotId) {
-    if (children) return <>{children}</>
-    return null
+  if (adBlocked) {
+    return <AdBlockPlaceholder placement={placement} className={className} />
   }
 
-  // If ad failed to load, show fallback
+  if (!pubId || !slotId) {
+    return children ? <>{children}</> : null
+  }
+
   if (error) {
     return <>{children}</> || null
   }
@@ -83,7 +132,7 @@ function AdSlotInner({
           data-full-width-responsive="true"
         />
       ) : (
-        <AdSkeleton className={className} />
+        <AdSkeleton placement={placement} className={className} />
       )}
     </div>
   )
@@ -91,8 +140,9 @@ function AdSlotInner({
 
 export default function AdSlot(props: AdSlotProps) {
   return (
-    <Suspense fallback={<AdSkeleton className={props.className} />}>
+    <Suspense fallback={<AdSkeleton placement={props.placement} className={props.className} />}>
       <AdSlotInner {...props} />
     </Suspense>
   )
 }
+

@@ -17,27 +17,8 @@ interface ChapterBlockRendererProps {
 }
 
 export default function ChapterBlockRenderer({ content, className = '' }: ChapterBlockRendererProps) {
-  console.log('ChapterBlockRenderer received content:', content)
-  console.log('Content type:', typeof content)
-  console.log('Is array?', Array.isArray(content))
-  
-  if (!Array.isArray(content)) {
-    console.error('ChapterBlockRenderer: content is not an array', content)
-    return (
-      <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
-        <p className="font-semibold text-red-600 dark:text-red-400 mb-2">Debug: Invalid content format</p>
-        <p className="text-sm text-gray-600 dark:text-gray-400">Type: {typeof content}</p>
-        <pre className="text-xs mt-2 overflow-auto">{JSON.stringify(content, null, 2)}</pre>
-      </div>
-    )
-  }
-
-  if (content.length === 0) {
-    return (
-      <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded">
-        <p className="text-yellow-600 dark:text-yellow-400">Debug: Content array is empty</p>
-      </div>
-    )
+  if (!Array.isArray(content) || content.length === 0) {
+    return null
   }
 
   return (

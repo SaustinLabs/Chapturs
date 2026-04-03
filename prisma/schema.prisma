@@ -45,8 +45,10 @@ model User {
   adImpressions          AdImpression[]
 
   // Reader monetization preferences
-  adSupportLevel String? @default("normal") // 'normal', 'boosted', 'video'
-  isPremium      Boolean @default(false)
+  adSupportLevel       String? @default("normal") // 'normal', 'boosted', 'video'
+  isPremium            Boolean @default(false)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
 
   // Moderation permissions
   role String @default("user") // 'user', 'moderator', 'admin'
