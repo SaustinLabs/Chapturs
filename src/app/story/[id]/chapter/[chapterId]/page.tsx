@@ -11,7 +11,9 @@ import CommentSection from '@/components/CommentSection'
 import SelectionActionToolbar from '@/components/SelectionActionToolbar'
 import EditSuggestionModal from '@/components/EditSuggestionModal'
 import TranslationSubmissionForm from '@/components/TranslationSubmissionForm'
+import TranslationPanel from '@/components/TranslationPanel'
 import ImageUpload from '@/components/upload/ImageUpload'
+import { useToast } from '@/components/ui/Toast'
 import CharacterProfileViewModal from '@/components/CharacterProfileViewModal'
 import { Work, Section } from '@/types'
 import DataService from '@/lib/api/DataService'
@@ -119,8 +121,12 @@ export default function ChapterPage() {
   const [fanArtSubmitError, setFanArtSubmitError] = useState('')
   const [fanArtSubmitting, setFanArtSubmitting] = useState(false)
   const [commentsRefreshKey, setCommentsRefreshKey] = useState(0)
-    const [showEditSuggestModal, setShowEditSuggestModal] = useState(false)
-    const [showTranslationSuggestModal, setShowTranslationSuggestModal] = useState(false)
+  const [showEditSuggestModal, setShowEditSuggestModal] = useState(false)
+  const [showTranslationSuggestModal, setShowTranslationSuggestModal] = useState(false)
+  const [showTranslationPanel, setShowTranslationPanel] = useState(false)
+  const [translationPanelBlockId, setTranslationPanelBlockId] = useState('')
+  const [translationPanelAnchorText, setTranslationPanelAnchorText] = useState('')
+  const { toast } = useToast()
   const [selectionRects, setSelectionRects] = useState<Array<{ top: number; left: number; width: number; height: number }>>([])
   const [readingProgress, setReadingProgress] = useState(0)
   const [showMobileGlossary, setShowMobileGlossary] = useState(false)
@@ -814,7 +820,7 @@ export default function ChapterPage() {
       setShowFanArtUploadModal(false)
       setFanArtCharacterOptions([])
       clearSelection()
-      alert(data?.message || 'Fan art submitted. The author will review it.')
+      toast.success(data?.message || 'Fan art submitted. The author will review it.')
     } catch (error) {
       console.error('Fan art submission failed:', error)
       setFanArtSubmitError('Failed to submit fan art. Please try again.')
@@ -894,7 +900,7 @@ export default function ChapterPage() {
       return
     }
 
-    alert('No matching character found in this chapter selection. Try selecting the exact character name.')
+    toast.warning('No matching character found. Try selecting the exact character name.')
   }
 
   const navigateToSection = (newIndex: number) => {
@@ -1352,7 +1358,10 @@ export default function ChapterPage() {
             },
             {
               id: 'suggest-edit',
-              label: work?.languages && work.languages.length > 1 ? 'Suggest Edit (Original)' : 'Suggest Edit',
+              label: (() => {
+                const isViewingTranslation = targetLanguage !== (work?.languages?.[0] || 'en')
+                return isViewingTranslation ? 'Suggest Edit (Original)' : 'Suggest Edit'
+              })(),
               icon: <Edit3 size={14} />,
               onClick: () => {
                 triggerHaptic(10)
@@ -1368,9 +1377,15 @@ export default function ChapterPage() {
                     icon: <Globe size={14} />,
                     onClick: () => {
                       triggerHaptic(10)
-                      setShowTranslationSuggestModal(true)
+                      setTranslationPanelBlockId(section?.id || chapterId)
+                      setTranslationPanelAnchorText(selectedText)
+                      setShowTranslationPanel(true)
+                      clearSelection()
                     },
-                    variant: 'primary' as const
+                    variant: (() => {
+                      const isViewingTranslation = targetLanguage !== (work?.languages?.[0] || 'en')
+                      return isViewingTranslation ? ('primary' as const) : undefined
+                    })()
                   }
                 ]
               : []),
@@ -1417,6 +1432,39 @@ export default function ChapterPage() {
                 clearSelection()
               }}
             />
+          )}
+
+          {showTranslationPanel && (
+            <div className="fixed inset-y-0 right-0 z-50 w-[min(420px,100vw)] shadow-2xl flex flex-col bg-white dark:bg-gray-900">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">Translation Suggestions</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowTranslationSuggestModal(true)}
+                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    Submit full chapter
+                  </button>
+                  <button
+                    onClick={() => setShowTranslationPanel(false)}
+                    className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <span aria-hidden>✕</span>
+                  </button>
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                <TranslationPanel
+                  blockId={translationPanelBlockId}
+                  chapterId={chapterId}
+                  sentences={[]}
+                  currentLanguage={work?.languages?.[0] || 'en'}
+                  targetLanguage={targetLanguage !== (work?.languages?.[0] || 'en') ? targetLanguage : 'en'}
+                  userId={session?.user?.id}
+                  initialHighlightedText={translationPanelAnchorText}
+                />
+              </div>
+            </div>
           )}
 
         {showQuickComment && Boolean(selectedText) && (

@@ -20,6 +20,7 @@ import {
   Download
 } from 'lucide-react'
 import { ContentFormat } from '@/types'
+import { useToast } from '@/components/ui/Toast'
 
 interface FileUploadResult {
   id: string
@@ -57,6 +58,7 @@ export default function AdvancedUploader({
   maxFileSize = 50,
   allowedFormats
 }: AdvancedUploaderProps) {
+  const { toast } = useToast()
   const [uploadedFiles, setUploadedFiles] = useState<FileUploadResult[]>([])
   const [dragOver, setDragOver] = useState(false)
   const [processing, setProcessing] = useState(false)
@@ -296,11 +298,11 @@ export default function AdvancedUploader({
     setProcessing(true)
     const validFiles = files.filter(file => {
       if (!validateFileSize(file)) {
-        alert(`File ${file.name} is too large. Maximum size is ${maxFileSize}MB.`)
+        toast.warning(`${file.name} is too large. Max size is ${maxFileSize}MB.`)
         return false
       }
       if (!validateFileType(file)) {
-        alert(`File ${file.name} is not a supported format.`)
+        toast.warning(`${file.name} is not a supported format.`)
         return false
       }
       return true
@@ -348,7 +350,7 @@ export default function AdvancedUploader({
     })
     
     // In production, this would call an API to set up the publishing schedule
-    alert(`Scheduled ${scheduledFiles.length} files for publication starting ${scheduleSettings.startDate}`)
+    toast.success(`Scheduled ${scheduledFiles.length} file${scheduledFiles.length !== 1 ? 's' : ''} for publication starting ${scheduleSettings.startDate}`)
     setSchedulingMode(false)
   }, [uploadedFiles, scheduleSettings])
 
@@ -436,7 +438,7 @@ export default function AdvancedUploader({
               <button
                 onClick={() => {
                   const completedFiles = uploadedFiles.filter(f => f.status === 'completed')
-                  alert(`Publishing ${completedFiles.length} files immediately`)
+                  toast.info(`Publishing ${completedFiles.length} file${completedFiles.length !== 1 ? 's' : ''} immediately`)
                 }}
                 className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex items-center"
               >

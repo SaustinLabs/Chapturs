@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { StarIcon } from '@heroicons/react/24/solid'
 import { StarIcon as StarOutline } from '@heroicons/react/24/outline'
+import { useToast } from '@/components/ui/Toast'
 
 interface QualityVoteModalProps {
   contentId: string
@@ -35,10 +36,11 @@ export default function QualityVoteModal({
   )
   const [polish, setPolish] = useState(existingVote?.polish || 0)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { toast } = useToast()
 
   const handleSubmit = async () => {
     if (readability === 0 || comprehension === 0 || polish === 0) {
-      alert('Please rate all three dimensions')
+      toast.warning('Please rate all three dimensions')
       return
     }
 
@@ -65,11 +67,11 @@ export default function QualityVoteModal({
         onSubmit({ readability, comprehension, polish })
         onClose()
       } else {
-        alert('Failed to submit vote. Please try again.')
+        toast.error('Failed to submit vote. Please try again.')
       }
     } catch (error) {
       console.error('Failed to submit vote:', error)
-      alert('Failed to submit vote. Please try again.')
+      toast.error('Failed to submit vote. Please try again.')
     } finally {
       setIsSubmitting(false)
     }

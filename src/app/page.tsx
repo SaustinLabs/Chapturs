@@ -3,6 +3,7 @@
 import AppLayout from '@/components/AppLayout'
 import InfiniteFeed from '@/components/InfiniteFeed'
 import BetaWelcome from '@/components/BetaWelcome'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import { useUser } from '@/hooks/useUser'
 import { signIn } from 'next-auth/react'
 
@@ -43,7 +44,9 @@ function ReaderHomePage() {
       </div>
 
       {/* Infinite Feed - visible to everyone */}
-      <InfiniteFeed hubMode="reader" />
+      <ErrorBoundary name="Feed">
+        <InfiniteFeed hubMode="reader" />
+      </ErrorBoundary>
     </div>
   )
 }

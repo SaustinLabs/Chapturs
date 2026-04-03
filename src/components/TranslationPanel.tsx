@@ -112,6 +112,7 @@ export default function TranslationPanel({
       }
     } catch (error) {
       console.error('Failed to load translations:', error)
+      toast.error('Failed to load translations')
     } finally {
       setLoading(false)
     }
@@ -127,6 +128,7 @@ export default function TranslationPanel({
       }
     } catch (error) {
       console.error('Failed to load suggestions:', error)
+      toast.error('Failed to load suggestions')
     }
   }
 
@@ -158,10 +160,14 @@ export default function TranslationPanel({
       if (response.ok) {
         setNewTranslationText('')
         setEditingTranslation(null)
+        toast.success('Translation submitted!')
         loadTranslations()
+      } else {
+        toast.error('Failed to submit translation')
       }
     } catch (error) {
       console.error('Failed to submit translation:', error)
+      toast.error('Failed to submit translation')
     }
   }
 
@@ -187,10 +193,14 @@ export default function TranslationPanel({
         setSuggestionText('')
         setSuggestionReason('')
         setSuggestingFor(null)
+        toast.success('Suggestion submitted!')
         loadSuggestionsForTranslation(translationId)
+      } else {
+        toast.error('Failed to submit suggestion')
       }
     } catch (error) {
       console.error('Failed to submit suggestion:', error)
+      toast.error('Failed to submit suggestion')
     }
   }
 
@@ -213,9 +223,12 @@ export default function TranslationPanel({
 
       if (response.ok) {
         loadTranslations()
+      } else {
+        toast.error('Failed to record vote')
       }
     } catch (error) {
       console.error('Failed to vote:', error)
+      toast.error('Failed to record vote')
     }
   }
 
@@ -240,9 +253,12 @@ export default function TranslationPanel({
         // Reload suggestions
         const translationId = suggestions.entries().next().value?.[0]
         if (translationId) loadSuggestionsForTranslation(translationId)
+      } else {
+        toast.error('Failed to record vote')
       }
     } catch (error) {
       console.error('Failed to vote:', error)
+      toast.error('Failed to record vote')
     }
   }
 

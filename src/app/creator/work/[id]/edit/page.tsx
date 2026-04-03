@@ -6,6 +6,7 @@ import AppLayout from '@/components/AppLayout'
 import { useUser } from '@/hooks/useUser'
 import ImageUpload from '@/components/upload/ImageUpload'
 import { useToast } from '@/components/ui/Toast'
+import { Edit3 } from 'lucide-react'
 
 export default function EditWorkPage() {
   const params = useParams()
@@ -17,6 +18,7 @@ export default function EditWorkPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [work, setWork] = useState<any>(null)
+  const [pendingSuggestions, setPendingSuggestions] = useState(0)
   
   const [formData, setFormData] = useState({
     title: '',
@@ -55,7 +57,20 @@ export default function EditWorkPage() {
       }
     }
 
+    const fetchPendingSuggestions = async () => {
+      try {
+        const res = await fetch(`/api/edit-suggestions?workId=${workId}&status=pending`)
+        if (res.ok) {
+          const data = await res.json()
+          setPendingSuggestions((data.suggestions || []).length)
+        }
+      } catch {
+        // non-critical — ignore
+      }
+    }
+
     fetchWork()
+    fetchPendingSuggestions()
   }, [workId, isAuthenticated, userId])
 
   const handleSave = async () => {
@@ -278,6 +293,18 @@ export default function EditWorkPage() {
               className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
             >
               Manage Chapters
+            </button>
+            <button
+              onClick={() => router.push(`/creator/work/${workId}/suggestions`)}
+              className="flex-1 relative px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <Edit3 size={16} />
+              Suggestions Inbox
+              {pendingSuggestions > 0 && (
+                <span className="absolute -top-2 -right-2 min-w-[1.25rem] h-5 flex items-center justify-center text-xs font-bold bg-red-500 text-white rounded-full px-1">
+                  {pendingSuggestions}
+                </span>
+              )}
             </button>
             <button
               onClick={() => router.push(`/creator/works/${workId}/collaborators`)}

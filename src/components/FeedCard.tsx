@@ -52,10 +52,7 @@ export default function FeedCard({ item, onClick, recommendationRank = 0 }: Feed
   }, [userId, item.work.id, item.work.author.id])
 
   const promptSignIn = (action: string) => {
-    const confirmSignIn = confirm(`Sign in to ${action} this story and unlock personalized features!`)
-    if (confirmSignIn) {
-      signIn('google', { callbackUrl: window.location.href })
-    }
+    signIn('google', { callbackUrl: window.location.href })
   }
 
   const formatNumber = (num: number): string => {

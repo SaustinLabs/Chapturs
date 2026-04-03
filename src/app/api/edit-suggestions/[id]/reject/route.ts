@@ -35,7 +35,17 @@ export async function POST(
       )
     }
 
-    // Check if user is the work author (simplified check)
+    // Verify the requesting user is the work's author
+    const work = await prisma.work.findUnique({
+      where: { id: suggestion.workId },
+      select: { authorId: true }
+    })
+    if (!work || work.authorId !== session.user.id) {
+      return NextResponse.json(
+        { error: 'Forbidden: only the work author can reject suggestions' },
+        { status: 403 }
+      )
+    }
     
     const updatedSuggestion = await prisma.editSuggestion.update({
       where: { id: suggestionId },
