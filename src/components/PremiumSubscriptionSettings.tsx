@@ -2,11 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { PaymentService } from '@/lib/payment';
+import { useToast } from '@/components/ui/Toast';
 
 const PremiumSubscriptionSettings: React.FC = () => {
   const [isPremium, setIsPremium] = useState(false);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetch('/api/user/monetization')
@@ -30,11 +32,11 @@ const PremiumSubscriptionSettings: React.FC = () => {
         });
         setIsPremium(true);
       } else {
-        alert('Payment failed. Please try again.');
+        toast.error('Payment failed. Please try again.');
       }
     } catch (error) {
       console.error('Payment error:', error);
-      alert('An error occurred. Please try again.');
+      toast.error('An error occurred. Please try again.');
     }
     setProcessing(false);
   };

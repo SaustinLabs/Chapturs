@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Modal from '@/components/ui/Modal'
+import { useToast } from '@/components/ui/Toast'
 
 interface TwitterFeedConfigProps {
   isOpen: boolean
@@ -20,6 +21,7 @@ export default function TwitterFeedConfig({
   onSave,
   initialData
 }: TwitterFeedConfigProps) {
+  const { toast } = useToast()
   const [twitterHandle, setTwitterHandle] = useState(initialData?.twitterHandle || '')
   const [displayName, setDisplayName] = useState(initialData?.displayName || '')
   const [profileImage, setProfileImage] = useState(initialData?.profileImage || '')
@@ -27,7 +29,7 @@ export default function TwitterFeedConfig({
 
   const handleSave = () => {
     if (!twitterHandle.trim()) {
-      alert('Please enter a Twitter/X handle')
+      toast.warning('Please enter a Twitter/X handle')
       return
     }
 

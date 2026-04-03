@@ -8,6 +8,7 @@ import {
   Loader2, Eye, Clock
 } from 'lucide-react'
 import Link from 'next/link'
+import { useToast } from '@/components/ui/Toast'
 
 interface FanartSubmission {
   id: string
@@ -41,6 +42,7 @@ type ConfirmationFilter = 'all' | 'needs-confirmation' | 'auto-confirmed' | 'man
 
 export default function CreatorFanartPage() {
   const { isAuthenticated, isLoading } = useUser()
+  const { toast } = useToast()
   const [submissions, setSubmissions] = useState<FanartSubmission[]>([])
   const [counts, setCounts] = useState<StatusCounts>({ pending: 0, approved: 0, rejected: 0 })
   const [loading, setLoading] = useState(true)
@@ -89,7 +91,7 @@ export default function CreatorFanartPage() {
       await fetchSubmissions()
     } catch (error) {
       console.error('Failed to review submission:', error)
-      alert('Failed to review submission. Please try again.')
+      toast.error('Failed to review submission. Please try again.')
     } finally {
       setProcessingIds(prev => {
         const newSet = new Set(prev)
@@ -130,7 +132,7 @@ export default function CreatorFanartPage() {
       await fetchSubmissions()
     } catch (error: any) {
       console.error('Failed to confirm character:', error)
-      alert(error?.message || 'Failed to confirm character. Please try again.')
+      toast.error(error?.message || 'Failed to confirm character. Please try again.')
     } finally {
       setProcessingIds(prev => {
         const newSet = new Set(prev)

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Modal from '@/components/ui/Modal'
+import { useToast } from '@/components/ui/Toast'
 
 interface TwitchChannelConfigProps {
   isOpen: boolean
@@ -20,13 +21,14 @@ export default function TwitchChannelConfig({
   onSave,
   initialData
 }: TwitchChannelConfigProps) {
+  const { toast } = useToast()
   const [channelName, setChannelName] = useState(initialData?.channelName || '')
   const [displayName, setDisplayName] = useState(initialData?.displayName || '')
   const [profileImage, setProfileImage] = useState(initialData?.profileImage || '')
 
   const handleSave = () => {
     if (!channelName.trim()) {
-      alert('Please enter a channel name')
+      toast.warning('Please enter a channel name')
       return
     }
 

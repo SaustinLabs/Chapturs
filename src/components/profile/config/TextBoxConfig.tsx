@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Modal from '@/components/ui/Modal'
+import { useToast } from '@/components/ui/Toast'
 
 interface TextBoxConfigProps {
   isOpen: boolean
@@ -21,13 +22,14 @@ export default function TextBoxConfig({
   onSave,
   initialData
 }: TextBoxConfigProps) {
+  const { toast } = useToast()
   const [content, setContent] = useState(initialData?.content || '')
   const [alignment, setAlignment] = useState(initialData?.alignment || 'left')
   const [fontSize, setFontSize] = useState(initialData?.fontSize || 'normal')
 
   const handleSave = () => {
     if (!content.trim()) {
-      alert('Please enter some content')
+      toast.warning('Please enter some content')
       return
     }
 

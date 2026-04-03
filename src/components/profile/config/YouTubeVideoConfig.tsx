@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Modal from '@/components/ui/Modal'
+import { useToast } from '@/components/ui/Toast'
 
 interface YouTubeVideoConfigProps {
   isOpen: boolean
@@ -20,6 +21,7 @@ export default function YouTubeVideoConfig({
   onSave,
   initialData
 }: YouTubeVideoConfigProps) {
+  const { toast } = useToast()
   const [videoUrl, setVideoUrl] = useState(initialData?.videoUrl || '')
   const [title, setTitle] = useState(initialData?.title || '')
   const [description, setDescription] = useState(initialData?.description || '')
@@ -42,7 +44,7 @@ export default function YouTubeVideoConfig({
 
   const handleSave = () => {
     if (!videoId) {
-      alert('Please enter a valid YouTube URL')
+      toast.warning('Please enter a valid YouTube URL')
       return
     }
 

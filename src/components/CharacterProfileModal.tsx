@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { X, User, Image as ImageIcon, BookOpen, Users as UsersIcon, Save } from 'lucide-react'
+import { useToast } from '@/components/ui/Toast'
 
 interface CategoryLabels {
   role?: string
@@ -78,6 +79,7 @@ export default function CharacterProfileModal({
   const [traitInput, setTraitInput] = useState('')
   const [saving, setSaving] = useState(false)
   const [showCustomizeLabels, setShowCustomizeLabels] = useState(false)
+  const { toast } = useToast()
 
   useEffect(() => {
     if (initialCharacter) {
@@ -89,7 +91,7 @@ export default function CharacterProfileModal({
 
   const handleSave = async () => {
     if (!character.name) {
-      alert('Character name is required')
+      toast.warning('Character name is required')
       return
     }
 
@@ -99,7 +101,7 @@ export default function CharacterProfileModal({
       onClose()
     } catch (error) {
       console.error('Error saving character:', error)
-      alert('Failed to save character. Please try again.')
+      toast.error('Failed to save character. Please try again.')
     } finally {
       setSaving(false)
     }

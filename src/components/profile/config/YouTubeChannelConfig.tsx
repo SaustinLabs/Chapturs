@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Modal from '@/components/ui/Modal'
+import { useToast } from '@/components/ui/Toast'
 
 interface YouTubeChannelConfigProps {
   isOpen: boolean
@@ -20,6 +21,7 @@ export default function YouTubeChannelConfig({
   onSave,
   initialData
 }: YouTubeChannelConfigProps) {
+  const { toast } = useToast()
   const [channelHandle, setChannelHandle] = useState(initialData?.channelHandle || '')
   const [channelName, setChannelName] = useState(initialData?.channelName || '')
   const [channelImage, setChannelImage] = useState(initialData?.channelImage || '')
@@ -27,7 +29,7 @@ export default function YouTubeChannelConfig({
 
   const handleSave = () => {
     if (!channelHandle.trim()) {
-      alert('Please enter a channel handle or ID')
+      toast.warning('Please enter a channel handle or ID')
       return
     }
 

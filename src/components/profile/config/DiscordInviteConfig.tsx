@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Modal from '@/components/ui/Modal'
+import { useToast } from '@/components/ui/Toast'
 
 interface DiscordInviteConfigProps {
   isOpen: boolean
@@ -20,6 +21,7 @@ export default function DiscordInviteConfig({
   onSave,
   initialData
 }: DiscordInviteConfigProps) {
+  const { toast } = useToast()
   const [serverName, setServerName] = useState(initialData?.serverName || '')
   const [inviteCode, setInviteCode] = useState(initialData?.inviteCode || '')
   const [description, setDescription] = useState(initialData?.description || '')
@@ -29,11 +31,11 @@ export default function DiscordInviteConfig({
 
   const handleSave = () => {
     if (!serverName.trim()) {
-      alert('Please enter a server name')
+      toast.warning('Please enter a server name')
       return
     }
     if (!inviteCode.trim()) {
-      alert('Please enter an invite code')
+      toast.warning('Please enter an invite code')
       return
     }
 

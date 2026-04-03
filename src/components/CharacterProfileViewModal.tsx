@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { X, User, Image as ImageIcon, BookOpen, Users as UsersIcon, Upload } from 'lucide-react'
 import ImageUpload from '@/components/upload/ImageUpload'
+import { useToast } from '@/components/ui/Toast'
 
 interface Character {
   id: string
@@ -38,6 +39,7 @@ export default function CharacterProfileViewModal({
   onClose
 }: CharacterProfileViewModalProps) {
   const [showSubmitFanart, setShowSubmitFanart] = useState(false)
+  const { toast } = useToast()
   const [approvedFanart, setApprovedFanart] = useState<any[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [formData, setFormData] = useState({
@@ -69,7 +71,7 @@ export default function CharacterProfileViewModal({
 
   const handleSubmitFanart = async () => {
     if (!formData.imageUrl || !formData.artistName) {
-      alert('Image URL and Artist Name are required')
+      toast.warning('Image URL and Artist Name are required')
       return
     }
 
@@ -87,11 +89,11 @@ export default function CharacterProfileViewModal({
         throw new Error(data.error || 'Submission failed')
       }
 
-      alert('Fanart submitted! It will appear once the author approves it.')
+      toast.success('Fanart submitted! It will appear once the author approves it.')
       setShowSubmitFanart(false)
       setFormData({ imageUrl: '', artistName: '', artistLink: '', artistHandle: '', notes: '' })
     } catch (error: any) {
-      alert(error.message || 'Failed to submit fanart')
+      toast.error(error.message || 'Failed to submit fanart')
     } finally {
       setSubmitting(false)
     }
@@ -321,7 +323,7 @@ export default function CharacterProfileViewModal({
                         }}
                         onUploadError={(error) => {
                           console.error('Fanart upload error:', error)
-                          alert(`Failed to upload fanart: ${error}`)
+                          toast.error(`Failed to upload fanart: ${error}`)
                         }}
                         label="Upload Your Artwork"
                         hint="Any size, 1200px recommended. Max 8MB."

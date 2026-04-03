@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { PhotoIcon, PencilIcon } from '@heroicons/react/24/outline'
 import ReactMarkdown from 'react-markdown'
 import ImageUpload from '@/components/upload/ImageUpload'
+import { useToast } from '@/components/ui/Toast'
 
 interface BasicInfoEditorProps {
   displayName: string
@@ -38,6 +39,7 @@ export default function BasicInfoEditor({
 }: BasicInfoEditorProps) {
   const [isEditingBio, setIsEditingBio] = useState(false)
   const [bioText, setBioText] = useState(bio)
+  const { toast } = useToast()
 
   const handleBioSave = () => {
     onUpdate('bio', bioText)
@@ -59,7 +61,7 @@ export default function BasicInfoEditor({
           }}
           onUploadError={(error) => {
             console.error('Cover upload error:', error)
-            alert(`Failed to upload cover image: ${error}`)
+            toast.error(`Failed to upload cover image: ${error}`)
           }}
           label="Profile Cover"
           hint="Recommended: 1200×300px or wider"
@@ -79,7 +81,7 @@ export default function BasicInfoEditor({
           }}
           onUploadError={(error) => {
             console.error('Profile upload error:', error)
-            alert(`Failed to upload profile image: ${error}`)
+            toast.error(`Failed to upload profile image: ${error}`)
           }}
           label="Profile Picture"
           hint="Recommended: Square image, at least 200×200px"

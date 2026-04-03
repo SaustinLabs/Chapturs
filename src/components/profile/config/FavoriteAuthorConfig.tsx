@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Modal from '@/components/ui/Modal'
+import { useToast } from '@/components/ui/Toast'
 
 interface FavoriteAuthorConfigProps {
   isOpen: boolean
@@ -29,6 +30,7 @@ export default function FavoriteAuthorConfig({
   onSave,
   initialData
 }: FavoriteAuthorConfigProps) {
+  const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Author[]>([])
   const [selectedAuthor, setSelectedAuthor] = useState<Author | null>(initialData || null)
@@ -67,7 +69,7 @@ export default function FavoriteAuthorConfig({
 
   const handleSave = () => {
     if (!selectedAuthor) {
-      alert('Please select an author')
+      toast.warning('Please select an author')
       return
     }
 

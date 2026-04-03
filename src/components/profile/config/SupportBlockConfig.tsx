@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Modal from '@/components/ui/Modal'
+import { useToast } from '@/components/ui/Toast'
 
 interface SupportBlockConfigProps {
   isOpen: boolean
@@ -26,6 +27,7 @@ export default function SupportBlockConfig({
   onSave,
   initialData
 }: SupportBlockConfigProps) {
+  const { toast } = useToast()
   const [chaptursUrl, setChaptursUrl] = useState<string>(initialData?.chaptursUrl || '')
   // Autofill Chapturs support URL if user is the author
   useEffect(() => {
@@ -58,13 +60,13 @@ export default function SupportBlockConfig({
 
   const handleSave = () => {
     if (!chaptursUrl.trim()) {
-      alert('Please enter your Chapturs support URL')
+      toast.warning('Please enter your Chapturs support URL')
       return
     }
     try {
       new URL(chaptursUrl)
     } catch {
-      alert('Please enter a valid Chapturs URL (include https://)')
+      toast.warning('Please enter a valid Chapturs URL (include https://)')
       return
     }
 

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { resolveCoverSrc } from '@/lib/images'
 import Modal from '@/components/ui/Modal'
+import { useToast } from '@/components/ui/Toast'
 
 interface WorkCardConfigProps {
   isOpen: boolean
@@ -30,6 +31,7 @@ export default function WorkCardConfig({
   initialData,
   availableWorks
 }: WorkCardConfigProps) {
+  const { toast } = useToast()
   const [selectedWorkId, setSelectedWorkId] = useState(initialData?.workId || '')
   const [customText, setCustomText] = useState(initialData?.customText || '')
 
@@ -37,7 +39,7 @@ export default function WorkCardConfig({
 
   const handleSave = () => {
     if (!selectedWorkId) {
-      alert('Please select a work')
+      toast.warning('Please select a work')
       return
     }
 

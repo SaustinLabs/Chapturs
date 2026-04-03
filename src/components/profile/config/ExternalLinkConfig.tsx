@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Modal from '@/components/ui/Modal'
+import { useToast } from '@/components/ui/Toast'
 
 interface ExternalLinkConfigProps {
   isOpen: boolean
@@ -21,6 +22,7 @@ export default function ExternalLinkConfig({
   onSave,
   initialData
 }: ExternalLinkConfigProps) {
+  const { toast } = useToast()
   const [url, setUrl] = useState(initialData?.url || '')
   const [title, setTitle] = useState(initialData?.title || '')
   const [description, setDescription] = useState(initialData?.description || '')
@@ -41,18 +43,18 @@ export default function ExternalLinkConfig({
 
   const handleSave = () => {
     if (!url.trim()) {
-      alert('Please enter a URL')
+      toast.warning('Please enter a URL')
       return
     }
     if (!title.trim()) {
-      alert('Please enter a title')
+      toast.warning('Please enter a title')
       return
     }
 
     try {
       new URL(url) // Validate URL
     } catch {
-      alert('Please enter a valid URL (include https://)')
+      toast.warning('Please enter a valid URL (include https://)')
       return
     }
 

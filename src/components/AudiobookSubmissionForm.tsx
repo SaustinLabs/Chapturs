@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { XMarkIcon, CloudArrowUpIcon } from '@heroicons/react/24/outline'
+import { useToast } from '@/components/ui/Toast'
 
 interface AudiobookSubmissionFormProps {
   workId: string
@@ -18,6 +19,7 @@ export default function AudiobookSubmissionForm({
 }: AudiobookSubmissionFormProps) {
   const [audioFile, setAudioFile] = useState<File | null>(null)
   const [durationSeconds, setDurationSeconds] = useState(0)
+  const { toast } = useToast()
   const [narratorNotes, setNarratorNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -89,7 +91,7 @@ export default function AudiobookSubmissionForm({
 
       if (response.ok) {
         const data = await response.json()
-        alert(data.audiobook.message)
+        toast.success(data.audiobook.message)
         onSuccess()
         onClose()
       } else {

@@ -28,6 +28,7 @@ import {
 } from '@heroicons/react/24/outline'
 import Modal from '@/components/ui/Modal'
 import { useDroppable } from '@dnd-kit/core'
+import { useToast } from '@/components/ui/Toast'
 
 /**
  * Internal: FeaturedDropZone component to handle droppable featured area and confirmation modal
@@ -135,6 +136,7 @@ interface ConfigModalState {
  */
 export default function ProfileEditorWYSIWYG() {
   const router = useRouter()
+  const { toast } = useToast()
   const [isSaving, setIsSaving] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [availableWorks, setAvailableWorks] = useState<any[]>([])
@@ -296,8 +298,6 @@ export default function ProfileEditorWYSIWYG() {
   }
 
   const handleDeleteBlock = (blockId: string) => {
-    if (!confirm('Are you sure you want to delete this block?')) return
-    
     setProfileData(prev => ({
       ...prev,
       blocks: prev.blocks.filter(b => b.id !== blockId)
@@ -326,11 +326,11 @@ export default function ProfileEditorWYSIWYG() {
         }
       } else {
         console.error('Failed to save profile')
-        alert('Failed to save profile. Please try again.')
+        toast.error('Failed to save profile. Please try again.')
       }
     } catch (error) {
       console.error('Save error:', error)
-      alert('Failed to save profile. Please try again.')
+      toast.error('Failed to save profile. Please try again.')
     } finally {
       setIsSaving(false)
     }
@@ -429,11 +429,11 @@ export default function ProfileEditorWYSIWYG() {
             blockData={getFeaturedBlockData()}
             onSelectFeatured={() => {
               // TODO: Open featured selection modal
-              alert('Featured selection modal coming soon!')
+              toast.info('Featured selection coming soon!')
             }}
             onEditFeatured={() => {
               // TODO: Open featured selection modal
-              alert('Featured selection modal coming soon!')
+              toast.info('Featured selection coming soon!')
             }}
             onConfirmFeatured={(blockId: string) => {
               setProfileData(prev => ({ ...prev, featuredType: 'block', featuredBlockId: blockId }))

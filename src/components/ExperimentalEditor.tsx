@@ -36,6 +36,7 @@ import VisualNovelMode from './experimental/VisualNovelMode'
 import WorldbuildingMode from './experimental/WorldbuildingMode'
 import BranchingStoryModeSimple from './experimental/BranchingStoryModeSimple'
 import EmojiPicker from './EmojiPicker'
+import { useToast } from '@/components/ui/Toast'
 
 export type ExperimentalMode = 'normal' | 'visual-novel' | 'worldbuilding' | 'branching-story' | 'placeholder'
 
@@ -130,6 +131,7 @@ export default function ExperimentalEditor({
   initialData = {},
   onSave 
 }: ExperimentalEditorProps) {
+  const { toast } = useToast()
   const [currentMode, setCurrentMode] = useState<ExperimentalMode>('normal')
   const [experimentalData, setExperimentalData] = useState<ExperimentalData>(initialData)
   const [showPreview, setShowPreview] = useState(false)
@@ -255,18 +257,18 @@ export default function ExperimentalEditor({
       onSave(editor.getHTML(), saveData)
       
       // Show success feedback
-      alert('Work saved successfully!')
+      toast.success('Work saved successfully!')
     }
   }
 
   const handlePublish = async () => {
     if (!currentChapter.title.trim()) {
-      alert('Please add a chapter title before publishing.')
+      toast.warning('Please add a chapter title before publishing.')
       return
     }
 
     if (editor && editor.isEmpty) {
-      alert('Please add some content before publishing.')
+      toast.warning('Please add some content before publishing.')
       return
     }
 
@@ -283,7 +285,9 @@ export default function ExperimentalEditor({
     )
     setChapters(updatedChapters)
     
-    alert('Chapter published successfully!')
+    toast.success('Chapter published successfully!')
+  }
+  }
   }
 
   const handleAddChapter = () => {
