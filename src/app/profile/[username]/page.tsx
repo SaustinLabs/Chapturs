@@ -96,6 +96,11 @@ export default function ProfilePage() {
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
               {user.displayName || user.username}&apos;s Works
             </h2>
+            {user.isPremium && (
+              <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded-full font-medium">
+                ✦ Premium
+              </span>
+            )}
             <span className="text-sm text-gray-500 dark:text-gray-400">
               {data.author?.workCount || data.works.length} {data.works.length === 1 ? 'work' : 'works'}
             </span>

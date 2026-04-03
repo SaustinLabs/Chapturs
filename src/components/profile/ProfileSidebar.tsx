@@ -10,6 +10,7 @@ interface ProfileSidebarProps {
   username: string
   bio?: string
   isOwner?: boolean
+  isPremium?: boolean
   onEdit?: () => void
 }
 
@@ -24,6 +25,7 @@ export default function ProfileSidebar({
   username,
   bio,
   isOwner = false,
+  isPremium = false,
   onEdit
 }: ProfileSidebarProps) {
   return (
@@ -62,7 +64,14 @@ export default function ProfileSidebar({
         <h1 className="text-2xl font-bold text-gray-100 mb-1">
           {displayName}
         </h1>
-        <p className="text-sm text-gray-400">@{username}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-gray-400">@{username}</p>
+          {isPremium && (
+            <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded-full font-medium">
+              ✦ Premium
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Bio Section */}

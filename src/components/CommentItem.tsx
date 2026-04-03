@@ -12,7 +12,8 @@ import {
   Pin,
   EyeOff,
   Eye,
-  SmilePlus
+  SmilePlus,
+  Sparkles
 } from 'lucide-react'
 import CommentForm from './CommentForm'
 import ReportModal from './ReportModal'
@@ -240,6 +241,9 @@ export default function CommentItem({
                 <span className="font-medium text-gray-900">
                   {comment.user.displayName || comment.user.username}
                 </span>
+                {comment.user.isPremium && (
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" aria-label="Premium member" />
+                )}
                 {comment.isPinned && (
                   <Pin className="w-4 h-4 text-blue-600" />
                 )}

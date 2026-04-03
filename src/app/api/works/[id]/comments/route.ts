@@ -106,7 +106,8 @@ export async function GET(
             id: true,
             username: true,
             displayName: true,
-            avatar: true
+            avatar: true,
+            isPremium: true
           }
         },
         likes: {
@@ -123,7 +124,8 @@ export async function GET(
                 id: true,
                 username: true,
                 displayName: true,
-                avatar: true
+                avatar: true,
+                isPremium: true
               }
             },
             likes: {

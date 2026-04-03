@@ -3,6 +3,7 @@ export interface CommentUser {
   username: string
   displayName: string | null
   avatar: string | null
+  isPremium?: boolean
 }
 
 export interface Comment {

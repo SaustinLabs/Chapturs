@@ -26,6 +26,7 @@ export async function GET(request: Request, props: RouteParams) {
         verified: true,
         bio: true,
         createdAt: true,
+        isPremium: true,
       }
     })
 
