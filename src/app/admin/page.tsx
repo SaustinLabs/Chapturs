@@ -56,6 +56,7 @@ export default function AdminHubPage() {
     { title: 'Moderation Queue', desc: 'Review reported content.', link: '/admin/reports', icon: ShieldCheckIcon },
     { title: 'Contest Control', desc: 'Create and end contests.', link: '/admin/contests', icon: TrophyIcon },
     { title: 'Validation Rules', desc: 'AI safety & quality rules.', link: '/admin/validation-rules', icon: Cog6ToothIcon },
+    { title: 'Site Settings', desc: 'Feature flags, announcements, content limits.', link: '/admin/settings', icon: Cog6ToothIcon },
   ]
 
   return (

@@ -1771,3 +1771,17 @@ model ContentReport {
   @@index([status])
   @@map("content_reports")
 }
+
+// Admin-managed runtime site configuration (non-secret toggles & settings)
+model SiteSettings {
+  key         String   @id
+  value       String   @db.Text
+  type        String   @default("string") // "string" | "boolean" | "number" | "text"
+  label       String
+  description String?
+  group       String   @default("general") // "general" | "content" | "features" | "monetization"
+  updatedAt   DateTime @updatedAt
+  updatedBy   String?
+
+  @@map("site_settings")
+}
