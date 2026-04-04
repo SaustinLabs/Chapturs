@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
-import { SearchFilters, Story } from '@/types'
+import { SearchFilters } from '@/types'
 import { 
   MagnifyingGlassIcon, 
   AdjustmentsHorizontalIcon,
@@ -10,39 +11,61 @@ import {
 } from '@heroicons/react/24/outline'
 
 export default function BrowsePage() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [filters, setFilters] = useState<SearchFilters>({})
   const [showFilters, setShowFilters] = useState(false)
-  const [searchResults, setSearchResults] = useState<Story[]>([])
-  const [recommendations, setRecommendations] = useState<Story[]>([])
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [trending, setTrending] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const [trendingLoading, setTrendingLoading] = useState(true)
 
   const genres = ['Fantasy', 'Science Fiction', 'Romance', 'Mystery', 'Thriller', 'Horror', 'Adventure', 'Comedy', 'Drama', 'Historical']
   const tags = ['Magic System', 'AI', 'Time Travel', 'Dragons', 'Space Opera', 'Enemies to Lovers', 'Found Family', 'Epic Fantasy']
 
   const handleSearch = async () => {
+    if (!searchQuery.trim()) return
     setLoading(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Mock search results - prioritize exact matches
-      const mockResults: Story[] = [
-        // This would be replaced with actual search API
-      ]
-      setSearchResults(mockResults)
-      
-      // Load algorithmic recommendations after search
-      const mockRecommendations: Story[] = [
-        // This would be replaced with recommendation API
-      ]
-      setRecommendations(mockRecommendations)
+      const params = new URLSearchParams({ q: searchQuery.trim() })
+      if (filters.status?.length) params.set('status', filters.status[0])
+      if (filters.formats?.length) params.set('formatType', filters.formats[0])
+
+      const res = await fetch(`/api/works?${params.toString()}`)
+      const data = await res.json()
+      const works: any[] = data.data?.works || []
+
+      // Client-side genre filtering (API currently does title/description search)
+      const filtered = filters.genres?.length
+        ? works.filter((w: any) => filters.genres!.some(g => (w.genres || []).includes(g)))
+        : works
+
+      setSearchResults(filtered)
     } catch (error) {
       console.error('Search failed:', error)
     } finally {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    // Load trending/recent published works on initial page load
+    const loadTrending = async () => {
+      try {
+        const res = await fetch('/api/works?q=&status=published&limit=6')
+        // Fall back to a general feed sample if no specific trending endpoint
+        const feedRes = await fetch('/api/feed?limit=6')
+        const feedData = await feedRes.json()
+        const feedItems = feedData.data?.items || feedData.items || []
+        setTrending(feedItems.slice(0, 6))
+      } catch {
+        // Trending is non-critical, fail silently
+      } finally {
+        setTrendingLoading(false)
+      }
+    }
+    loadTrending()
+  }, [])
 
   const updateFilter = (key: keyof SearchFilters, value: any) => {
     setFilters(prev => ({
@@ -271,7 +294,6 @@ export default function BrowsePage() {
 
         {searchQuery && !loading && (
           <div className="space-y-6">
-            {/* Direct Search Results */}
             <div>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                 Search Results
@@ -290,17 +312,25 @@ export default function BrowsePage() {
                 </div>
               ) : (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {searchResults.map((story) => (
-                    <div key={story.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-shadow cursor-pointer">
-                      {/* Story card content would go here */}
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  {searchResults.map((story: any) => (
+                    <div
+                      key={story.id}
+                      onClick={() => router.push(`/story/${story.id}`)}
+                      className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-shadow cursor-pointer"
+                    >
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-1">
                         {story.title}
                       </h3>
+                      {story.author && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                          by {story.author.displayName || story.author.username}
+                        </p>
+                      )}
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-3">
                         {story.description}
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {story.genres.slice(0, 3).map((genre) => (
+                        {(story.genres || []).slice(0, 3).map((genre: string) => (
                           <span
                             key={genre}
                             className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded-full"
@@ -309,48 +339,15 @@ export default function BrowsePage() {
                           </span>
                         ))}
                       </div>
+                      <div className="flex items-center gap-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
+                        <span>{story.chapterCount ?? 0} chapters</span>
+                        <span>{story.bookmarkCount ?? 0} bookmarks</span>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
-
-            {/* Algorithmic Recommendations */}
-            {recommendations.length > 0 && (
-              <div>
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    You might also like
-                    <span className="text-sm text-gray-500 dark:text-gray-400 ml-2 font-normal">
-                      Based on your preferences
-                    </span>
-                  </h2>
-                  
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {recommendations.map((story) => (
-                      <div key={story.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-shadow cursor-pointer">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                          {story.title}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-3">
-                          {story.description}
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {story.genres.slice(0, 3).map((genre) => (
-                            <span
-                              key={genre}
-                              className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded-full"
-                            >
-                              {genre}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         )}
 
@@ -361,14 +358,46 @@ export default function BrowsePage() {
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                 Trending Now
               </h2>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {/* Mock trending stories would be loaded here */}
+              {trendingLoading ? (
+                <div className="flex justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                </div>
+              ) : trending.length > 0 ? (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {trending.map((item: any) => (
+                    <div
+                      key={item.id}
+                      onClick={() => router.push(`/story/${item.id}`)}
+                      className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-shadow cursor-pointer"
+                    >
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-1">
+                        {item.title}
+                      </h3>
+                      {(item.author || item.authorName) && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                          by {item.author?.displayName || item.author?.username || item.authorName}
+                        </p>
+                      )}
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-3">
+                        {item.description}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {(item.genres || []).slice(0, 3).map((genre: string) => (
+                          <span key={genre} className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded-full">
+                            {genre}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
                 <div className="text-center py-12 text-gray-500 dark:text-gray-400 col-span-full">
                   <div className="text-4xl mb-4">📚</div>
                   <h3 className="text-lg font-medium mb-2">Start exploring</h3>
                   <p className="text-sm">Use the search bar above to find your next favorite story</p>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         )}

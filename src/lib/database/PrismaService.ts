@@ -118,7 +118,7 @@ export default class DatabaseService {
   static async getSectionsList(workId: string) {
     const sections = await prisma.section.findMany({
       where: { workId },
-      orderBy: { createdAt: 'asc' },
+      orderBy: [{ chapterNumber: 'asc' }, { createdAt: 'asc' }],
       select: {
         id: true,
         workId: true,
@@ -128,14 +128,15 @@ export default class DatabaseService {
         publishedAt: true,
         createdAt: true,
         updatedAt: true,
+        chapterNumber: true,
       }
     });
-    return sections.map((section: any) => ({
+    return sections.map((section: any, i: number) => ({
       id: section.id,
       workId: section.workId,
       title: section.title,
-      chapterNumber: 1,
-      orderIndex: 0,
+      chapterNumber: section.chapterNumber ?? (i + 1),
+      orderIndex: i,
       wordCount: section.wordCount || 0,
       estimatedReadTime: Math.ceil((section.wordCount || 0) / 200),
       publishedAt: section.publishedAt?.toISOString(),
@@ -148,22 +149,21 @@ export default class DatabaseService {
   static async getSectionsForWork(workId: string) {
     const sections = await prisma.section.findMany({
       where: { workId },
-      orderBy: { createdAt: 'asc' }
+      orderBy: [{ chapterNumber: 'asc' }, { createdAt: 'asc' }],
     });
-  return sections.map((section: any) => ({
+    return sections.map((section: any, i: number) => ({
       id: section.id,
       workId: section.workId,
       title: section.title,
-      chapterNumber: 1, // TODO: Implement proper chapter numbering
-      orderIndex: 0, // TODO: Implement proper ordering
+      chapterNumber: section.chapterNumber ?? (i + 1),
+      orderIndex: i,
       content: JSON.parse(section.content),
       wordCount: section.wordCount || 0,
-      estimatedReadTime: Math.ceil((section.wordCount || 0) / 200), // Rough estimate
+      estimatedReadTime: Math.ceil((section.wordCount || 0) / 200),
       publishedAt: section.publishedAt?.toISOString(),
       isPublished: section.status === 'published',
-      definitions: [] // TODO: Implement definitions
+      definitions: []
     }));
-
   }
 
   static sectionTitle(section: { id: number; title?: string }) {
@@ -177,21 +177,24 @@ export default class DatabaseService {
     wordCount: number;
     status?: string;
   }) {
+    const existingCount = await prisma.section.count({ where: { workId: data.workId } });
+    const nextChapterNumber = existingCount + 1;
     const section = await prisma.section.create({
       data: {
         workId: data.workId,
         title: data.title,
         content: JSON.stringify(data.content),
         wordCount: data.wordCount,
-        status: data.status || 'draft'
+        status: data.status || 'draft',
+        chapterNumber: nextChapterNumber,
       }
     });
     return {
       id: section.id,
       workId: section.workId,
       title: section.title,
-      chapterNumber: 1,
-      orderIndex: 0,
+      chapterNumber: section.chapterNumber ?? nextChapterNumber,
+      orderIndex: existingCount,
       content: JSON.parse(section.content),
       wordCount: section.wordCount || 0,
       estimatedReadTime: Math.ceil((section.wordCount || 0) / 200),
@@ -209,7 +212,7 @@ export default class DatabaseService {
         author: { include: { user: true } },
         sections: {
           where: { status: 'published' },
-          orderBy: { createdAt: 'asc' },
+          orderBy: [{ chapterNumber: 'asc' }, { createdAt: 'asc' }],
           select: {
             id: true,
             title: true,
@@ -218,7 +221,8 @@ export default class DatabaseService {
             status: true,
             publishedAt: true,
             createdAt: true,
-            updatedAt: true
+            updatedAt: true,
+            chapterNumber: true,
           }
         }
       }
@@ -286,14 +290,57 @@ export default class DatabaseService {
   }
 
   static async searchWorks(query: string, filters: any) {
-    // Minimal search shim: basic title/description contains search
-    const where: any = { AND: [] }
+    const where: any = { AND: [{ status: 'published' }] }
+
     if (query) {
-      where.AND.push({ OR: [{ title: { contains: query } }, { description: { contains: query } }] })
+      where.AND.push({
+        OR: [
+          { title: { contains: query, mode: 'insensitive' } },
+          { description: { contains: query, mode: 'insensitive' } },
+        ],
+      })
     }
+
     if (filters?.authorId) where.AND.push({ authorId: filters.authorId })
-    const works = await prisma.work.findMany({ where, take: 50 })
-    return works.map((w: any) => ({ id: w.id, title: w.title, status: w.status } as any))
+    if (filters?.formatType) where.AND.push({ formatType: filters.formatType })
+    if (filters?.status && filters.status !== 'all') {
+      where.AND.push({ status: filters.status })
+    }
+
+    const works = await prisma.work.findMany({
+      where,
+      take: 50,
+      orderBy: { updatedAt: 'desc' },
+      include: {
+        author: { include: { user: { select: { id: true, username: true, displayName: true, avatar: true } } } },
+        _count: { select: { sections: true, bookmarks: true, likes: true } },
+      },
+    })
+
+    return works.map((w: any) => ({
+      id: w.id,
+      title: w.title,
+      description: w.description,
+      coverImage: w.coverImage,
+      status: w.status,
+      maturityRating: w.maturityRating,
+      formatType: w.formatType,
+      genres: typeof w.genres === 'string' ? JSON.parse(w.genres) : (w.genres || []),
+      tags: typeof w.tags === 'string' ? JSON.parse(w.tags) : (w.tags || []),
+      updatedAt: w.updatedAt,
+      createdAt: w.createdAt,
+      chapterCount: w._count?.sections || 0,
+      bookmarkCount: w._count?.bookmarks || 0,
+      likeCount: w._count?.likes || 0,
+      author: w.author?.user
+        ? {
+            id: w.author.user.id,
+            username: w.author.user.username,
+            displayName: w.author.user.displayName,
+            avatar: w.author.user.avatar,
+          }
+        : null,
+    }))
   }
 
   static async getUser(userId: string) {

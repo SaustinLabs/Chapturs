@@ -5,11 +5,6 @@ const nextConfig = {
     // Allow building while we iteratively fix lint issues.
     ignoreDuringBuilds: true,
   },
-  typescript: {
-    // Allow production build even if there are type errors in the repo; these
-    // are pre-existing and will be addressed separately.
-    ignoreBuildErrors: true,
-  },
   experimental: {
     // Reduces bundle size and improves build performance for these icon libraries
     optimizePackageImports: ['@heroicons/react', 'lucide-react'],
