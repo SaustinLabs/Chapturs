@@ -20,8 +20,8 @@ Chapturs is a modern webnovel platform inspired by TikTok (infinite scroll disco
 - **Lint:** `npm run lint`
 - **Prisma:** `npx prisma generate`, `npx prisma db push`
 - **Seed DB:** `npm run db:seed`
-- **Deploy:** Push to `main` triggers Vercel deploy (see `docs/source/ops/VERCEL_DEPLOYMENT_GUIDE.md`)
-- **Env:** Copy `.env.example` to `.env.local` and fill in secrets. Never commit real secrets.
+- **Deploy:** Push to `main` triggers auto-deploy via GitHub Actions (`.github/workflows/deploy-vps.yml`) to a VPS. All secrets are stored in GitHub Actions Secrets and written to `.env.production` on the VPS each deploy.
+- **Env:** Copy `.env.example` to `.env.local` for local dev. Secrets for production are managed in GitHub → Settings → Secrets and variables → Actions. Never commit real secrets.
 
 ## Project Conventions & Patterns
 - **TypeScript everywhere:** All code and types in `/src/types/`.
@@ -30,11 +30,11 @@ Chapturs is a modern webnovel platform inspired by TikTok (infinite scroll disco
 - **Responsive design:** Use Tailwind's responsive classes; no separate mobile domain.
 - **Image handling:** Use Next.js `<Image />` with remotePatterns in `next.config.js`. R2 proxy for base64 images.
 - **Quality assessment:** Content validation and moderation in `ContentValidationService.ts` and related API routes.
-- **Analytics:** Vercel Analytics and Speed Insights wired in `src/app/layout.tsx`.
+- **Analytics:** Analytics wired in `src/app/layout.tsx`.
 
 ## Integration Points
 - **Cloudflare R2:** For image storage. See `src/lib/r2.ts` and related upload endpoints.
-- **Supabase PostgreSQL:** For production DB. See `docs/source/ops/VERCEL_DEPLOYMENT_GUIDE.md` for setup.
+- **Supabase PostgreSQL:** For production DB.
 - **Groq API:** For content quality assessment (see env vars and `/api/quality-assessment/`).
 - **NextAuth:** For authentication (see `/src/app/api/auth/`).
 
@@ -44,7 +44,7 @@ Chapturs is a modern webnovel platform inspired by TikTok (infinite scroll disco
 - **Story/Work Management:** `src/components/StoryManagement.tsx`, `src/app/story/[id]/page.tsx`
 - **API Example:** `src/app/api/works/publish/route.ts`
 - **Quality Assessment:** `src/lib/ContentValidationService.ts`, `src/app/api/quality-assessment/`
-- **Deployment:** `docs/source/ops/VERCEL_DEPLOYMENT_GUIDE.md`
+- **Deployment:** `.github/workflows/deploy-vps.yml`
 
 ## Special Notes
 - **Do not commit secrets:** Always add new env files to `.gitignore`.
