@@ -80,16 +80,16 @@ export default function Sidebar({ currentHub, onHubChange }: SidebarProps) {
         {/* Logo and Collapse Button */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           {!isCollapsed && (
-            <a href="/" className="flex items-center gap-2 px-2 py-1 bg-indigo-600 rounded-lg">
-              <img src="/logo-transparent.png" alt="Chapturs" className="w-6 h-6 rounded mix-blend-multiply" />
-              <h1 className="text-base font-bold text-white tracking-wide">
+            <a href="/" className="flex items-center gap-2 px-2 py-1 bg-white rounded-lg shadow-sm border border-gray-100">
+              <img src="/logo-transparent.png" alt="Chapturs" className="w-6 h-6 rounded" />
+              <h1 className="text-base font-bold text-indigo-600 tracking-wide">
                 Chapturs
               </h1>
             </a>
           )}
           {isCollapsed && (
-            <a href="/" className="mx-auto p-1.5 bg-indigo-600 rounded-lg">
-              <img src="/logo-transparent.png" alt="Chapturs" className="w-6 h-6 rounded mix-blend-multiply" />
+            <a href="/" className="mx-auto p-1.5 bg-white rounded-lg shadow-sm border border-gray-100">
+              <img src="/logo-transparent.png" alt="Chapturs" className="w-6 h-6 rounded" />
             </a>
           )}
           <button
