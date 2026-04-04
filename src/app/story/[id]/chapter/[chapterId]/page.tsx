@@ -151,6 +151,7 @@ export default function ChapterPage() {
   const glossarySheetRef = useRef<HTMLDivElement | null>(null)
   const glossaryDragStartRef = useRef<{ y: number; t: number } | null>(null)
   const chapterOpenStartRef = useRef<number | null>(null)
+  const progressSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const updateSelectionOverlay = () => {
     if (!selectionRangeRef.current) {
@@ -449,6 +450,28 @@ export default function ChapterPage() {
       window.removeEventListener('resize', calculateProgress)
     }
   }, [section?.id])
+
+  useEffect(() => {
+    if (!session?.user?.id || !storyId || !chapterId || loading) return
+
+    if (progressSaveTimerRef.current) clearTimeout(progressSaveTimerRef.current)
+
+    progressSaveTimerRef.current = setTimeout(() => {
+      fetch('/api/reading-progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workId: storyId,
+          sectionId: chapterId,
+          progress: Math.round(readingProgress) / 100,
+        }),
+      }).catch(() => {})
+    }, 1000)
+
+    return () => {
+      if (progressSaveTimerRef.current) clearTimeout(progressSaveTimerRef.current)
+    }
+  }, [readingProgress, session?.user?.id, storyId, chapterId, loading])
 
   useEffect(() => {
     if (loading || !section) return

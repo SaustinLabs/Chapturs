@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { useUser } from '@/hooks/useUser'
 import { signIn } from 'next-auth/react'
 import { BookmarkIcon, UserIcon, HeartIcon } from '@heroicons/react/24/outline'
 import { BookmarkIcon as BookmarkSolidIcon } from '@heroicons/react/24/solid'
 import DataService from '@/lib/api/DataService'
+import { resolveCoverSrc } from '@/lib/images'
 
 interface LibraryItem {
   id: string
@@ -26,6 +28,7 @@ export default function LibraryPage() {
   const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([])
   const [activeTab, setActiveTab] = useState<'all' | 'subscriptions' | 'bookmarks'>('all')
   const [loading, setLoading] = useState(true)
+  const [resumeMap, setResumeMap] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (!isAuthenticated && !isLoading) {
@@ -43,9 +46,27 @@ export default function LibraryPage() {
       setLoading(true)
       const libraryData = await DataService.getUserLibrary(userId!)
       setLibraryItems(libraryData)
+
+      // Fetch reading progress for all bookmarked works in parallel
+      const bookmarks = libraryData.filter((item: LibraryItem) => item.type === 'bookmark' && item.workId)
+      if (bookmarks.length > 0) {
+        const progressResults = await Promise.allSettled(
+          bookmarks.map((item: LibraryItem) =>
+            fetch(`/api/reading-progress?workId=${item.workId}`).then((r) => r.json())
+          )
+        )
+        const map: Record<string, string> = {}
+        bookmarks.forEach((item: LibraryItem, i: number) => {
+          const result = progressResults[i]
+          if (result.status === 'fulfilled' && result.value?.sectionId) {
+            map[item.workId!] = result.value.sectionId
+          }
+        })
+        setResumeMap(map)
+      }
     } catch (error) {
       console.error('Failed to load library data:', error)
-      setLibraryItems([]) // Set empty array on error
+      setLibraryItems([])
     } finally {
       setLoading(false)
     }
@@ -206,7 +227,25 @@ export default function LibraryPage() {
                 key={item.id}
                 className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-shadow"
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-start gap-4">
+                  {/* Cover image (bookmarks only) */}
+                  {item.type === 'bookmark' && item.workId && (
+                    <div className="flex-shrink-0">
+                      {resolveCoverSrc(item.workId, item.coverImage) ? (
+                        <Image
+                          src={resolveCoverSrc(item.workId, item.coverImage)!}
+                          alt={item.title}
+                          width={64}
+                          height={88}
+                          className="w-16 h-22 rounded object-cover shadow-sm"
+                        />
+                      ) : (
+                        <div className="w-16 h-22 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center">
+                          <BookmarkSolidIcon className="w-6 h-6 text-white" />
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div className="flex-1">
                     <div className="flex items-center mb-2">
                       {item.type === 'subscription' ? (
@@ -258,13 +297,21 @@ export default function LibraryPage() {
                     </p>
                   </div>
                   
-                  <div className="flex items-center space-x-2 ml-4">
+                  <div className="flex items-center gap-2 mt-3 flex-wrap">
                     <a
-                      href={item.type === 'subscription' ? `/author/${item.authorId}` : `/work/${item.workId}`}
+                      href={item.type === 'subscription' ? `/profile/${item.authorId}` : `/story/${item.workId}`}
                       className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
                     >
                       View
                     </a>
+                    {item.type === 'bookmark' && item.workId && resumeMap[item.workId] && (
+                      <a
+                        href={`/story/${item.workId}/chapter/${resumeMap[item.workId]}`}
+                        className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded transition-colors"
+                      >
+                        Resume
+                      </a>
+                    )}
                     <button
                       onClick={() => {
                         if (item.type === 'subscription' && item.authorId) {
@@ -277,6 +324,7 @@ export default function LibraryPage() {
                     >
                       Remove
                     </button>
+                  </div>
                   </div>
                 </div>
               </div>
