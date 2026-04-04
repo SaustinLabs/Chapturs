@@ -287,8 +287,6 @@ export default function ExperimentalEditor({
     
     toast.success('Chapter published successfully!')
   }
-  }
-  }
 
   const handleAddChapter = () => {
     const newChapter: ChapterData = {

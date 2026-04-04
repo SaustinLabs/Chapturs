@@ -109,7 +109,7 @@ export default function ProfilePage() {
             {data.works.map((work: any) => (
               <a
                 key={work.id}
-                href={`/work/${work.id}`}
+                href={`/story/${work.id}`}
                 className="block p-4 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md transition-shadow"
               >
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{work.title}</h3>

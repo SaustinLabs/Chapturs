@@ -119,13 +119,13 @@ export default function FeedCard({ item, onClick, recommendationRank = 0 }: Feed
     
     if (item.readingStatus === 'in-progress' && item.lastReadSection) {
       // Navigate to the work viewer for now, section reading coming soon
-      router.push(`/work/${workId}`)
+      router.push(`/story/${workId}`)
     } else if (item.readingStatus === 'unread') {
       // Navigate to work overview to start reading
-      router.push(`/work/${workId}`)
+      router.push(`/story/${workId}`)
     } else {
       // Navigate to work overview
-      router.push(`/work/${workId}`)
+      router.push(`/story/${workId}`)
     }
   }
 

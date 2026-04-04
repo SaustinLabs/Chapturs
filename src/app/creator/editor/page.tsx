@@ -493,7 +493,7 @@ export default function CreatorEditorPage() {
       if (overrideResp.ok) {
         const final = await overrideResp.json()
         toast.success('Work published successfully.')
-        window.location.href = `/work/${final.workId}`
+        window.location.href = `/story/${final.workId}`
         return
       } else {
         const err = await overrideResp.json()

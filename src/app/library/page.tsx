@@ -260,7 +260,7 @@ export default function LibraryPage() {
                   
                   <div className="flex items-center space-x-2 ml-4">
                     <a
-                      href={item.type === 'subscription' ? `/author/${item.authorId}` : `/work/${item.workId}`}
+                      href={item.type === 'subscription' ? `/profile/${item.authorId}` : `/story/${item.workId}`}
                       className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
                     >
                       View
