@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { signIn, useSession } from 'next-auth/react'
 import {
   ArrowUpTrayIcon,
-  PhotoIcon,
   SparklesIcon,
   UserCircleIcon,
 } from '@heroicons/react/24/outline'
@@ -167,9 +166,7 @@ export default function FanContentHub() {
           workCards
             .flat()
             .filter((card): card is ApprovedFanArtCard => Boolean(card?.id && card.imageUrl))
-            .sort((left, right) => {
-              return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()
-            })
+            .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())
         )
       } catch (error) {
         console.error(error)

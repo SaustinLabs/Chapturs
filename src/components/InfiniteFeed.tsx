@@ -16,7 +16,6 @@ interface InfiniteFeedProps {
 
 const BOOKS_EMOJI = String.fromCodePoint(0x1f4da)
 const WARNING_EMOJI = String.fromCodePoint(0x26a0)
-const STAR_EMOJI = String.fromCodePoint(0x2b50)
 const SPARKLES_EMOJI = String.fromCodePoint(0x2728)
 const FEED_END_EMOJI = String.fromCodePoint(0x1f389)
 
@@ -36,13 +35,7 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
   const firedImpressionsRef = useRef<Set<string>>(new Set())
   const signalSessionIdRef = useRef(`feed_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`)
 
-  useEffect(() => {
-    if (!authLoading) {
-      loadInitialItems()
-    }
-  }, [hubMode, userId, isAuthenticated, authLoading])
-
-  const loadInitialItems = async () => {
+  const loadInitialItems = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -56,7 +49,13 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [hubMode, userId])
+
+  useEffect(() => {
+    if (!authLoading) {
+      loadInitialItems()
+    }
+  }, [loadInitialItems, authLoading, isAuthenticated, hubMode, userId])
 
   const loadMoreItems = useCallback(async () => {
     if (loading || !hasMore) return
@@ -185,13 +184,14 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
     )
 
     feedObserverRef.current = observer
-
     itemRefs.current.forEach((element) => observer.observe(element))
+
+    const timers = impressionTimersRef.current
 
     return () => {
       observer.disconnect()
-      impressionTimersRef.current.forEach((timer) => clearTimeout(timer))
-      impressionTimersRef.current.clear()
+      timers.forEach((timer) => clearTimeout(timer))
+      timers.clear()
     }
   }, [filteredItems, postSignal, session?.user?.id])
 

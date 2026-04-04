@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { signIn, useSession } from 'next-auth/react'
 import AppLayout from '@/components/AppLayout'
@@ -76,9 +77,9 @@ export default function ContestsPage() {
         }
 
         setContests(nextContests)
-      } catch (error) {
-        console.error(error)
-        setError(error instanceof Error ? error.message : 'Failed to load contests.')
+      } catch (loadError) {
+        console.error(loadError)
+        setError(loadError instanceof Error ? loadError.message : 'Failed to load contests.')
       } finally {
         setLoading(false)
       }
@@ -106,8 +107,8 @@ export default function ContestsPage() {
         }
 
         setWorks(nextWorks)
-      } catch (error) {
-        console.error(error)
+      } catch (loadError) {
+        console.error(loadError)
       }
     }
 
@@ -172,9 +173,9 @@ export default function ContestsPage() {
       setDraftTitle('')
       setDraftDescription('')
       setDraftExcerpt('')
-    } catch (error) {
-      console.error(error)
-      setError(error instanceof Error ? error.message : 'Failed to enter contest.')
+    } catch (submitError) {
+      console.error(submitError)
+      setError(submitError instanceof Error ? submitError.message : 'Failed to enter contest.')
     } finally {
       setSubmitting(null)
     }
@@ -286,7 +287,7 @@ function ContestSection({
   setSelectedWorkId: (value: string) => void
   draftTitle: string
   setDraftTitle: (value: string) => void
-  draftDescription: (value: string) => void
+  draftDescription: string
   setDraftDescription: (value: string) => void
   draftExcerpt: string
   setDraftExcerpt: (value: string) => void
@@ -402,11 +403,7 @@ function ContestSection({
                               </select>
                             </div>
 
-                            <ContestField
-                              label="Title"
-                              value={draftTitle}
-                              onChange={setDraftTitle}
-                            />
+                            <ContestField label="Title" value={draftTitle} onChange={setDraftTitle} />
                             <ContestArea
                               label="Description"
                               value={draftDescription}
@@ -451,7 +448,7 @@ function MetaCard({
   label,
   value,
 }: {
-  icon: React.ReactNode
+  icon: ReactNode
   label: string
   value: string
 }) {
@@ -513,7 +510,11 @@ function ContestArea({
 }
 
 function isEnded(contest: Contest) {
-  return contest.status === 'completed' || contest.status === 'cancelled' || new Date(contest.endDate) < new Date()
+  return (
+    contest.status === 'completed' ||
+    contest.status === 'cancelled' ||
+    new Date(contest.endDate) < new Date()
+  )
 }
 
 function formatPrizeDescription(contest: Contest) {
