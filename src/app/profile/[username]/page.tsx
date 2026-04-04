@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import AppLayout from '@/components/AppLayout'
 import ProfileLayout from '@/components/profile/ProfileLayout'
 import ProfileSidebar from '@/components/profile/ProfileSidebar'
@@ -10,6 +11,7 @@ import BlockGrid from '@/components/profile/BlockGrid'
 
 export default function ProfilePage() {
   const { username } = useParams<{ username: string }>()
+  const { data: session } = useSession()
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -67,8 +69,11 @@ export default function ProfilePage() {
     )
   }
 
-  const { user, works } = data
-  const featuredWork = works?.[0] ?? null
+  const { user, works, profile } = data
+  const featuredWork = profile?.featuredWorkId
+    ? works?.find((w: any) => w.id === profile.featuredWorkId) ?? works?.[0] ?? null
+    : works?.[0] ?? null
+  const isOwner = session?.user?.name === username || session?.user?.email != null && user.id === (session as any)?.user?.id
 
   return (
     <AppLayout>
@@ -99,7 +104,13 @@ export default function ProfilePage() {
             <FeaturedSpace type="none" />
           )
         }
-        blocks={<BlockGrid blocks={[]} />}
+        blocks={
+          <BlockGrid
+            blocks={profile?.blocks ?? []}
+            isOwner={isOwner}
+            onAddBlock={isOwner ? () => window.location.assign('/creator/profile/edit') : undefined}
+          />
+        }
       />
 
       {/* Additional works beyond the featured one */}
