@@ -29,9 +29,9 @@ export const metadata: Metadata = {
     siteName: 'Chapturs',
     images: [
       {
-        url: '/og-image.png',
-        width: 1024,
-        height: 1024,
+        url: '/og-image.jpg',
+        width: 2048,
+        height: 2048,
         alt: 'Chapturs Platform',
       },
     ],
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     card: 'summary',
     title: 'Chapturs',
     description: 'Discover and create amazing webnovels on the platform that combines the best of content discovery and creator monetization.',
-    images: ['/og-image.png'],
+    images: ['/og-image.jpg'],
   },
   robots: {
     index: true,
