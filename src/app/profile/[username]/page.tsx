@@ -67,46 +67,49 @@ export default function ProfilePage() {
     )
   }
 
-  const { user, profile, featuredWork } = data
-
-  // If profile exists but not published
-  if (profile && !profile.isPublished) {
-    return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-100 mb-2">
-              Profile Not Published
-            </h1>
-            <p className="text-gray-400">
-              This creator hasn&apos;t published their profile yet.
-            </p>
-          </div>
-        </div>
-      </AppLayout>
-    )
-  }
+  const { user, works } = data
+  const featuredWork = works?.[0] ?? null
 
   return (
     <AppLayout>
-      {/* User's works list */}
-      {data.works && data.works.length > 0 && (
+      <ProfileLayout
+        sidebar={
+          <ProfileSidebar
+            profileImage={user.avatar || undefined}
+            displayName={user.displayName || user.username}
+            username={user.username}
+            bio={user.bio || undefined}
+            isPremium={user.isPremium}
+          />
+        }
+        featured={
+          featuredWork ? (
+            <FeaturedSpace
+              type="work"
+              workData={{
+                id: featuredWork.id,
+                title: featuredWork.title,
+                coverImage: featuredWork.coverImage || undefined,
+                description: featuredWork.description || '',
+                genres: featuredWork.genres || [],
+                status: featuredWork.status,
+              }}
+            />
+          ) : (
+            <FeaturedSpace type="none" />
+          )
+        }
+        blocks={<BlockGrid blocks={[]} />}
+      />
+
+      {/* Additional works beyond the featured one */}
+      {works && works.length > 1 && (
         <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="flex items-center gap-3 mb-6">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              {user.displayName || user.username}&apos;s Works
-            </h2>
-            {user.isPremium && (
-              <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded-full font-medium">
-                ✦ Premium
-              </span>
-            )}
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              {data.author?.workCount || data.works.length} {data.works.length === 1 ? 'work' : 'works'}
-            </span>
-          </div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+            More from {user.displayName || user.username}
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {data.works.map((work: any) => (
+            {works.slice(1).map((work: any) => (
               <a
                 key={work.id}
                 href={`/story/${work.id}`}
