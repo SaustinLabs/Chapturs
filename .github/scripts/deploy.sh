@@ -126,8 +126,11 @@ if [[ "$CURRENT_NODE_VERSION" -lt "$NODE_VERSION_REQUIRED" ]]; then
 fi
 
 # 4. Install dependencies
+# --include=dev is required: tailwindcss/postcss/autoprefixer are devDependencies
+# but are needed at build time. NODE_ENV=production (from .env.production) would
+# otherwise cause npm to skip them silently.
 echo -e "${YELLOW}Installing npm dependencies...${NC}"
-if npm install; then
+if npm install --include=dev; then
     echo -e "${GREEN}✓ npm install successful${NC}"
 else
     echo -e "${RED}✗ npm install failed${NC}"
