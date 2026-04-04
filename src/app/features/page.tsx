@@ -88,8 +88,9 @@ export default function FeaturesPage() {
             Everything Chapturs can do
           </h1>
           <p className="text-gray-400 max-w-2xl text-lg leading-relaxed">
-            Chapturs is a webnovel platform built for both readers and creators. Here&apos;s a full tour
-            of every feature — from reading controls to the community content ecosystem.
+            Chapturs is a platform for long-form writing of any kind — serial fiction, articles, news,
+            essays, and everything in between — built for both readers and creators. Here&apos;s a full
+            tour of every feature, from reading controls to the community content ecosystem.
           </p>
 
           {/* Jump links */}
@@ -111,18 +112,18 @@ export default function FeaturesPage() {
           id="readers"
           eyebrow="For Readers"
           heading="A reading experience built around you"
-          subheading="Discover stories, build your library, and tell authors exactly what resonates with you."
+          subheading="Discover stories, build your library, and tell authors exactly what resonates with you — whether it's a fantasy novel, a tech essay, or a breaking news piece."
           accent="text-violet-400"
         >
           <FeatureCard
             icon={<SparklesIcon className="w-5 h-5" />}
-            title="Smart Discovery Feed"
-            description="Your home feed learns from your reading patterns and emoji reactions. The more you engage, the more accurately it surfaces stories you'll actually love — from the genres and styles you keep coming back to."
+            title="Intelligent Discovery Feed"
+            description="Your feed is shaped by dozens of signals working together: time spent per chapter, reading completion rates, emojis you leave, stories you like or bookmark, subscriptions, language preferences, your preferred formats, genres you explore, and the ones you skip. It isn't one signal — it's the full picture of how you actually read."
           />
           <FeatureCard
             icon={<FaceSmileIcon className="w-5 h-5" />}
             title="Chapter Reactions"
-            description="Five emoji reactions at the end of every chapter let you express exactly how a moment landed. ❤️ 🔥 😂 😭 🤯 — each one feeds your personal recommendation profile and helps the story get found by readers like you."
+            description="Five emoji reactions at the end of every chapter let you express how a moment landed: ❤️ love it, 🔥 it's lit, 😂 hilarious, 😭 emotional, 🤯 mindblowing. Each reaction feeds into your personal taste profile and helps the platform surface this work to readers with similar reactions."
           />
           <FeatureCard
             icon={<AdjustmentsHorizontalIcon className="w-5 h-5" />}
@@ -152,7 +153,7 @@ export default function FeaturesPage() {
           <FeatureCard
             icon={<ChatBubbleLeftRightIcon className="w-5 h-5" />}
             title="Comments & Threads"
-            description="Leave comments on chapters or reply to threads. Highlight a passage of text while reading and tap 'Comment' to leave an inline note attached to that exact moment in the story."
+            description="Leave comments on chapters or reply to threads. Highlight any passage of text while reading and tap 'Comment' to leave an inline note anchored to that exact moment in the story — or 'Suggest Edit' to propose a correction the author can accept or dismiss."
           />
         </Section>
 
@@ -163,28 +164,34 @@ export default function FeaturesPage() {
           id="creators"
           eyebrow="For Creators"
           heading="Everything you need to build your story"
-          subheading="Write, publish, and grow with tools built specifically for long-form serial fiction."
+          subheading="Publish fiction, articles, essays, and more. Every tool here works just as well for a fantasy novel as it does for a weekly column or a news series."
           accent="text-emerald-400"
         >
           <FeatureCard
             icon={<PencilSquareIcon className="w-5 h-5" />}
-            title="The Chapter Editor"
-            description="A clean rich-text editor with formatting tools, a full chapter list, and a resource sidebar. Chapters save as drafts automatically and can be published immediately or scheduled."
+            title="The Block-based Editor"
+            description="Every chapter is built from blocks: prose paragraphs, headings, scene dividers, images, and more. Blocks support text alignment, font sizing, and pacing animations (fade-in, slide-up, typewriter) that readers see as they scroll. Chapters autosave as drafts and can be published immediately or scheduled. A pre-publish checklist and AI quality assessment run before anything goes live."
+            badge="AI"
+          />
+          <FeatureCard
+            icon={<AdjustmentsHorizontalIcon className="w-5 h-5" />}
+            title="Story Simulation Blocks"
+            description="Tell any kind of story without being limited to plain prose. Drop in a phone screen (iOS or Android) showing a text conversation. Add a Discord, WhatsApp, Telegram, or Slack chat UI. Write screenplay-style dialogue with speaker labels and emotion cues. Add a narrator box. Build interactive branching choices that readers can click through. The editor supports every format — novel, article, comic script, visual novel, interactive fiction."
           />
           <FeatureCard
             icon={<BookOpenIcon className="w-5 h-5" />}
-            title="Glossary System"
-            description="Define every term, place, and concept in your world. Link any word in a chapter to a glossary entry — readers hover over highlighted words while reading to see your definitions without leaving the page."
+            title="Adaptive Glossary"
+            description="Define every term, place, faction, and concept in your world — then link them to any word in any chapter. Readers hover highlighted terms to see your definition inline without leaving the page. Entries can be marked as minor or major spoilers so they stay hidden until the right chapter, and each entry tracks where in the story the term first appears. Your glossary evolves with the story: add more detail to an entry as the truth comes out, and readers who hover early will only see what they're meant to know."
           />
           <FeatureCard
             icon={<UsersIcon className="w-5 h-5" />}
             title="Character Profiles"
-            description="Build profile cards for your cast — name, role, description, appearance, and a portrait. Character profiles are publicly visible on your story page, and readers can submit fan art tagged to specific characters."
+            description="Build profile cards for your cast: name, aliases, role, description, appearance, and a portrait. Characters can be set to only appear on the story page from a specific chapter onward — keeping late-arriving characters or secret identities hidden until you're ready to reveal them. Profiles are publicly visible once unlocked, and readers can submit fan art tagged directly to a character."
           />
           <FeatureCard
             icon={<SparklesIcon className="w-5 h-5" />}
-            title="AI Story Summary"
-            description="After your first chapter is published, an AI-generated reader hook appears on your story's main page — written from a reader's perspective to help new visitors decide if the story is for them. Updates as your chapter count grows."
+            title="AI Quality Assessment"
+            description="Every chapter you publish is scored across six dimensions — writing quality, storytelling, characterization, world-building, engagement, and originality — and given a quality tier. Strong and exceptional chapters receive a visibility boost in the discovery system. You also get an AI-generated reader-facing hook for your story page, written to help first-time visitors decide if it's for them."
             badge="AI"
           />
           <FeatureCard
@@ -201,6 +208,11 @@ export default function FeaturesPage() {
             icon={<ChartBarIcon className="w-5 h-5" />}
             title="Analytics Dashboard"
             description="Track views, reads, chapter completion rates, subscriber growth, and reaction breakdowns. Understand which chapters land hardest and where readers drop off."
+          />
+          <FeatureCard
+            icon={<PhotoIcon className="w-5 h-5" />}
+            title="Creator Profile — Block System"
+            description="Your public creator profile is a three-panel canvas. The left sidebar holds your photo and bio (Markdown supported). The center features a work or a custom block — embed a YouTube video, for example, as the hero of your page instead of a book cover. The right side is a drag-and-drop grid of blocks you choose: work cards, YouTube channel, Twitch stream, Twitter feed, Discord server invite, external links, favourite author shoutouts, and support/donation prompts."
           />
         </Section>
 
@@ -242,7 +254,7 @@ export default function FeaturesPage() {
           <FeatureCard
             icon={<UsersIcon className="w-5 h-5" />}
             title="Reader Profiles"
-            description="Every reader has a public profile showing their featured comment count, premium status, and reading activity. A profile is a way for regular contributors and dedicated fans to be recognised."
+            description="Every reader has a public profile showing their featured comment count and premium status. Readers who have had comments featured by authors earn a visible badge — it's a way for dedicated community members to be recognised across the platform. Profiles also support the same block system as creator profiles, so readers can link their social channels, YouTube, Twitch, or anything else."
           />
         </Section>
 
