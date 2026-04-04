@@ -21,8 +21,6 @@ export async function maybeTriggerCumulativeReview(
   if (!MILESTONES.includes(publishedCount)) return
 
   try {
-    console.log(`[CUMULATIVE] Milestone ${publishedCount} chapters — generating review for work ${workId}`)
-
     // Find the quality assessment for this work (keyed on first section)
     const assessment = await prisma.qualityAssessment.findFirst({
       where: { workId },
@@ -33,6 +31,24 @@ export async function maybeTriggerCumulativeReview(
       console.warn('[CUMULATIVE] No QualityAssessment found for work, skipping:', workId)
       return
     }
+
+    // Bulk-upload guard: skip if a review was generated in the last 30 minutes.
+    // This collapses rapid multi-chapter publishes into a single LLM call — the
+    // cooldown naturally expires and the next milestone (or a manual trigger) will
+    // regenerate once the bulk upload has settled.
+    if (assessment.cumulativeReviewUpdatedAt) {
+      const minutesSinceLast =
+        (Date.now() - assessment.cumulativeReviewUpdatedAt.getTime()) / 60_000
+      if (minutesSinceLast < 30) {
+        console.log(
+          `[CUMULATIVE] Skipping milestone ${publishedCount} for work ${workId}` +
+          ` — review generated ${minutesSinceLast.toFixed(0)}m ago (30m cooldown)`
+        )
+        return
+      }
+    }
+
+    console.log(`[CUMULATIVE] Milestone ${publishedCount} chapters — generating review for work ${workId}`)
 
     // Fetch work metadata + first published section content
     const work = await prisma.work.findUnique({
