@@ -125,29 +125,35 @@ async function getFallbackFeed(limit: number, offset: number, userId?: string) {
     }
   }
 
-  const works = await prisma.work.findMany({
-    where: { 
-      status: { in: ['published', 'ongoing', 'completed'] }
-    },
-    include: { 
-      author: { 
-        include: { user: true } 
+  let works: any[] = []
+  try {
+    works = await prisma.work.findMany({
+      where: { 
+        status: { in: ['published', 'ongoing', 'completed'] }
       },
-      _count: {
-        select: {
-          bookmarks: true,
-          likes: true,
-          sections: true
+      include: { 
+        author: { 
+          include: { user: true } 
+        },
+        _count: {
+          select: {
+            bookmarks: true,
+            likes: true,
+            sections: true
+          }
         }
-      }
-    },
-    orderBy: [
-      { updatedAt: 'desc' },
-      { createdAt: 'desc' }
-    ],
-    skip: offset,
-    take: limit
-  })
+      },
+      orderBy: [
+        { updatedAt: 'desc' },
+        { createdAt: 'desc' }
+      ],
+      skip: offset,
+      take: limit
+    })
+  } catch (err) {
+    console.error('[getFallbackFeed] prisma.work.findMany failed:', err)
+    return []
+  }
 
   const safeJsonParse = (str: string | null | undefined, fallback: any) => {
     try { return str ? JSON.parse(str) : fallback } catch { return fallback }

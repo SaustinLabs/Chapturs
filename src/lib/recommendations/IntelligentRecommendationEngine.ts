@@ -89,7 +89,12 @@ export class IntelligentRecommendationEngine {
       
     } catch (error) {
       console.error('Failed to generate personalized recommendations:', error)
-      return this.getFallbackRecommendations(limit)
+      try {
+        return await this.getFallbackRecommendations(limit)
+      } catch (fallbackError) {
+        console.error('getFallbackRecommendations also failed:', fallbackError)
+        return []
+      }
     }
   }
   
@@ -598,7 +603,15 @@ export class IntelligentRecommendationEngine {
       include: { work: { include: { author: { include: { user: true } }, _count: { select: { likes: true, bookmarks: true, sections: true } } } } }
     })
     
-    return likes.map((like: any) => this.transformWorkForFeed(like.work) as Work)
+    const results: Work[] = []
+    for (const like of likes) {
+      try {
+        results.push(this.transformWorkForFeed(like.work) as Work)
+      } catch {
+        // skip likes with deleted/invalid work or author
+      }
+    }
+    return results
   }
   
   private static calculateContentSimilarity(work1: Work, work2: Work): number {
