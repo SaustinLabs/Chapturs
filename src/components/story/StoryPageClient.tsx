@@ -19,6 +19,7 @@ import {
 import Image from 'next/image'
 import { resolveCoverSrc } from '@/lib/images'
 import StoryPageSkeleton from '@/components/ui/StoryPageSkeleton'
+import RateWorkModal from '@/components/RateWorkModal'
 
 interface StoryPageClientProps {
   /** Work data pre-fetched by the Server Component. When provided, skips the
@@ -34,7 +35,7 @@ interface FeaturedComment {
   id: string
   content: string
   user: { id: string; username: string; displayName: string | null; avatar: string | null }
-  section: { id: string; title: string; order: number } | null
+  section: { id: string; title: string; chapterNumber: number | null } | null
   featuredAt: string | null
 }
 
@@ -57,6 +58,7 @@ export default function StoryPageClient({ initialWork, aiReview, featuredComment
   const [error, setError] = useState<string | null>(null)
   const [featuredComments] = useState<FeaturedComment[]>(initialFeaturedComments)
   const [featuredIdx, setFeaturedIdx] = useState(0)
+  const [showRateModal, setShowRateModal] = useState(false)
 
   // Auto-advance featured comments carousel every 6 seconds
   useEffect(() => {
@@ -462,15 +464,22 @@ export default function StoryPageClient({ initialWork, aiReview, featuredComment
                     <div className="text-sm text-gray-500 dark:text-gray-400">Bookmarks</div>
                   </div>
                   <div className="text-center">
-                    <div className="flex items-center justify-center space-x-1">
-                      <StarIcon className="w-5 h-5 text-yellow-400 fill-current" />
-                      <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                        {stats.averageRating.toFixed(1)}
+                    <button
+                      onClick={() => session?.user?.id && setShowRateModal(true)}
+                      title={session?.user?.id ? 'Rate this work' : 'Sign in to rate'}
+                      className="group flex items-center justify-center space-x-1 focus:outline-none"
+                    >
+                      <StarIcon className="w-5 h-5 text-yellow-400 fill-current group-hover:scale-110 transition-transform" />
+                      <span className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-yellow-500 transition-colors">
+                        {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '—'}
                       </span>
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      ({stats.ratingCount} ratings)
-                    </div>
+                    </button>
+                    <button
+                      onClick={() => session?.user?.id && setShowRateModal(true)}
+                      className="text-sm text-gray-500 dark:text-gray-400 hover:text-violet-500 dark:hover:text-violet-400 transition-colors"
+                    >
+                      {stats.ratingCount > 0 ? `${stats.ratingCount} ratings` : 'Rate this'}
+                    </button>
                   </div>
                 </div>
 
@@ -565,6 +574,30 @@ export default function StoryPageClient({ initialWork, aiReview, featuredComment
           </div>
         </div>
       </div>
+
+      {story && (
+        <RateWorkModal
+          isOpen={showRateModal}
+          onClose={() => setShowRateModal(false)}
+          workId={story.id}
+          workTitle={story.title}
+          onSuccess={(average, total) => {
+            // Optimistically update displayed stats
+            setStory((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    statistics: {
+                      ...(prev as any).statistics,
+                      averageRating: average,
+                      ratingCount: total,
+                    },
+                  } as any
+                : prev
+            )
+          }}
+        />
+      )}
     </>
   )
 }

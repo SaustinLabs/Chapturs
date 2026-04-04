@@ -3,6 +3,8 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '../../../../auth'
 import DatabaseService from '@/lib/database/PrismaService'
+import { prisma } from '@/lib/database/PrismaService'
+import { createNotification } from '@/lib/notifications'
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,6 +21,36 @@ export async function POST(request: NextRequest) {
 
     // Toggle like
     const isLiked = await DatabaseService.toggleLike(workId, session.user.id)
+
+    // Fire-and-forget: notify work author when a new like is added
+    if (isLiked) {
+      ;(async () => {
+        try {
+          const work = await prisma.work.findUnique({
+            where: { id: workId },
+            select: {
+              title: true,
+              author: { select: { userId: true } },
+            },
+          })
+          if (!work || work.author.userId === session.user.id) return
+
+          const liker = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { displayName: true, username: true },
+          })
+          const likerName = liker?.displayName ?? liker?.username ?? 'A reader'
+
+          await createNotification({
+            userId: work.author.userId,
+            type: 'new_like',
+            title: 'New like',
+            message: `${likerName} liked your work "${work.title}"`,
+            url: `/story/${workId}`,
+          })
+        } catch {}
+      })()
+    }
     
     return NextResponse.json({ 
       success: true, 

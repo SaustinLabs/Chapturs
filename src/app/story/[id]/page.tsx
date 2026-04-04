@@ -81,7 +81,7 @@ export default async function StoryPage({ params }: Props) {
       content: true,
       featuredAt: true,
       user: { select: { id: true, username: true, displayName: true, avatar: true } },
-      section: { select: { id: true, title: true, order: true } },
+      section: { select: { id: true, title: true, chapterNumber: true } },
     },
   })
 

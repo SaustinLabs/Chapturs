@@ -3,6 +3,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
 import { auth } from '@/auth-edge'
+import { createNotification } from '@/lib/notifications'
 
 // PATCH /api/comments/[id] - Update comment
 export async function PATCH(
@@ -153,6 +154,23 @@ export async function PATCH(
             where: { id: comment.userId },
             data: { featuredCommentCount: { increment: 1 } }
           })
+
+          // Notify the commenter that their comment was featured
+          ;(async () => {
+            try {
+              const work = await prisma.work.findUnique({
+                where: { id: comment.workId },
+                select: { title: true },
+              })
+              await createNotification({
+                userId: comment.userId,
+                type: 'new_like',
+                title: '⭐ Your comment was featured!',
+                message: `An author featured your comment in "${work?.title ?? 'a story'}"`,
+                url: `/story/${comment.workId}`,
+              })
+            } catch {}
+          })()
         } else if (!isFeatured && wasAlreadyFeatured) {
           await prisma.user.update({
             where: { id: comment.userId },
