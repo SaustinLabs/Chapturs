@@ -79,6 +79,9 @@ model User {
   collaborations          WorkCollaborator[]
   collaborationActivities CollaborationActivity[]
 
+  // Featured comment recognition
+  featuredCommentCount Int @default(0)
+
   // In-app notifications
   notifications Notification[]
 
@@ -1332,10 +1335,12 @@ model Comment {
   textEnd         Int?
   highlightedText String? @db.Text
 
-  isEdited Boolean   @default(false)
-  isPinned Boolean   @default(false)
-  isHidden Boolean   @default(false)
-  editedAt DateTime?
+  isEdited    Boolean   @default(false)
+  isPinned    Boolean   @default(false)
+  isHidden    Boolean   @default(false)
+  isFeatured  Boolean   @default(false)
+  editedAt    DateTime?
+  featuredAt  DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

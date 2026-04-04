@@ -71,6 +71,20 @@ export default async function StoryPage({ params }: Props) {
     (sections.length < 5 ? qa?.earlyReview : null) ||
     null
 
+  // Fetch featured comments for the story page carousel
+  const featuredComments = await prisma.comment.findMany({
+    where: { workId: id, isFeatured: true, isHidden: false, parentId: null },
+    orderBy: { featuredAt: 'desc' },
+    take: 10,
+    select: {
+      id: true,
+      content: true,
+      featuredAt: true,
+      user: { select: { id: true, username: true, displayName: true, avatar: true } },
+      section: { select: { id: true, title: true, order: true } },
+    },
+  })
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Book',
@@ -100,7 +114,7 @@ export default async function StoryPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <StoryPageClient initialWork={work as any} aiReview={aiReview} />
+      <StoryPageClient initialWork={work as any} aiReview={aiReview} featuredComments={featuredComments as any} />
     </AppLayout>
   )
 }

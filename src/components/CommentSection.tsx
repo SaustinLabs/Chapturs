@@ -12,13 +12,16 @@ interface CommentSectionProps {
   sectionId?: string
   canComment: boolean
   currentUserId?: string
+  /** Whether the current viewer is the work's author. Enables Feature/Pin/Hide controls. */
+  isCreator?: boolean
 }
 
 export default function CommentSection({
   workId,
   sectionId,
   canComment,
-  currentUserId
+  currentUserId,
+  isCreator = false,
 }: CommentSectionProps) {
   const [comments, setComments] = useState<Comment[]>([])
   const [loading, setLoading] = useState(true)
@@ -26,8 +29,7 @@ export default function CommentSection({
   const [hasMore, setHasMore] = useState(false)
   const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [loadingMore, setLoadingMore] = useState(false)
-  // For now, let backend handle authorization. UI will show moderation actions based on API responses
-  const isCreator = false
+  // isCreator comes in from the parent (chapter/story page). Previously hardcoded false.
 
   const fetchComments = async (cursor?: string) => {
     try {

@@ -16,7 +16,9 @@ export interface Comment {
   isEdited: boolean
   isPinned: boolean
   isHidden: boolean
+  isFeatured: boolean
   editedAt: string | null
+  featuredAt: string | null
   createdAt: string
   updatedAt: string
   user: CommentUser

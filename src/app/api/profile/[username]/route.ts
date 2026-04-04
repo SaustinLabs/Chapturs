@@ -27,6 +27,7 @@ export async function GET(request: Request, props: RouteParams) {
         bio: true,
         createdAt: true,
         isPremium: true,
+        featuredCommentCount: true,
       }
     })
 
@@ -118,6 +119,7 @@ export async function GET(request: Request, props: RouteParams) {
         bio: user.bio,
         createdAt: user.createdAt,
         isPremium: user.isPremium,
+        featuredCommentCount: user.featuredCommentCount,
       },
       author: author ? {
         id: author.id,

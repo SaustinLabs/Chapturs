@@ -39,7 +39,7 @@ export async function PATCH(
     }
 
     const body = await request.json()
-    const { content, isPinned, isHidden } = body
+    const { content, isPinned, isHidden, isFeatured } = body
 
     // Handle content update (only by comment author within 5 minutes)
     if (content !== undefined) {
@@ -101,8 +101,8 @@ export async function PATCH(
       })
     }
 
-    // Handle pin/hide operations (only by work creator)
-    if (isPinned !== undefined || isHidden !== undefined) {
+    // Handle pin/hide/feature operations (only by work creator)
+    if (isPinned !== undefined || isHidden !== undefined || isFeatured !== undefined) {
       // Check if user is the work creator
       const user = await prisma.user.findUnique({
         where: { id: session.user.id },
@@ -124,6 +124,10 @@ export async function PATCH(
       const updateData: any = {}
       if (isPinned !== undefined) updateData.isPinned = isPinned
       if (isHidden !== undefined) updateData.isHidden = isHidden
+      if (isFeatured !== undefined) {
+        updateData.isFeatured = isFeatured
+        updateData.featuredAt = isFeatured ? new Date() : null
+      }
 
       const updatedComment = await prisma.comment.update({
         where: { id },
@@ -140,6 +144,22 @@ export async function PATCH(
           likes: true
         }
       })
+
+      // Update commenter's featuredCommentCount when featuring/unfeaturing
+      if (isFeatured !== undefined) {
+        const wasAlreadyFeatured = comment.isFeatured
+        if (isFeatured && !wasAlreadyFeatured) {
+          await prisma.user.update({
+            where: { id: comment.userId },
+            data: { featuredCommentCount: { increment: 1 } }
+          })
+        } else if (!isFeatured && wasAlreadyFeatured) {
+          await prisma.user.update({
+            where: { id: comment.userId },
+            data: { featuredCommentCount: { decrement: 1 } }
+          })
+        }
+      }
 
       return NextResponse.json({
         comment: {

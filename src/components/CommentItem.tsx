@@ -20,6 +20,7 @@ import ReportModal from './ReportModal'
 import EmojiPicker from './EmojiPicker'
 import type { Comment, CommentUser } from '@/types/comment'
 import { measureTextRows } from '@/hooks/usePretext'
+import { Tooltip } from '@/components/ui/Tooltip'
 
 interface CommentItemProps {
   comment: Comment
@@ -174,6 +175,27 @@ export default function CommentItem({
     }
   }
 
+  const handleFeature = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/comments/${comment.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isFeatured: !comment.isFeatured })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        onCommentUpdated(data.comment)
+      }
+    } catch (error) {
+      console.error('Error featuring comment:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handlePin = async () => {
     setLoading(true)
     try {
@@ -247,6 +269,9 @@ export default function CommentItem({
                 {comment.isPinned && (
                   <Pin className="w-4 h-4 text-blue-600" />
                 )}
+                {comment.isFeatured && (
+                  <Sparkles className="w-4 h-4 text-amber-500" aria-label="Featured comment" />
+                )}
               </div>
               <span className="text-xs text-gray-500">
                 {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
@@ -293,6 +318,19 @@ export default function CommentItem({
                   )}
                   {canModerate && (
                     <>
+                      <Tooltip content="Showcase this comment on the story's main page. The commenter earns a '✦ featured comments' badge on their profile." side="top">
+                      <button
+                        onClick={() => {
+                          handleFeature()
+                          setShowMenu(false)
+                        }}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-amber-600 hover:bg-amber-50"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        {comment.isFeatured ? 'Unfeature' : 'Feature'}
+                      </button>
+                      </Tooltip>
+                      <Tooltip content="Float this comment to the top of this chapter's comment section." side="top">
                       <button
                         onClick={() => {
                           handlePin()
@@ -303,6 +341,8 @@ export default function CommentItem({
                         <Pin className="w-4 h-4" />
                         {comment.isPinned ? 'Unpin' : 'Pin'}
                       </button>
+                      </Tooltip>
+                      <Tooltip content={comment.isHidden ? 'Make this comment visible again to all readers.' : 'Hide this comment from readers without deleting it. Only you can see it\'s been hidden.'} side="top">
                       <button
                         onClick={() => {
                           handleHide()
@@ -322,6 +362,7 @@ export default function CommentItem({
                           </>
                         )}
                       </button>
+                      </Tooltip>
                     </>
                   )}
                   {!isOwner && (

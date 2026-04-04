@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Work } from '@/types'
@@ -26,9 +26,19 @@ interface StoryPageClientProps {
   initialWork?: Work | null
   /** AI-generated reader summary (earlyReview or cumulativeReview). */
   aiReview?: string | null
+  /** Pre-fetched featured comments for the story page carousel. */
+  featuredComments?: FeaturedComment[]
 }
 
-export default function StoryPageClient({ initialWork, aiReview }: StoryPageClientProps) {
+interface FeaturedComment {
+  id: string
+  content: string
+  user: { id: string; username: string; displayName: string | null; avatar: string | null }
+  section: { id: string; title: string; order: number } | null
+  featuredAt: string | null
+}
+
+export default function StoryPageClient({ initialWork, aiReview, featuredComments: initialFeaturedComments = [] }: StoryPageClientProps) {
   const params = useParams()
   const router = useRouter()
   const storyId = params?.id as string
@@ -45,6 +55,17 @@ export default function StoryPageClient({ initialWork, aiReview }: StoryPageClie
   // If initialWork is provided, skip loading state — data is ready immediately
   const [loading, setLoading] = useState(!initialWork)
   const [error, setError] = useState<string | null>(null)
+  const [featuredComments] = useState<FeaturedComment[]>(initialFeaturedComments)
+  const [featuredIdx, setFeaturedIdx] = useState(0)
+
+  // Auto-advance featured comments carousel every 6 seconds
+  useEffect(() => {
+    if (featuredComments.length <= 1) return
+    const timer = setInterval(() => {
+      setFeaturedIdx(i => (i + 1) % featuredComments.length)
+    }, 6000)
+    return () => clearInterval(timer)
+  }, [featuredComments.length])
 
   useEffect(() => {
     const fetchStoryData = async () => {
@@ -340,6 +361,59 @@ export default function StoryPageClient({ initialWork, aiReview }: StoryPageClie
                       {aiReview}
                     </p>
                     <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">AI summary</p>
+                  </div>
+                )}
+
+                {/* Featured Comments Carousel */}
+                {featuredComments.length > 0 && (
+                  <div className="mb-5">
+                    <div className="relative overflow-hidden rounded-lg border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/10 px-4 py-3">
+                      <div className="flex items-start gap-3">
+                        <span className="text-amber-500 mt-0.5 shrink-0" aria-label="Featured comment">✦</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed line-clamp-3">
+                            &ldquo;{featuredComments[featuredIdx].content}&rdquo;
+                          </p>
+                          <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">
+                            <span className="font-medium">
+                              {featuredComments[featuredIdx].user.displayName || featuredComments[featuredIdx].user.username}
+                            </span>
+                            {featuredComments[featuredIdx].section && (
+                              <>
+                                <span>·</span>
+                                <span>{featuredComments[featuredIdx].section!.title}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        {featuredComments.length > 1 && (
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              onClick={() => setFeaturedIdx(i => (i - 1 + featuredComments.length) % featuredComments.length)}
+                              className="p-1 rounded hover:bg-amber-100 dark:hover:bg-amber-800/30 text-amber-600"
+                              aria-label="Previous featured comment"
+                            >‹</button>
+                            <button
+                              onClick={() => setFeaturedIdx(i => (i + 1) % featuredComments.length)}
+                              className="p-1 rounded hover:bg-amber-100 dark:hover:bg-amber-800/30 text-amber-600"
+                              aria-label="Next featured comment"
+                            >›</button>
+                          </div>
+                        )}
+                      </div>
+                      {featuredComments.length > 1 && (
+                        <div className="flex justify-center gap-1 mt-2">
+                          {featuredComments.map((_, i) => (
+                            <button
+                              key={i}
+                              onClick={() => setFeaturedIdx(i)}
+                              className={`w-1.5 h-1.5 rounded-full transition-colors ${i === featuredIdx ? 'bg-amber-500' : 'bg-amber-300 dark:bg-amber-700'}`}
+                              aria-label={`Go to comment ${i + 1}`}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 

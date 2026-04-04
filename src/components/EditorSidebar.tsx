@@ -13,6 +13,7 @@ import {
   FileText
 } from 'lucide-react'
 import { ChaptDocument } from '@/types/chapt'
+import { FeatureHint } from '@/components/ui/FeatureHint'
 
 interface Chapter {
   id: string
@@ -207,8 +208,14 @@ export default function EditorSidebar({
                 : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
-            <BookOpen size={16} className="inline mr-1" />
-            Glossary
+            <span className="inline-flex items-center gap-1">
+              <BookOpen size={16} className="inline" />
+              Glossary
+              <FeatureHint title="About the Glossary">
+                <p>Define terms, places, and concepts from your world. When you highlight a word in a chapter and link it to a glossary entry, readers can hover over it while reading to see your definition.</p>
+                <p>A powerful way to build immersion without breaking the flow of your story.</p>
+              </FeatureHint>
+            </span>
           </button>
           <button
             onClick={() => setActiveTab('characters')}
@@ -218,8 +225,14 @@ export default function EditorSidebar({
                 : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
-            <Users size={16} className="inline mr-1" />
-            Characters
+            <span className="inline-flex items-center gap-1">
+              <Users size={16} className="inline" />
+              Characters
+              <FeatureHint title="About Characters">
+                <p>Create profile cards for your cast — name, role, appearance, and portrait. Character profiles are visible on your story page so readers always know who's who.</p>
+                <p>You can also tag characters within a chapter, and readers can submit fan art linked to specific characters.</p>
+              </FeatureHint>
+            </span>
           </button>
           <button
             onClick={() => setActiveTab('preview')}

@@ -91,6 +91,7 @@ export default function ProfilePage() {
             username={user.username}
             bio={profile?.bio || user.bio || undefined}
             isPremium={user.isPremium}
+            featuredCommentCount={user.featuredCommentCount ?? 0}
           />
         }
         featured={

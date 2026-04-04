@@ -11,6 +11,7 @@ interface ProfileSidebarProps {
   bio?: string
   isOwner?: boolean
   isPremium?: boolean
+  featuredCommentCount?: number
   onEdit?: () => void
 }
 
@@ -26,6 +27,7 @@ export default function ProfileSidebar({
   bio,
   isOwner = false,
   isPremium = false,
+  featuredCommentCount = 0,
   onEdit
 }: ProfileSidebarProps) {
   return (
@@ -69,6 +71,11 @@ export default function ProfileSidebar({
           {isPremium && (
             <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded-full font-medium">
               ✦ Premium
+            </span>
+          )}
+          {featuredCommentCount > 0 && (
+            <span className="inline-flex items-center gap-1 text-xs bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400 px-1.5 py-0.5 rounded-full font-medium" title="Comments featured by story authors">
+              ✦ {featuredCommentCount >= 50 ? '50+' : featuredCommentCount} featured {featuredCommentCount === 1 ? 'comment' : 'comments'}
             </span>
           )}
         </div>

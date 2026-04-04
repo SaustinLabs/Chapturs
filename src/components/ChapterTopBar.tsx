@@ -16,6 +16,7 @@ import LanguageSelectorMenu from './LanguageSelectorMenu'
 import AudiobookSelectorMenu from './AudiobookSelectorMenu'
 import TranslationSubmissionForm from './TranslationSubmissionForm'
 import AudiobookSubmissionForm from './AudiobookSubmissionForm'
+import { Tooltip } from '@/components/ui/Tooltip'
 
 interface ChapterTopBarProps {
   workId: string
@@ -62,6 +63,7 @@ export default function ChapterTopBar({
           <div className="flex items-center space-x-2">
             {/* Language Selector */}
             <div className="relative">
+              <Tooltip content="Read this chapter in another language. Community translators submit translations with the author's approval." side="bottom">
               <button
                 onClick={() => {
                   setShowLanguageMenu(!showLanguageMenu)
@@ -80,6 +82,7 @@ export default function ChapterTopBar({
                   {targetLanguage?.toUpperCase() || 'EN'}
                 </span>
               </button>
+              </Tooltip>
 
               {showLanguageMenu && (
                 <LanguageSelectorMenu
@@ -96,6 +99,7 @@ export default function ChapterTopBar({
 
             {/* Audio Toggle */}
             <div className="relative">
+              <Tooltip content="Listen to a fan-narrated audiobook of this chapter. Authors can approve reader-submitted recordings." side="bottom">
               <button
                 onClick={() => {
                   setShowAudiobookMenu(!showAudiobookMenu)
@@ -114,6 +118,7 @@ export default function ChapterTopBar({
                   <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-blue-500" />
                 )}
               </button>
+              </Tooltip>
 
               {showAudiobookMenu && (
                 <AudiobookSelectorMenu
@@ -134,6 +139,7 @@ export default function ChapterTopBar({
           {/* Right section: Subscribe, Bookmark, Like, More */}
           <div className="flex items-center space-x-2">
             {/* Subscribe */}
+            <Tooltip content="Get notified when new chapters drop. Subscriptions also help the author understand their readership." side="bottom">
             <button
               onClick={onSubscribe}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
@@ -144,8 +150,10 @@ export default function ChapterTopBar({
             >
               {isSubscribed ? 'Subscribed' : 'Subscribe'}
             </button>
+            </Tooltip>
 
             {/* Bookmark */}
+            <Tooltip content="Save to your private reading list. Bookmarks are never visible to the author." side="bottom">
             <button
               onClick={onBookmark}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -157,8 +165,10 @@ export default function ChapterTopBar({
                 <BookmarkOutline className="w-5 h-5 text-gray-400" />
               )}
             </button>
+            </Tooltip>
 
             {/* Like */}
+            <Tooltip content="Show the author you love their work. Likes also help surface this story to new readers." side="bottom">
             <button
               onClick={onLike}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -170,6 +180,7 @@ export default function ChapterTopBar({
                 <HeartOutline className="w-5 h-5 text-gray-400" />
               )}
             </button>
+            </Tooltip>
 
             {/* More Menu */}
             <div className="relative">
@@ -193,6 +204,7 @@ export default function ChapterTopBar({
                       setShowMoreMenu(false)
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    title="Translate a chapter and earn a share of its ad revenue once the author approves your submission."
                   >
                     📝 Submit Translation
                   </button>
@@ -202,6 +214,7 @@ export default function ChapterTopBar({
                       setShowMoreMenu(false)
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    title="Record a narration and submit it for the author's approval. Earn a share of ad revenue from your approved recording."
                   >
                     🎙️ Submit Audiobook
                   </button>

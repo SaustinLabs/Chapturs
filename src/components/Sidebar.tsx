@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useSession, signIn, signOut } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
-import { 
-  BookOpenIcon, 
-  HomeIcon, 
+import {
+  BookOpenIcon,
+  HomeIcon,
   MagnifyingGlassIcon,
   UserIcon,
   PencilIcon,
@@ -16,7 +16,8 @@ import {
   BookmarkIcon,
   DocumentTextIcon,
   PhotoIcon,
-  CurrencyDollarIcon
+  CurrencyDollarIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline'
 import NotificationBell from './NotificationBell'
 
@@ -56,6 +57,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
     { icon: BookOpenIcon, label: 'Subscriptions', href: '/subscriptions' },
     { icon: MagnifyingGlassIcon, label: 'Search', href: '/search' },
     { icon: CogIcon, label: 'Settings', href: '/reader/settings' },
+    { icon: SparklesIcon, label: 'Features', href: '/features' },
     { icon: UserIcon, label: 'Profile', href: username ? `/profile/${username}` : '/auth/signin' },
   ]
 

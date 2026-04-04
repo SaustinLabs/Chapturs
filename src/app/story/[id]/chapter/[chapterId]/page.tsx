@@ -1346,6 +1346,7 @@ export default function ChapterPage() {
                 sectionId={chapterId}
                 canComment={Boolean(session?.user?.id)}
                 currentUserId={session?.user?.id}
+                isCreator={Boolean(session?.user?.id && (work as any)?.author?.user?.id === session.user.id)}
               />
             </div>
           </>

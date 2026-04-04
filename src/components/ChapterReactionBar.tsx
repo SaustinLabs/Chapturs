@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import { Tooltip } from '@/components/ui/Tooltip'
 
 const EMOJIS = ['❤️', '🔥', '😂', '😭', '🤯'] as const
 
@@ -88,9 +89,14 @@ export default function ChapterReactionBar({ workId, sectionId }: ChapterReactio
   return (
     <div className="flex flex-col items-center gap-2 py-4">
       {/* Reaction label */}
-      <p className="text-xs text-gray-400 dark:text-gray-500 tracking-wide uppercase">
-        React to this chapter
-      </p>
+      <Tooltip
+        content="Your reactions help us find more stories you'll enjoy — and surface this one to other readers like you."
+        side="top"
+      >
+        <p className="text-xs text-gray-400 dark:text-gray-500 tracking-wide uppercase cursor-default">
+          React to this chapter
+        </p>
+      </Tooltip>
 
       {/* Emoji buttons */}
       <div className="flex items-center gap-2 flex-wrap justify-center">
