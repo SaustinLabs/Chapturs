@@ -56,6 +56,7 @@ interface QualityAssessment {
   }
   discoveryTags: string[]
   feedbackMessage: string
+  earlyReview: string | null
   boostMultiplier: number
   boostExpiry: string | null
   createdAt: string

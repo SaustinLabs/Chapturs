@@ -19,6 +19,7 @@ interface QualityAssessmentResult {
   }
   discoveryTags: string[]
   feedbackMessage: string | null
+  earlyReview: string | null
   boostMultiplier: number
   boostExpiry: string | null
   createdAt: string
@@ -176,6 +177,18 @@ export default function QualityCelebration({ workId, sectionId, onClose }: Quali
               <Lightbulb className="text-blue-500 flex-shrink-0 mt-1" size={20} />
               <p className="text-gray-700 dark:text-gray-300">{assessment.feedbackMessage}</p>
             </div>
+          </div>
+        )}
+
+        {/* Reader blurb preview */}
+        {assessment.earlyReview && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+              How your story appears to readers
+            </div>
+            <p className="text-sm text-gray-700 dark:text-gray-300 italic leading-relaxed">
+              {assessment.earlyReview}
+            </p>
           </div>
         )}
 
