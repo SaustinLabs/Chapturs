@@ -14,6 +14,73 @@ interface RouteParams {
   }>
 }
 
+// GET /api/works/[id]/sections/[sectionId] - Fetch a single section with full content
+export async function GET(request: NextRequest, props: RouteParams) {
+  const params = await props.params
+  try {
+    const { id: workId, sectionId } = params
+
+    const section = await prisma.section.findFirst({
+      where: { id: sectionId, workId }
+    })
+
+    if (!section) {
+      return NextResponse.json({ error: 'Section not found' }, { status: 404 })
+    }
+
+    // Only published sections are publicly accessible; authors can read drafts
+    if (section.status !== 'published') {
+      const session = await auth()
+      if (!session?.user?.id) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+      const author = await prisma.author.findFirst({
+        where: { userId: session.user.id },
+        select: { id: true }
+      })
+      const work = await prisma.work.findUnique({
+        where: { id: workId },
+        select: { authorId: true }
+      })
+      if (!author || !work || author.id !== work.authorId) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+      }
+    }
+
+    let content: any
+    try {
+      content = typeof section.content === 'string' ? JSON.parse(section.content) : section.content
+    } catch {
+      content = section.content
+    }
+
+    const payload = {
+      id: section.id,
+      workId: section.workId,
+      title: section.title,
+      chapterNumber: 1,
+      orderIndex: 0,
+      content,
+      wordCount: section.wordCount || 0,
+      estimatedReadTime: Math.ceil((section.wordCount || 0) / 200),
+      publishedAt: section.publishedAt?.toISOString(),
+      isPublished: section.status === 'published',
+      status: section.status,
+    }
+
+    const response = NextResponse.json({ success: true, section: payload })
+    // Published chapters are immutable public content — cache heavily at the edge
+    if (section.status === 'published') {
+      response.headers.set('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=3600')
+    }
+    return response
+
+  } catch (error) {
+    console.error('Section fetch error:', error)
+    return NextResponse.json({ error: 'Failed to fetch section' }, { status: 500 })
+  }
+}
+
 // PATCH /api/works/[id]/sections/[sectionId] - Update existing section
 export async function PATCH(request: NextRequest, props: RouteParams) {
   const params = await props.params

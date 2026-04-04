@@ -90,6 +90,26 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Batch-annotate bookmark/like status so FeedCard doesn't need per-card API calls
+    if (session?.user?.id && feedItems.length > 0) {
+      try {
+        const workIds = feedItems.map((item: any) => item.work?.id).filter(Boolean)
+        const [bookmarks, likes] = await Promise.all([
+          prisma.bookmark.findMany({ where: { userId: session.user.id, workId: { in: workIds } }, select: { workId: true } }),
+          prisma.like.findMany({ where: { userId: session.user.id, workId: { in: workIds } }, select: { workId: true } })
+        ])
+        const bookmarkedIds = new Set(bookmarks.map((b: any) => b.workId))
+        const likedIds = new Set(likes.map((l: any) => l.workId))
+        feedItems = feedItems.map((item: any) => ({
+          ...item,
+          bookmark: bookmarkedIds.has(item.work?.id),
+          liked: likedIds.has(item.work?.id)
+        }))
+      } catch (e) {
+        // non-critical — FeedCard falls back to individual checks
+      }
+    }
+
     const response = createSuccessResponse({
       items: feedItems,
       pagination: {
@@ -102,6 +122,13 @@ export async function GET(request: NextRequest) {
       userId,
       isAuthenticated: !!session?.user
     }, `Found ${feedItems.length} items`, requestId)
+
+    // Cache anonymous feed briefly at the edge; never cache personalised feeds
+    if (!session?.user?.id) {
+      response.headers.set('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=30')
+    } else {
+      response.headers.set('Cache-Control', 'private, no-store')
+    }
 
     return addCorsHeaders(response)
 

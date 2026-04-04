@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, createContext, useContext } from 'react'
+import { useState, createContext, useContext } from 'react'
 import { usePathname } from 'next/navigation'
 import Sidebar from './Sidebar'
 
@@ -26,25 +26,19 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname()
   
-  // Force dark mode globally
-  useEffect(() => {
-    document.documentElement.classList.add('dark')
-  }, [])
-  
-  // Determine current hub based on URL
+  // Dark mode is applied globally via className="dark" on <html> in layout.tsx
   const currentHub: 'reader' | 'creator' = pathname.startsWith('/creator') ? 'creator' : 'reader'
   const [isCollapsed, setIsCollapsed] = useState(false)
 
-  const setCurrentHub = (hub: 'reader' | 'creator') => {}
-
-  const handleHubChange = (hub: 'reader' | 'creator') => {}
+  // Stub kept for HubContext consumers
+  const setCurrentHub = (_hub: 'reader' | 'creator') => {}
 
   return (
     <HubContext.Provider value={{ currentHub, setCurrentHub }}>
       <div className="min-h-screen bg-gray-900">
         <Sidebar
           currentHub={currentHub}
-          onHubChange={handleHubChange}
+          onHubChange={() => {}}
           isCollapsed={isCollapsed}
           onToggleCollapsed={() => setIsCollapsed(c => !c)}
         />

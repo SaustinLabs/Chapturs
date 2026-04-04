@@ -22,7 +22,9 @@ interface FeedCardProps {
 export default function FeedCard({ item, onClick, recommendationRank = 0 }: FeedCardProps) {
   const router = useRouter()
   const { userId, isAuthenticated, isLoading: isAuthLoading } = useUser()
-  const [isBookmarkedState, setIsBookmarkedState] = useState(false)
+  // Bookmark/like state seeded from feed API (which batch-queries these server-side
+  // so no per-card fetches are needed for those two fields).
+  const [isBookmarkedState, setIsBookmarkedState] = useState(item.bookmark || false)
   const [isSubscribedState, setIsSubscribedState] = useState(false)
   const [isLiked, setIsLiked] = useState(item.liked || false)
   const [isLoading, setIsLoading] = useState(false)
@@ -30,27 +32,14 @@ export default function FeedCard({ item, onClick, recommendationRank = 0 }: Feed
   // Recommendation tracking
   const { trackEngagement } = useSignalTracker()
 
-  // Load bookmark and subscription status from database
+  // Subscription status still needs a per-card check (grouped by author, not work).
+  // Bookmark and like are pre-fetched by the feed API so we skip those here.
   useEffect(() => {
     if (!userId) return
-
-    const loadUserInteractions = async () => {
-      try {
-        const [bookmarkStatus, subscriptionStatus, likeStatus] = await Promise.all([
-          DataService.checkUserBookmark(userId, item.work.id),
-          DataService.checkUserSubscription(userId, item.work.author.id),
-          DataService.checkUserLike(userId, item.work.id)
-        ])
-        setIsBookmarkedState(bookmarkStatus)
-        setIsSubscribedState(subscriptionStatus)
-        setIsLiked(likeStatus)
-      } catch (error) {
-        console.error('Failed to load user interactions:', error)
-      }
-    }
-
-    loadUserInteractions()
-  }, [userId, item.work.id, item.work.author.id])
+    DataService.checkUserSubscription(userId, item.work.author.id)
+      .then(setIsSubscribedState)
+      .catch(() => {})
+  }, [userId, item.work.author.id])
 
   const promptSignIn = (action: string) => {
     signIn('google', { callbackUrl: window.location.href })

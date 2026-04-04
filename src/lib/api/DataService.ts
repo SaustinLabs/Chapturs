@@ -32,10 +32,13 @@ export class DataService {
     return response.json()
   }
 
-  static async getFeedItems(hubMode: 'reader' | 'creator', userId?: string): Promise<FeedItem[]> {
-    console.log('DataService.getFeedItems: Making API call to /api/feed')
+  static async getFeedItems(hubMode: 'reader' | 'creator', userId?: string, page = 1): Promise<FeedItem[]> {
+    const limit = 20
+    const offset = (page - 1) * limit
     const params = new URLSearchParams({
       hubMode,
+      limit: String(limit),
+      offset: String(offset),
       ...(userId && { userId })
     })
     
@@ -45,7 +48,6 @@ export class DataService {
     }
     
     const data = await response.json()
-    console.log('DataService.getFeedItems: API response:', data)
     return data.data?.items || data.items || []
   }
 

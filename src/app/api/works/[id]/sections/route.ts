@@ -164,35 +164,28 @@ export async function GET(request: NextRequest, props: RouteParams) {
     const workId = params.id
     const session = await auth()
 
-    // Fetch sections from database
-    const allSections = await DatabaseService.getSectionsForWork(workId)
+    // Use lightweight list (no content) for the sections index.
+    // Individual section content is served by /api/works/[id]/sections/[sectionId].
+    const allSections = await DatabaseService.getSectionsList(workId)
 
-    // If user is authenticated and is the work author, return all sections (including drafts)
-    // Otherwise, only return published sections
     let sections = allSections
     if (!session?.user?.id) {
-      // Anonymous users only see published sections
       sections = allSections.filter((s: any) => s.isPublished || s.status === 'published')
     } else {
-      // Check if user is the author
-      const work = await prisma.work.findUnique({
-        where: { id: workId },
-        select: { authorId: true }
-      })
-      const author = await prisma.author.findFirst({
-        where: { userId: session.user.id }
-      })
+      const [work, author] = await Promise.all([
+        prisma.work.findUnique({ where: { id: workId }, select: { authorId: true } }),
+        prisma.author.findFirst({ where: { userId: session.user.id }, select: { id: true } })
+      ])
       const isAuthor = author && work && author.id === work.authorId
       if (!isAuthor) {
-        // Non-authors only see published sections
         sections = allSections.filter((s: any) => s.isPublished || s.status === 'published')
       }
     }
 
-    return NextResponse.json({
-      success: true,
-      sections
-    })
+    const response = NextResponse.json({ success: true, sections })
+    // Published chapter lists are public — cache aggressively at the edge
+    response.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=120')
+    return response
 
   } catch (error) {
     console.error('Sections fetch error:', error)

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { FeedItem } from '@/types'
 import FeedCard from './FeedCard'
@@ -20,32 +20,24 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const sentinelRef = useRef<HTMLDivElement>(null)
 
   // Load initial feed items
   useEffect(() => {
-    console.log('InfiniteFeed: useEffect triggered', { authLoading, hubMode, userId, isAuthenticated })
     if (!authLoading) {
-      console.log('InfiniteFeed: Auth not loading, calling loadInitialItems')
       loadInitialItems()
-    } else {
-      console.log('InfiniteFeed: Auth still loading, waiting...')
     }
   }, [hubMode, userId, isAuthenticated, authLoading])
 
   const loadInitialItems = async () => {
     try {
-      console.log('InfiniteFeed: Starting loadInitialItems...', { hubMode, userId, isAuthenticated })
       setLoading(true)
       setError(null)
-      console.log('InfiniteFeed: About to call DataService.getFeedItems...')
       const initialItems = await DataService.getFeedItems(hubMode, userId || undefined)
-      console.log('InfiniteFeed: Received initial items:', initialItems.length, initialItems)
       setItems(initialItems)
       setPage(2)
-      setHasMore(initialItems.length > 0)
-      console.log('InfiniteFeed: Successfully loaded initial items')
+      setHasMore(initialItems.length >= 20)
     } catch (err) {
-      console.error('InfiniteFeed: Error in loadInitialItems:', err)
       setError('Failed to load feed. Please try again.')
       console.error('Error loading initial items:', err)
     } finally {
@@ -55,19 +47,16 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
 
   const loadMoreItems = useCallback(async () => {
     if (loading || !hasMore) return
-
     try {
       setLoading(true)
       setError(null)
-      // For simulation, we'll just return empty array for pagination
-      // In real implementation, this would fetch additional pages
-      const newItems: FeedItem[] = []
-      
+      const newItems = await DataService.getFeedItems(hubMode, userId || undefined, page)
       if (newItems.length === 0) {
         setHasMore(false)
       } else {
         setItems(prev => [...prev, ...newItems])
         setPage(prev => prev + 1)
+        setHasMore(newItems.length >= 20)
       }
     } catch (err) {
       setError('Failed to load more items. Please try again.')
@@ -75,33 +64,23 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
     } finally {
       setLoading(false)
     }
-  }, [page, loading, hasMore, hubMode])
+  }, [page, loading, hasMore, hubMode, userId])
 
-  // Infinite scroll detection
+  // IntersectionObserver sentinel — fires only when the bottom sentinel enters the viewport,
+  // far more efficient than a scroll-pixel listener.
   useEffect(() => {
-    const handleScroll = () => {
-      if (
-        window.innerHeight + document.documentElement.scrollTop + 1000 >=
-        document.documentElement.offsetHeight
-      ) {
-        loadMoreItems()
-      }
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) loadMoreItems() },
+      { rootMargin: '600px' }
+    )
+    observer.observe(sentinel)
+    return () => observer.disconnect()
   }, [loadMoreItems])
 
-  // Hub-specific content filtering
-  const filteredItems = items.filter(item => {
-    if (hubMode === 'reader') {
-      return true // Show all content in reader mode
-    } else {
-      // In creator mode, show only items from the current user's stories
-      // For now, we'll show all items but this could be filtered
-      return true
-    }
-  })
+  // Memoize so filtering doesn't run on every render
+  const filteredItems = useMemo(() => items.filter(() => true), [items])
 
   const getEmptyStateMessage = () => {
     if (hubMode === 'reader') {
@@ -237,6 +216,9 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
           </p>
         </div>
       )}
+
+      {/* IntersectionObserver sentinel — triggers loadMoreItems when it scrolls into view */}
+      {hasMore && <div ref={sentinelRef} className="h-px" aria-hidden="true" />}
     </div>
   )
 }

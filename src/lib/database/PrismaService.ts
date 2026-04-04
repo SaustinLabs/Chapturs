@@ -110,6 +110,41 @@ export default class DatabaseService {
     };
   }
 
+  /**
+   * Lightweight list — returns metadata only (no chapter content).
+   * Use for TOC / chapter lists. Avoids fetching potentially megabytes of
+   * chapter JSON just to render a list of titles.
+   */
+  static async getSectionsList(workId: string) {
+    const sections = await prisma.section.findMany({
+      where: { workId },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        workId: true,
+        title: true,
+        wordCount: true,
+        status: true,
+        publishedAt: true,
+        createdAt: true,
+        updatedAt: true,
+      }
+    });
+    return sections.map((section: any) => ({
+      id: section.id,
+      workId: section.workId,
+      title: section.title,
+      chapterNumber: 1,
+      orderIndex: 0,
+      wordCount: section.wordCount || 0,
+      estimatedReadTime: Math.ceil((section.wordCount || 0) / 200),
+      publishedAt: section.publishedAt?.toISOString(),
+      isPublished: section.status === 'published',
+      status: section.status,
+    }));
+  }
+
+  /** Full sections — includes chapter content. Use only when content is needed (e.g. reading a chapter). */
   static async getSectionsForWork(workId: string) {
     const sections = await prisma.section.findMany({
       where: { workId },
@@ -178,7 +213,7 @@ export default class DatabaseService {
           select: {
             id: true,
             title: true,
-            content: true,
+            // content intentionally excluded — story landing page only needs the chapter list
             wordCount: true,
             status: true,
             publishedAt: true,

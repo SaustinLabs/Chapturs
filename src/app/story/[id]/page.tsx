@@ -46,37 +46,30 @@ export default function StoryPage() {
         setLoading(true)
         setError(null)
 
-        // Fetch the work/story data
+        // Fetch the work/story data first (needed for author.id for subscription check)
         const workResponse = await fetch(`/api/works/${storyId}`)
-        if (!workResponse.ok) {
-          throw new Error('Failed to fetch story data')
-        }
+        if (!workResponse.ok) throw new Error('Failed to fetch story data')
         const workData = await workResponse.json()
         setStory(workData)
 
-        // If user is logged in, fetch their interaction status
+        // Fire all user-interaction checks in parallel once we have the work
         if (session?.user?.id) {
-          // Check bookmark status
-          const bookmarkResponse = await fetch(`/api/bookmarks?userId=${session.user.id}&workId=${storyId}`)
-          if (bookmarkResponse.ok) {
-            const bookmarkData = await bookmarkResponse.json()
-            setIsBookmarked(bookmarkData.isBookmarked)
-          }
+          const [bookmarkRes, likeRes, subscriptionRes] = await Promise.all([
+            fetch(`/api/bookmarks?userId=${session.user.id}&workId=${storyId}`),
+            fetch(`/api/likes?userId=${session.user.id}&workId=${storyId}`),
+            workData.author?.id
+              ? fetch(`/api/subscriptions?userId=${session.user.id}&authorId=${workData.author.id}`)
+              : Promise.resolve(null),
+          ])
 
-          // Check like status
-          const likeResponse = await fetch(`/api/likes?userId=${session.user.id}&workId=${storyId}`)
-          if (likeResponse.ok) {
-            const likeData = await likeResponse.json()
-            setIsLiked(likeData.isLiked)
+          if (bookmarkRes.ok) {
+            const d = await bookmarkRes.json(); setIsBookmarked(d.isBookmarked)
           }
-
-          // Check subscription status
-          if (workData.author?.id) {
-            const subscriptionResponse = await fetch(`/api/subscriptions?userId=${session.user.id}&authorId=${workData.author.id}`)
-            if (subscriptionResponse.ok) {
-              const subscriptionData = await subscriptionResponse.json()
-              setIsSubscribed(subscriptionData.isSubscribed)
-            }
+          if (likeRes.ok) {
+            const d = await likeRes.json(); setIsLiked(d.isLiked)
+          }
+          if (subscriptionRes?.ok) {
+            const d = await subscriptionRes.json(); setIsSubscribed(d.isSubscribed)
           }
         }
       } catch (err) {
@@ -275,10 +268,13 @@ export default function StoryPage() {
               {/* Story Cover */}
               <div className="flex-shrink-0">
                 {story.coverImage ? (
-                  <img
+                  <Image
                     src={resolveCoverSrc(story.id, story.coverImage)}
                     alt={story.title}
+                    width={192}
+                    height={256}
                     className="w-48 h-64 rounded-lg object-cover shadow-md"
+                    priority
                   />
                 ) : (
                   <div className="w-48 h-64 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">

@@ -195,98 +195,72 @@ export default function ChapterPage() {
       try {
         setLoading(true)
 
-        // Fetch work data
-        const workData = await DataService.getWork(storyId)
-        if (workData) {
-          setWork(workData)
+        // Fetch work metadata and section list in parallel (section list is now content-free)
+        const [workData, sectionsResponse] = await Promise.all([
+          DataService.getWork(storyId),
+          fetch(`/api/works/${storyId}/sections`)
+        ])
 
-          // Fetch all sections for this work
-          const response = await fetch(`/api/works/${storyId}/sections`)
-          if (response.ok) {
-            const responseData = await response.json()
-            // Extract sections array from wrapped response
-            const sectionsArray = responseData.sections || responseData || []
-            setAllSections(sectionsArray)
+        if (workData) setWork(workData)
 
-            // Find the current section
-            const foundSection = sectionsArray.find((s: Section) => s.id === chapterId)
-            if (foundSection) {
-              // Store original section as base for translations
-              setBaseSection(foundSection)
-              setSection(foundSection)
-              // rest...
-              const chapterNum = foundSection.chapterNumber || 1
-              try {
-                const glossaryRes = await fetch(`/api/works/${storyId}/glossary?chapter=${chapterNum}`)
-                if (glossaryRes.ok) {
-                  const glossaryData = await glossaryRes.json()
-                  const entries = glossaryData?.entries || []
-                  setGlossaryTerms(entries)
-                  try { (window as any).__CURRENT_GLOSSARY_TERMS__ = entries } catch (e) {}
-                }
-              } catch (e) {
-                console.error('Failed to load glossary:', e)
-              }
-              
-              // Fetch chapter-aware character profiles
-              try {
-                const charactersRes = await fetch(`/api/works/${storyId}/characters?chapter=${chapterNum}`)
-                if (charactersRes.ok) {
-                  const charactersData = await charactersRes.json()
-                  const characters = charactersData?.characters || []
-                  setCharacters(characters)
-                  try { (window as any).__CURRENT_CHARACTERS__ = characters } catch (e) {}
-                }
-              } catch (e) {
-                console.error('Failed to load characters:', e)
-              }
-              
-              console.log('Found section:', foundSection)
-              console.log('Section content type:', typeof foundSection.content)
-              console.log('Section content:', foundSection.content)
-              
-              // Parse content if it's a string
-              if (typeof foundSection.content === 'string') {
-                try {
-                  foundSection.content = JSON.parse(foundSection.content)
-                  console.log('Parsed content:', foundSection.content)
-                } catch (error) {
-                  console.error('Failed to parse section content:', error)
-                }
-              }
-              
-              console.log('Final content is array?', Array.isArray(foundSection.content))
-              setSection(foundSection)
+        if (sectionsResponse.ok) {
+          const responseData = await sectionsResponse.json()
+          const sectionsArray = responseData.sections || responseData || []
+          setAllSections(sectionsArray)
+
+          const foundMeta = sectionsArray.find((s: Section) => s.id === chapterId)
+          if (foundMeta) {
+            const chapterNum = foundMeta.chapterNumber || 1
+
+            // Fetch full section content + glossary + characters in parallel
+            const [sectionRes, glossaryRes, charactersRes] = await Promise.all([
+              fetch(`/api/works/${storyId}/sections/${chapterId}`),
+              fetch(`/api/works/${storyId}/glossary?chapter=${chapterNum}`).catch(() => null),
+              fetch(`/api/works/${storyId}/characters?chapter=${chapterNum}`).catch(() => null),
+            ])
+
+            // Handle glossary
+            if (glossaryRes?.ok) {
+              const glossaryData = await glossaryRes.json()
+              const entries = glossaryData?.entries || []
+              setGlossaryTerms(entries)
+              try { (window as any).__CURRENT_GLOSSARY_TERMS__ = entries } catch (e) {}
+            }
+
+            // Handle characters
+            if (charactersRes?.ok) {
+              const charactersData = await charactersRes.json()
+              const characters = charactersData?.characters || []
+              setCharacters(characters)
+              try { (window as any).__CURRENT_CHARACTERS__ = characters } catch (e) {}
+            }
+
+            // Handle section content
+            if (sectionRes.ok) {
+              const sectionData = await sectionRes.json()
+              const fullSection = sectionData.section || sectionData
+              setBaseSection(fullSection)
+              setSection(fullSection)
               const index = sectionsArray.findIndex((s: Section) => s.id === chapterId)
               setCurrentSectionIndex(index)
 
               try {
-                window.localStorage.setItem(`reader-last-chapter-${storyId}`, foundSection.id)
-              } catch (error) {
-                console.error('Failed to save last read chapter:', error)
-              }
+                window.localStorage.setItem(`reader-last-chapter-${storyId}`, fullSection.id)
+              } catch { /* ignore */ }
 
-              // Persist reading position to DB (cross-device resume)
-              try {
-                fetch('/api/reading-progress', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ workId: storyId, sectionId: foundSection.id, progress: 0 }),
-                })
-              } catch (e) {
-                // non-critical, ignore
-              }
+              // Persist reading position to DB (cross-device resume) — fire and forget
+              fetch('/api/reading-progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ workId: storyId, sectionId: fullSection.id, progress: 0 }),
+              }).catch(() => {})
 
-              // Track view
-              try {
-                fetch(`/api/works/${storyId}/view`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ sectionId: chapterId })
-                })
-              } catch (e) {
-                console.error('Failed to track view:', e)
-              }
+              // Track view — fire and forget
+              fetch(`/api/works/${storyId}/view`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sectionId: chapterId })
+              }).catch(() => {})
             }
           }
         }

@@ -10,6 +10,10 @@ const nextConfig = {
     // are pre-existing and will be addressed separately.
     ignoreBuildErrors: true,
   },
+  experimental: {
+    // Reduces bundle size and improves build performance for these icon libraries
+    optimizePackageImports: ['@heroicons/react', 'lucide-react'],
+  },
   // Security headers applied to every route
   async headers() {
     const csp = [
