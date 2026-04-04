@@ -6,16 +6,17 @@ import { prisma } from '@/lib/database/PrismaService'
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string, blockId: string } }
+  { params }: { params: Promise<{ id: string, blockId: string }> }
 ) {
+  const { id, blockId } = await params
   try {
     const { searchParams } = new URL(req.url)
     const sectionId = searchParams.get('sectionId') || ''
     
     const comments = await prisma.blockComment.findMany({
       where: {
-        workId: params.id,
-        blockId: params.blockId,
+        workId: id,
+        blockId: blockId,
         sectionId: sectionId
       },
       orderBy: { createdAt: 'asc' }
@@ -30,8 +31,9 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string, blockId: string } }
+  { params }: { params: Promise<{ id: string, blockId: string }> }
 ) {
+  const { id, blockId } = await params
   try {
     const session = await auth()
     if (!session?.user) {
@@ -47,9 +49,9 @@ export async function POST(
 
     const newComment = await prisma.blockComment.create({
       data: {
-        workId: params.id,
+        workId: id,
         sectionId: sectionId || '',
-        blockId: params.blockId,
+        blockId: blockId,
         userId: session.user.id,
         username: username || session.user.name || 'Anonymous',
         text: text

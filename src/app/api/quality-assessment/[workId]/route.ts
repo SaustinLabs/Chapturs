@@ -13,8 +13,9 @@ import { getAssessment } from '@/lib/quality-assessment/assessment-service'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { workId: string } }
+  { params }: { params: Promise<{ workId: string }> }
 ) {
+  const { workId } = await params
   try {
     const { searchParams } = new URL(request.url)
     const sectionId = searchParams.get('sectionId')
@@ -26,7 +27,7 @@ export async function GET(
       )
     }
 
-    const assessment = await getAssessment(params.workId, sectionId)
+    const assessment = await getAssessment(workId, sectionId)
 
     if (!assessment) {
       return NextResponse.json(

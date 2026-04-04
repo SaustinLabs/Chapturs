@@ -7,8 +7,9 @@ import { auth } from '@/auth-edge'
 // POST /api/comments/[id]/report - Report inappropriate comment
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const session = await auth()
 
@@ -33,7 +34,7 @@ export async function POST(
 
     // Verify comment exists
     const comment = await prisma.comment.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!comment) {
@@ -46,7 +47,7 @@ export async function POST(
     // Check if user already reported this comment
     const existingReport = await prisma.commentReport.findFirst({
       where: {
-        commentId: params.id,
+        commentId: id,
         userId: session.user.id
       }
     })
@@ -61,7 +62,7 @@ export async function POST(
     // Create report
     const report = await prisma.commentReport.create({
       data: {
-        commentId: params.id,
+        commentId: id,
         userId: session.user.id,
         reason,
         details: details || null

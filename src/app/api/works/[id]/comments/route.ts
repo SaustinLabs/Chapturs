@@ -65,8 +65,9 @@ async function ensureCommentUser(session: any): Promise<string> {
 // GET /api/works/[id]/comments - List comments
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const { searchParams } = new URL(request.url)
     const sectionId = searchParams.get('sectionId')
@@ -75,7 +76,7 @@ export async function GET(
     const cursor = searchParams.get('cursor')
 
     const where: any = {
-      workId: params.id,
+      workId: id,
       parentId: null, // Only top-level comments
       isHidden: false
     }
@@ -177,8 +178,9 @@ export async function GET(
 // POST /api/works/[id]/comments - Create new comment
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const session = await auth()
 
@@ -210,7 +212,7 @@ export async function POST(
 
     // Verify work exists
     const work = await prisma.work.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!work) {
@@ -225,7 +227,7 @@ export async function POST(
       const section = await prisma.section.findFirst({
         where: {
           id: sectionId,
-          workId: params.id
+          workId: id
         }
       })
 
@@ -294,7 +296,7 @@ export async function POST(
     // Create comment
     const comment = await prisma.comment.create({
       data: {
-        workId: params.id,
+        workId: id,
         sectionId: sectionId || null,
         userId: commentUserId,
         content: content.trim(),

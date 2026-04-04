@@ -9,8 +9,9 @@ export const dynamic = 'force-dynamic'
 // POST /api/edit-suggestions/[id]/reject - Reject an edit suggestion
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id: suggestionId } = await params
   try {
     const session = await auth()
     
@@ -20,8 +21,6 @@ export async function POST(
         { status: 401 }
       )
     }
-
-    const suggestionId = params.id
 
     // Get the suggestion
     const suggestion = await prisma.editSuggestion.findUnique({

@@ -7,22 +7,18 @@ import { auth } from '@/auth-edge'
 // POST /api/comments/[id]/resolve - Mark a comment thread as resolved
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id: commentId } = await params
   try {
     const session = await auth()
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       )
     }
-
-    const commentId = params.id
-
-    // Get the comment to check if user is the author of the work
-    const comment = await prisma.blockComment.findUnique({
       where: { id: commentId }
     })
 

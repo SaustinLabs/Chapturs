@@ -7,8 +7,9 @@ import { auth } from '@/auth-edge'
 // POST /api/comments/[id]/like - Toggle like on comment
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const session = await auth()
 
@@ -21,7 +22,7 @@ export async function POST(
 
     // Verify comment exists
     const comment = await prisma.comment.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!comment) {
@@ -35,7 +36,7 @@ export async function POST(
     const existingLike = await prisma.commentLike.findUnique({
       where: {
         commentId_userId: {
-          commentId: params.id,
+          commentId: id,
           userId: session.user.id
         }
       }
@@ -55,7 +56,7 @@ export async function POST(
       // Like
       await prisma.commentLike.create({
         data: {
-          commentId: params.id,
+          commentId: id,
           userId: session.user.id
         }
       })

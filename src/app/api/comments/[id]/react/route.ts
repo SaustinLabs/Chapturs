@@ -6,15 +6,14 @@ import { prisma } from '@/lib/database/PrismaService'
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id: commentId } = await params
   try {
     const session = await auth()
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
-    const { id: commentId } = params
     const { emoji } = await req.json()
 
     if (!emoji || typeof emoji !== 'string') {

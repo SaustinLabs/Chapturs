@@ -7,8 +7,9 @@ import { auth } from '@/auth-edge'
 // PATCH /api/comments/[id] - Update comment
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const session = await auth()
 
@@ -20,7 +21,7 @@ export async function PATCH(
     }
 
     const comment = await prisma.comment.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         work: {
           select: {
@@ -73,7 +74,7 @@ export async function PATCH(
       }
 
       const updatedComment = await prisma.comment.update({
-        where: { id: params.id },
+        where: { id },
         data: {
           content: content.trim(),
           isEdited: true,
@@ -125,7 +126,7 @@ export async function PATCH(
       if (isHidden !== undefined) updateData.isHidden = isHidden
 
       const updatedComment = await prisma.comment.update({
-        where: { id: params.id },
+        where: { id },
         data: updateData,
         include: {
           user: {
@@ -164,8 +165,9 @@ export async function PATCH(
 // DELETE /api/comments/[id] - Delete comment
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const session = await auth()
 
@@ -177,7 +179,7 @@ export async function DELETE(
     }
 
     const comment = await prisma.comment.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         work: {
           select: {
@@ -215,7 +217,7 @@ export async function DELETE(
 
     // Delete comment (cascade will handle replies, likes, reports)
     await prisma.comment.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ success: true })
