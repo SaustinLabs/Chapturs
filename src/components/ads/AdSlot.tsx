@@ -16,19 +16,19 @@ function useAdBlockDetected(): boolean {
   const [blocked, setBlocked] = useState(false)
 
   useEffect(() => {
-    const el = document.createElement('div')
-    el.className =
-      'pub_300x250 pub_300x250m pub_728x90 text-ad textAd text_ad text_ads text-ads ad-unit ad-zone ad-space adsbox'
-    el.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;'
-    document.body.appendChild(el)
-    const timer = setTimeout(() => {
-      if (el.offsetHeight === 0) setBlocked(true)
-      el.remove()
-    }, 200)
-    return () => {
-      clearTimeout(timer)
-      if (el.parentNode) el.remove()
-    }
+    const controller = new AbortController()
+    // Try a HEAD request to Google's ad server.
+    // Ad blockers block the domain at the network level, causing a fetch rejection.
+    // mode: 'no-cors' means a successful request resolves with an opaque response;
+    // a blocked request rejects with a TypeError (network error).
+    fetch(
+      'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?paused=1',
+      { method: 'HEAD', mode: 'no-cors', signal: controller.signal }
+    )
+      .catch(() => {
+        if (!controller.signal.aborted) setBlocked(true)
+      })
+    return () => controller.abort()
   }, [])
 
   return blocked
