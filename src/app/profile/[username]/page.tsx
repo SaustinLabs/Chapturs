@@ -70,25 +70,58 @@ export default function ProfilePage() {
   }
 
   const { user, works, profile } = data
-  const featuredWork = profile?.featuredWorkId
-    ? works?.find((w: any) => w.id === profile.featuredWorkId) ?? works?.[0] ?? null
-    : works?.[0] ?? null
-  const isOwner = session?.user?.name === username || session?.user?.email != null && user.id === (session as any)?.user?.id
+  const isOwner = session?.user?.name === username || (session?.user?.email != null && user.id === (session as any)?.user?.id)
+
+  // Resolve featured content using creator profile settings
+  const featuredType: 'work' | 'block' | 'none' = profile?.featuredType ?? 'none'
+  const featuredWork = featuredType === 'work'
+    ? (works?.find((w: any) => w.id === profile?.featuredWorkId) ?? works?.[0] ?? null)
+    : (featuredType === 'none' && !profile ? works?.[0] ?? null : null)
+  const featuredBlock = featuredType === 'block'
+    ? (profile?.blocks?.find((b: any) => b.id === profile?.featuredBlockId) ?? null)
+    : null
 
   return (
     <AppLayout>
       <ProfileLayout
         sidebar={
           <ProfileSidebar
-            profileImage={user.avatar || undefined}
+            profileImage={profile?.profileImage || user.avatar || undefined}
             displayName={user.displayName || user.username}
             username={user.username}
-            bio={user.bio || undefined}
+            bio={profile?.bio || user.bio || undefined}
             isPremium={user.isPremium}
           />
         }
         featured={
-          featuredWork ? (
+          featuredType === 'work' && featuredWork ? (
+            <FeaturedSpace
+              type="work"
+              isOwner={isOwner}
+              onEdit={isOwner ? () => window.location.assign('/creator/profile/edit') : undefined}
+              workData={{
+                id: featuredWork.id,
+                title: featuredWork.title,
+                coverImage: featuredWork.coverImage || undefined,
+                description: featuredWork.description || '',
+                genres: featuredWork.genres || [],
+                status: featuredWork.status,
+              }}
+            />
+          ) : featuredType === 'block' && featuredBlock ? (
+            <FeaturedSpace
+              type="block"
+              isOwner={isOwner}
+              onEdit={isOwner ? () => window.location.assign('/creator/profile/edit') : undefined}
+              blockData={{
+                id: featuredBlock.id,
+                type: featuredBlock.type,
+                data: typeof featuredBlock.data === 'string'
+                  ? featuredBlock.data
+                  : JSON.stringify(featuredBlock.data ?? {}),
+              }}
+            />
+          ) : featuredWork ? (
             <FeaturedSpace
               type="work"
               workData={{
@@ -101,7 +134,7 @@ export default function ProfilePage() {
               }}
             />
           ) : (
-            <FeaturedSpace type="none" />
+            <FeaturedSpace type="none" isOwner={isOwner} onSelect={isOwner ? () => window.location.assign('/creator/profile/edit') : undefined} />
           )
         }
         blocks={
