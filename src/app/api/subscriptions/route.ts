@@ -16,6 +16,7 @@ import {
   ApiErrorType
 } from '@/lib/api/errorHandling'
 import { toggleSubscriptionSchema, updateSubscriptionPreferencesSchema } from '@/lib/api/schemas'
+import { notifyNewSubscriber } from '@/lib/email'
 
 // use shared prisma instance from PrismaService
 
@@ -62,6 +63,25 @@ export async function POST(request: NextRequest) {
     // Toggle subscription
     const isSubscribed = await DatabaseService.toggleSubscription(authorId, session.user.id)
     
+    // Fire-and-forget: notify author of new subscriber
+    if (isSubscribed) {
+      ;(async () => {
+        try {
+          const subscriber = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { displayName: true, username: true }
+          })
+          if (author.user.email && subscriber) {
+            await notifyNewSubscriber({
+              authorEmail: author.user.email,
+              authorName: author.user.displayName ?? author.user.username,
+              subscriberName: subscriber.displayName ?? subscriber.username ?? 'A reader',
+            })
+          }
+        } catch {}
+      })()
+    }
+
     const response = createSuccessResponse({
       subscribed: isSubscribed,
       authorId,

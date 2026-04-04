@@ -92,15 +92,23 @@ export default function StoryPage() {
 
   useEffect(() => {
     if (!storyId) return
+    // Load localStorage first (instant)
     try {
       const stored = window.localStorage.getItem(`reader-last-chapter-${storyId}`)
-      if (stored) {
-        setResumeSectionId(stored)
-      }
-    } catch (error) {
-      console.error('Failed to read saved chapter:', error)
+      if (stored) setResumeSectionId(stored)
+    } catch {
+      // ignore
     }
-  }, [storyId])
+    // If logged in, prefer server-side position (works across devices)
+    if (session?.user?.id) {
+      fetch(`/api/reading-progress?workId=${storyId}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.sectionId) setResumeSectionId(data.sectionId)
+        })
+        .catch(() => {})
+    }
+  }, [storyId, session?.user?.id])
 
   useEffect(() => {
     if (typeof window === 'undefined') return

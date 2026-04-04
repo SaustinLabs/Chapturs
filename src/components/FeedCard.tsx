@@ -392,9 +392,14 @@ export default function FeedCard({ item, onClick, recommendationRank = 0 }: Feed
           </div>
           
           <div className="flex items-center space-x-2">
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              {item.work.status === 'ongoing' ? 'Ongoing' : 'Complete'}
-            </span>
+            {item.score > 0.75 && (
+              <span className="text-xs font-medium text-orange-600 dark:text-orange-400">🔥 Trending</span>
+            )}
+            {item.score <= 0.75 && (
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                {item.work.status === 'ongoing' ? 'Ongoing' : 'Complete'}
+              </span>
+            )}
             {!isSubscribedState && (
               <button
                 onClick={handleSubscribe}
@@ -407,6 +412,13 @@ export default function FeedCard({ item, onClick, recommendationRank = 0 }: Feed
             <ReportButton targetType="work" targetId={item.work.id} />
           </div>
         </div>
+
+        {/* Recommendation reason */}
+        {item.reason && (
+          <p className="mt-2 text-[11px] text-gray-400 dark:text-gray-500 italic truncate">
+            {item.reason}
+          </p>
+        )}
       </div>
     </div>
     </RecommendationTracker>

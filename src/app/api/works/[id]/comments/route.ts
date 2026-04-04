@@ -3,6 +3,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
 import { auth } from '@/auth'
+import { notifyNewComment } from '@/lib/email'
 
 function normalizeUsername(value: string): string {
   const normalized = value
@@ -318,6 +319,36 @@ export async function POST(
         replyCount: 0
       }
     }, { status: 201 })
+
+    // Fire-and-forget: notify the work author about the new comment
+    // (runs after response is sent, errors are non-fatal)
+    ;(async () => {
+      try {
+        const work = await prisma.work.findUnique({
+          where: { id: params.id },
+          select: {
+            title: true,
+            author: {
+              select: {
+                user: { select: { id: true, email: true, displayName: true } }
+              }
+            }
+          }
+        })
+        if (!work) return
+        const authorUserId = work.author?.user?.id
+        const authorEmail = work.author?.user?.email
+        if (!authorEmail || authorUserId === commentUserId) return // don't notify self
+        await notifyNewComment({
+          authorEmail,
+          authorName: work.author?.user?.displayName ?? 'Creator',
+          commenterName: comment.user.displayName ?? comment.user.username ?? 'A reader',
+          workTitle: work.title,
+          workId: params.id,
+          commentPreview: content.trim(),
+        })
+      } catch {}
+    })()
   } catch (error) {
     console.error('Error creating comment:', error)
     return NextResponse.json(

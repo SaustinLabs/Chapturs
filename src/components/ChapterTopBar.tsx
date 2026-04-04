@@ -30,6 +30,7 @@ interface ChapterTopBarProps {
   onAudioToggle: () => void
   targetLanguage: string
   onTargetLanguageChange: (lang: string) => void
+  onOpenSettings?: () => void
 }
 
 export default function ChapterTopBar({
@@ -45,6 +46,7 @@ export default function ChapterTopBar({
   onAudioToggle,
   targetLanguage,
   onTargetLanguageChange,
+  onOpenSettings,
 }: ChapterTopBarProps) {
   const [showLanguageMenu, setShowLanguageMenu] = useState(false)
   const [showAudiobookMenu, setShowAudiobookMenu] = useState(false)
@@ -66,25 +68,17 @@ export default function ChapterTopBar({
                   setShowAudiobookMenu(false)
                   setShowMoreMenu(false)
                 }}
-                className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className={`flex items-center gap-1 px-2 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                  targetLanguage && targetLanguage !== 'en'
+                    ? 'text-blue-600 dark:text-blue-400'
+                    : 'text-gray-500 dark:text-gray-400'
+                }`}
+                title={`Language: ${targetLanguage?.toUpperCase() || 'EN'}`}
               >
-                <GlobeAltIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {targetLanguage}
+                <GlobeAltIcon className="w-5 h-5" />
+                <span className="text-[11px] font-semibold uppercase tracking-wide">
+                  {targetLanguage?.toUpperCase() || 'EN'}
                 </span>
-                <svg
-                  className="w-4 h-4 text-gray-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
               </button>
 
               {showLanguageMenu && (
@@ -93,7 +87,7 @@ export default function ChapterTopBar({
                   chapterId={chapterId}
                   onClose={() => setShowLanguageMenu(false)}
                   onLanguageSelect={(language) => {
-                    setSelectedLanguage(language)
+                    onTargetLanguageChange(language)
                     setShowLanguageMenu(false)
                   }}
                 />
@@ -108,22 +102,17 @@ export default function ChapterTopBar({
                   setShowLanguageMenu(false)
                   setShowMoreMenu(false)
                 }}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                className={`relative p-2 rounded-lg transition-colors ${
                   audioEnabled
-                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                    : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
+                title={`Audio: ${audioEnabled ? 'On' : 'Off'}`}
               >
-                <SpeakerWaveIcon
-                  className={`w-5 h-5 ${
-                    audioEnabled
-                      ? 'text-blue-600 dark:text-blue-400'
-                      : 'text-gray-600 dark:text-gray-400'
-                  }`}
-                />
-                <span className="text-sm font-medium">
-                  Audio: {audioEnabled ? 'On' : 'Off'}
-                </span>
+                <SpeakerWaveIcon className="w-5 h-5" />
+                {audioEnabled && (
+                  <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-blue-500" />
+                )}
               </button>
 
               {showAudiobookMenu && (
@@ -147,13 +136,13 @@ export default function ChapterTopBar({
             {/* Subscribe */}
             <button
               onClick={onSubscribe}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 isSubscribed
-                  ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                  ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                   : 'bg-blue-500 hover:bg-blue-600 text-white'
               }`}
             >
-              {isSubscribed ? '💬 Subscribed' : '💬 Subscribe'}
+              {isSubscribed ? 'Subscribed' : 'Subscribe'}
             </button>
 
             {/* Bookmark */}
@@ -217,7 +206,13 @@ export default function ChapterTopBar({
                     🎙️ Submit Audiobook
                   </button>
                   <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
-                  <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <button
+                    onClick={() => {
+                      setShowMoreMenu(false)
+                      if (onOpenSettings) onOpenSettings()
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
                     ⚙️ Reading Settings
                   </button>
                   <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
