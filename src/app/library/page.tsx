@@ -325,7 +325,6 @@ export default function LibraryPage() {
                       Remove
                     </button>
                   </div>
-                  </div>
                 </div>
               </div>
             ))}
