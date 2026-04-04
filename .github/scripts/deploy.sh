@@ -176,7 +176,7 @@ else
 fi
 
 if [[ -n "${DATABASE_URL:-}" && "${DATABASE_URL}" =~ ^postgres(ql)?:// ]]; then
-    if npx prisma validate --schema prisma/schema.prisma && npx prisma db push --skip-generate --schema prisma/schema.prisma; then
+    if npx prisma validate --schema prisma/schema.prisma && npx prisma db push --skip-generate --accept-data-loss --schema prisma/schema.prisma; then
         echo -e "${GREEN}✓ Prisma sync successful${NC}"
     else
         echo -e "${RED}✗ Prisma sync failed (continuing anyway)${NC}"
