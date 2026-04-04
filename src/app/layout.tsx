@@ -18,6 +18,10 @@ export const metadata: Metadata = {
     default: 'Chapturs - Connect with creators and stories',
   },
   description: 'Discover and create amazing webnovels on the platform that combines the best of content discovery and creator monetization.',
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  },
   openGraph: {
     title: 'Chapturs',
     description: 'Discover and create amazing webnovels on the platform that combines the best of content discovery and creator monetization.',
@@ -25,9 +29,9 @@ export const metadata: Metadata = {
     siteName: 'Chapturs',
     images: [
       {
-        url: '/og-image.jpg',
-        width: 1200,
-        height: 630,
+        url: '/og-image.png',
+        width: 1024,
+        height: 1024,
         alt: 'Chapturs Platform',
       },
     ],
@@ -35,10 +39,10 @@ export const metadata: Metadata = {
     type: 'website',
   },
   twitter: {
-    card: 'summary_large_image',
+    card: 'summary',
     title: 'Chapturs',
     description: 'Discover and create amazing webnovels on the platform that combines the best of content discovery and creator monetization.',
-    images: ['/og-image.jpg'],
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,
