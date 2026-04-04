@@ -65,6 +65,18 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'pub-505fbfcdba444803a75ae90dd308aa04.r2.dev', // Cloudflare R2 public image URLs
       },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com', // Google OAuth avatars
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com', // GitHub OAuth avatars
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.discordapp.com', // Discord OAuth avatars
+      },
     ],
   },
 };

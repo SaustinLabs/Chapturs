@@ -89,6 +89,7 @@ export async function GET(request: Request, props: RouteParams) {
         verified: user.verified,
         bio: user.bio,
         createdAt: user.createdAt,
+        isPremium: user.isPremium,
       },
       author: author ? {
         id: author.id,
