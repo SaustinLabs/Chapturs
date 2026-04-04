@@ -1692,7 +1692,7 @@ model WorkRating {
   id            String   @id @default(cuid())
   workId        String
   userId        String
-  overall       Int // 1-5
+  overall       Int @default(0) // 1-5; default(0) is migration-only, API enforces >=1
   writing       Int?
   plot          Int?
   characters    Int?
@@ -1846,6 +1846,8 @@ model ChapterReaction {
   workId    String   // denormalized for fast author analytics queries
   emoji     String   // one of: ❤️ 🔥 😂 😭 🤯
   createdAt DateTime @default(now())
+
+  // Added note: ensure chapter_reactions table exists via prisma db push before use
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)

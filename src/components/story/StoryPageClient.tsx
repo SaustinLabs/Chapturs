@@ -14,7 +14,8 @@ import {
 } from '@heroicons/react/24/outline'
 import { 
   BookmarkIcon as BookmarkSolid,
-  HeartIcon as HeartSolid
+  HeartIcon as HeartSolid,
+  StarIcon as StarSolid
 } from '@heroicons/react/24/solid'
 import Image from 'next/image'
 import { resolveCoverSrc } from '@/lib/images'
@@ -467,18 +468,17 @@ export default function StoryPageClient({ initialWork, aiReview, featuredComment
                     <button
                       onClick={() => session?.user?.id && setShowRateModal(true)}
                       title={session?.user?.id ? 'Rate this work' : 'Sign in to rate'}
-                      className="group flex items-center justify-center space-x-1 focus:outline-none"
+                      className="group flex flex-col items-center focus:outline-none"
                     >
-                      <StarIcon className="w-5 h-5 text-yellow-400 fill-current group-hover:scale-110 transition-transform" />
-                      <span className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-yellow-500 transition-colors">
-                        {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '—'}
+                      <div className="flex items-center space-x-1">
+                        <StarSolid className="w-5 h-5 text-yellow-400 group-hover:scale-110 transition-transform" />
+                        <span className="text-2xl font-bold text-gray-900 dark:text-white group-hover:text-yellow-500 transition-colors">
+                          {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '—'}
+                        </span>
+                      </div>
+                      <span className="text-sm text-gray-500 dark:text-gray-400 group-hover:text-violet-500 dark:group-hover:text-violet-400 transition-colors">
+                        {stats.ratingCount > 0 ? `${stats.ratingCount} ratings` : 'Rate this'}
                       </span>
-                    </button>
-                    <button
-                      onClick={() => session?.user?.id && setShowRateModal(true)}
-                      className="text-sm text-gray-500 dark:text-gray-400 hover:text-violet-500 dark:hover:text-violet-400 transition-colors"
-                    >
-                      {stats.ratingCount > 0 ? `${stats.ratingCount} ratings` : 'Rate this'}
                     </button>
                   </div>
                 </div>

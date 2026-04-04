@@ -23,7 +23,7 @@ export default function WorkRatingSystem({ workId, initialRating = 0, onRatingSu
       const res = await fetch(`/api/works/${workId}/rate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rating: value, comment })
+        body: JSON.stringify({ overall: value, review: comment || null })
       })
       if (res.ok) {
         const data = await res.json()
@@ -71,7 +71,7 @@ export default function WorkRatingSystem({ workId, initialRating = 0, onRatingSu
       {showForm && (
         <div className="animate-in fade-in slide-in-from-top-4 duration-300">
           <textarea
-            placeholder="Add a comment (optional)..."
+            placeholder="Add a review (optional)..."
             className="w-full p-4 bg-gray-50 dark:bg-gray-900 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 mb-4 dark:text-white"
             value={comment}
             onChange={e => setComment(e.target.value)}

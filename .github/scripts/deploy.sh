@@ -165,8 +165,11 @@ elif [[ "$RESOLVED_DATABASE_URL" =~ ^prisma\+postgres:// ]]; then
         echo -e "${YELLOW}DATABASE_URL uses Prisma Accelerate. Using DIRECT_URL for Prisma sync.${NC}"
         export DATABASE_URL="$RESOLVED_DIRECT_URL"
     else
-        echo -e "${YELLOW}Skipping Prisma sync: DATABASE_URL is prisma+postgres:// but DIRECT_URL is missing/invalid.${NC}"
-        echo -e "${YELLOW}Detected DATABASE_URL scheme: $(mask_url_scheme "$RESOLVED_DATABASE_URL")${NC}"
+        echo -e "${RED}✗ CRITICAL: DATABASE_URL is prisma+postgres:// (Prisma Accelerate) but DIRECT_URL is missing or not a valid postgres:// URL.${NC}"
+        echo -e "${RED}  Schema changes (new tables, new columns) will NOT be applied to the database until DIRECT_URL is set.${NC}"
+        echo -e "${RED}  Fix: Add DIRECT_URL=postgresql://... to GitHub Secrets pointing directly to Supabase (not through pgbouncer).${NC}"
+        echo -e "${YELLOW}  Detected DATABASE_URL scheme: $(mask_url_scheme "$RESOLVED_DATABASE_URL")${NC}"
+        echo -e "${YELLOW}  Skipping Prisma sync this deploy. New features requiring new DB tables will 500 until resolved.${NC}"
     fi
 elif [[ "${RESOLVED_DATABASE_URL}" =~ ^postgres(ql)?:// ]]; then
     export DATABASE_URL="$RESOLVED_DATABASE_URL"
