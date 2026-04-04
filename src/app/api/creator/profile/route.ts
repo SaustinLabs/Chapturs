@@ -1,8 +1,33 @@
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { auth } from '@/auth-edge'
 import { prisma } from '@/lib/database/PrismaService'
+
+const profileUpdateSchema = z.object({
+  displayName: z.string().max(100).optional(),
+  bio: z.string().max(2000).optional(),
+  profileImage: z.union([z.string().url().max(500), z.literal(''), z.null()]).optional(),
+  coverImage: z.union([z.string().url().max(500), z.literal(''), z.null()]).optional(),
+  featuredType: z.string().max(50).default('none'),
+  featuredWorkId: z.string().optional().nullable(),
+  accentColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).default('#3B82F6'),
+  fontStyle: z.string().max(50).default('default'),
+  backgroundStyle: z.string().max(50).default('solid'),
+  isPublished: z.boolean().default(false),
+  blocks: z.array(z.object({
+    type: z.string().max(50),
+    data: z.any(),
+    gridX: z.number().int().optional(),
+    gridY: z.number().int().optional(),
+    width: z.number().int().optional(),
+    height: z.number().int().optional(),
+    title: z.string().max(200).optional(),
+    isVisible: z.boolean().optional(),
+    order: z.number().int().optional(),
+  })).max(50).optional(),
+})
 
 /**
  * GET /api/creator/profile
@@ -92,7 +117,15 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const data = await request.json()
+    const rawData = await request.json()
+    const parseResult = profileUpdateSchema.safeParse(rawData)
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: 'Invalid input', issues: parseResult.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
+    const data = parseResult.data
 
     const author = await prisma.author.findUnique({
       where: { userId: session.user.id },

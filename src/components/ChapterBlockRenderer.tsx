@@ -4,6 +4,7 @@ import React from 'react'
 import HtmlWithGlossary from './HtmlWithGlossary'
 import HtmlWithHighlights from './HtmlWithHighlights'
 import MobileTextBox from './MobileTextBox'
+import { sanitizeHtml } from '@/lib/sanitize'
 
 interface ContentBlock {
   id: string
@@ -132,7 +133,7 @@ function DialogueBlock({ lines }: { lines: Array<{ speaker: string; text: string
           </span>
           <span 
             className="text-gray-700 dark:text-gray-300"
-            dangerouslySetInnerHTML={{ __html: `"${line.text}"` }}
+            dangerouslySetInnerHTML={{ __html: `"${sanitizeHtml(line.text)}"` }}
           />
         </div>
       ))}
@@ -145,7 +146,7 @@ function NarrationBlock({ text }: { text: string }) {
   return (
     <div 
       className="italic text-center text-gray-600 dark:text-gray-400 my-6"
-      dangerouslySetInnerHTML={{ __html: text }}
+      dangerouslySetInnerHTML={{ __html: sanitizeHtml(text) }}
     />
   )
 }
@@ -205,7 +206,7 @@ function PhoneBlock({ screens }: { screens: Array<{ type: string; content: any }
                             ? 'bg-blue-500 text-white' 
                             : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
                         }`}
-                        dangerouslySetInnerHTML={{ __html: msg.text }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(msg.text) }}
                       />
                     </div>
                   ))}
@@ -216,7 +217,7 @@ function PhoneBlock({ screens }: { screens: Array<{ type: string; content: any }
                   <div className="text-2xl font-bold mb-2">{screen.content.title}</div>
                   <div 
                     className="text-gray-600 dark:text-gray-400"
-                    dangerouslySetInnerHTML={{ __html: screen.content.description }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(screen.content.description) }}
                   />
                 </div>
               )}

@@ -10,24 +10,40 @@ const nextConfig = {
     // are pre-existing and will be addressed separately.
     ignoreBuildErrors: true,
   },
-  // Security headers
+  // Security headers applied to every route
   async headers() {
+    const csp = [
+      "default-src 'self'",
+      // unsafe-inline / unsafe-eval are required by Next.js inline scripts and Tiptap
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "style-src 'self' 'unsafe-inline'",
+      [
+        "img-src 'self' data: blob:",
+        'https://pub-505fbfcdba444803a75ae90dd308aa04.r2.dev',
+        'https://lh3.googleusercontent.com',
+        'https://avatars.githubusercontent.com',
+        'https://cdn.discordapp.com',
+        'https://images.unsplash.com',
+        'https://source.unsplash.com',
+      ].join(' '),
+      "font-src 'self'",
+      "connect-src 'self'",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "object-src 'none'",
+    ].join('; ');
+
     return [
       {
-        source: '/api/:path*',
+        source: '/(.*)',
         headers: [
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
-          },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          { key: 'X-DNS-Prefetch-Control', value: 'on' },
+          { key: 'Content-Security-Policy', value: csp },
         ],
       },
     ];

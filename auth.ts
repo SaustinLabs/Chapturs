@@ -118,19 +118,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
     },
     async session({ session, token }) {
-      // Send properties to the client
       if (session.user && token.sub) {
         session.user.id = token.sub
-        console.log('[Session Callback] Setting session.user.id from token.sub:', token.sub)
-      } else {
-        console.log('[Session Callback] Missing session.user or token.sub')
+        // Propagate role so admin checks work on the client and in API routes
+        ;(session.user as any).role = (token as any).role ?? 'user'
       }
       return session
     },
-    async jwt({ token, account, profile }) {
-      // Persist the OAuth access_token and/or the user id to the token right after signin
+    async jwt({ token, account }) {
+      // Only runs on the initial sign-in (account is null on subsequent requests).
+      // Load the user's role from the DB and cache it in the JWT token.
+      // Do NOT persist the OAuth access_token — it would be exposed in the cookie.
       if (account) {
-        token.accessToken = account.access_token
+        try {
+          const { prisma } = await import('@/lib/database/PrismaService')
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.sub! },
+            select: { role: true },
+          })
+          ;(token as any).role = dbUser?.role ?? 'user'
+        } catch {
+          ;(token as any).role = 'user'
+        }
       }
       return token
     },

@@ -99,6 +99,16 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
     console.log(`Works API: Updating work with data:`, { title, description, status, genres, tags, maturityRating, coverImage })
 
     // Prepare update data
+    const VALID_STATUSES = ['draft', 'ongoing', 'completed', 'hiatus', 'unpublished', 'published']
+    const VALID_RATINGS = ['G', 'PG', 'PG-13', 'R', 'NC-17']
+
+    if (status && !VALID_STATUSES.includes(status)) {
+      return NextResponse.json({ error: 'Invalid status value' }, { status: 400 })
+    }
+    if (maturityRating && !VALID_RATINGS.includes(maturityRating)) {
+      return NextResponse.json({ error: 'Invalid maturity rating' }, { status: 400 })
+    }
+
     const updateData: any = {
       updatedAt: new Date()
     }
@@ -141,10 +151,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
     console.error('Works API PUT Error stack:', error instanceof Error ? error.stack : 'No stack trace')
     console.error('Works API PUT Error message:', error instanceof Error ? error.message : String(error))
     return NextResponse.json(
-      { 
-        error: 'Failed to update work',
-        details: error instanceof Error ? error.message : String(error)
-      },
+      { error: 'Failed to update work' },
       { status: 500 }
     )
   }

@@ -5,6 +5,7 @@ import { GlossaryEntry } from '@/types'
 import { GlossaryTooltip } from './GlossarySystem'
 import { CharacterTooltip } from './CharacterTooltip'
 import CharacterProfileViewModal from './CharacterProfileViewModal'
+import { sanitizeHtml } from '@/lib/sanitize'
 
 interface Character {
   id: string
@@ -44,10 +45,7 @@ export default function HtmlWithHighlights({
 
   // During SSR or before mount, render raw HTML (no highlighting)
   if (!mounted || ((!glossaryTerms || glossaryTerms.length === 0) && (!characters || characters.length === 0))) {
-    return <div dangerouslySetInnerHTML={{ __html: html }} />
-  }
-
-  // Build character name patterns (including aliases)
+    return <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }} /> (including aliases)
   const characterPatterns: Array<{ pattern: string; character: Character }> = []
   characters.forEach(char => {
     characterPatterns.push({ pattern: char.name, character: char })
@@ -68,13 +66,13 @@ export default function HtmlWithHighlights({
     ...sortedCharacters.map(c => escapeRegExp(c.pattern))
   ]
   
-  if (allPatterns.length === 0) return <div dangerouslySetInnerHTML={{ __html: html }} />
+  if (allPatterns.length === 0) return <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }} />
 
   const globalRegex = new RegExp(`\\b(${allPatterns.join('|')})\\b`, 'gi')
 
   // Parse the HTML and walk nodes (client-side only)
   const parser = new DOMParser()
-  if (!parser) return <div dangerouslySetInnerHTML={{ __html: html }} />
+  if (!parser) return <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }} />
 
   const doc = parser.parseFromString(html, 'text/html')
 

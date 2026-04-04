@@ -78,6 +78,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (typeof text !== 'string' || text.trim().length === 0 || text.length > 5000) {
+      return NextResponse.json(
+        { error: 'Comment must be between 1 and 5000 characters' },
+        { status: 400 }
+      )
+    }
+
     const comment = await prisma.blockComment.create({
       data: {
         workId,

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { GlossaryEntry } from '@/types'
 import { GlossaryTooltip } from './GlossarySystem'
+import { sanitizeHtml } from '@/lib/sanitize'
 
 interface HtmlWithGlossaryProps {
   html: string
@@ -25,7 +26,7 @@ export default function HtmlWithGlossary({ html, glossaryTerms = [] }: HtmlWithG
 
   // During SSR or before mount, render raw HTML (no glossary highlighting)
   if (!mounted || !glossaryTerms || glossaryTerms.length === 0) {
-    return <div dangerouslySetInnerHTML={{ __html: html }} />
+    return <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }} />
   }
 
   // Sort terms by length desc to avoid partial matches
@@ -33,13 +34,13 @@ export default function HtmlWithGlossary({ html, glossaryTerms = [] }: HtmlWithG
 
   // Build regex that matches any term with word boundaries, case-insensitive
   const termPatterns = sorted.map(t => escapeRegExp(t.term))
-  if (termPatterns.length === 0) return <div dangerouslySetInnerHTML={{ __html: html }} />
+  if (termPatterns.length === 0) return <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }} />
 
   const globalRegex = new RegExp(`\\b(${termPatterns.join('|')})\\b`, 'gi')
 
   // Parse the HTML and walk nodes (client-side only)
   const parser = new DOMParser()
-  if (!parser) return <div dangerouslySetInnerHTML={{ __html: html }} />
+  if (!parser) return <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }} />
 
   const doc = parser.parseFromString(html, 'text/html')
 

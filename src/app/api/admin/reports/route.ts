@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     // For now we'll check if user exists and has a role 'admin' or 'moderator'
     // If you don't use the role field currently, we can just allow it for testing 
     // but in production we should enforce:
-    if (!session?.user || (session.user as any).role === 'user') {
+    if (!session?.user || (session.user as any).role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
