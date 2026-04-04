@@ -7,13 +7,14 @@ import {
   createErrorResponse, 
   createSuccessResponse, 
   generateRequestId,
-  checkRateLimit,
+  checkRateLimitAsync,
   addCorsHeaders,
   ApiError,
   ApiErrorType
 } from '@/lib/api/errorHandling'
 import { z } from 'zod'
 import IntelligentRecommendationEngine from '@/lib/recommendations/IntelligentRecommendationEngine'
+import { getRedis } from '@/lib/redis'
 
 // use shared prisma instance from PrismaService
 
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
     // Per-IP limiting is enforced by Nginx upstream.
     const clientId = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || null
     if (clientId) {
-      checkRateLimit(`feed_${clientId}`, 120, 60000) // 120/min per real IP
+      await checkRateLimitAsync(`feed_${clientId}`, 120, 60000) // 120/min per real IP
     }
 
     // Parse and validate query parameters
@@ -109,31 +110,58 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Fallback feed for guest users or when personalization fails
+// Fallback feed for guest users or when personalization fails.
+// Results are cached in Redis for 30 seconds to avoid hammering the DB
+// on every anonymous page load.
+const FALLBACK_FEED_TTL = 30 // seconds
+
 async function getFallbackFeed(limit: number, offset: number, userId?: string) {
-  // Get user's subscriptions if logged in
+  // For anonymous requests (no userId) serve from Redis cache when available.
+  // Personalised results (userId present) are never cached.
+  if (!userId) {
+    const redis = getRedis()
+    const cacheKey = `feed:fallback:${limit}:${offset}`
+    if (redis) {
+      try {
+        const cached = await redis.get<any[]>(cacheKey)
+        if (cached) return cached
+      } catch { /* cache miss — continue to DB */ }
+    }
+
+    // Build from DB, then cache
+    const result = await buildFallbackFeed(limit, offset, undefined)
+    if (redis) {
+      try { await redis.set(cacheKey, result, { ex: FALLBACK_FEED_TTL }) } catch { /* non-fatal */ }
+    }
+    return result
+  }
+
+  return buildFallbackFeed(limit, offset, userId)
+}
+
+async function buildFallbackFeed(limit: number, offset: number, userId: string | undefined) {
   let subscribedAuthorIds: string[] = []
   if (userId) {
     try {
       const subs = await prisma.subscription.findMany({
-        where: { userId: userId },
+        where: { userId },
         select: { authorId: true }
       })
       subscribedAuthorIds = subs.map(s => s.authorId)
     } catch (e) {
-      // ignore
+      // ignore — personalisation is best-effort
     }
   }
 
   let works: any[] = []
   try {
     works = await prisma.work.findMany({
-      where: { 
+      where: {
         status: { in: ['published', 'ongoing', 'completed'] }
       },
-      include: { 
-        author: { 
-          include: { user: true } 
+      include: {
+        author: {
+          include: { user: true }
         },
         _count: {
           select: {
@@ -162,50 +190,50 @@ async function getFallbackFeed(limit: number, offset: number, userId?: string) {
   return works
     .filter((work: any) => work.author && work.author.user)
     .map((work: any) => ({
-    id: `${work.id}-feed`,
-    work: {
-      id: work.id,
-      title: work.title,
-      description: work.description,
-      formatType: work.formatType,
-      coverImage: work.coverImage,
-      status: work.status,
-      maturityRating: work.maturityRating,
-      genres: safeJsonParse(work.genres, []),
-      tags: safeJsonParse(work.tags, []),
-      author: {
-        id: work.author.id,
-        username: work.author.user.username,
-        displayName: work.author.user.displayName,
-        avatar: work.author.user.avatar,
-        verified: work.author.verified
+      id: `${work.id}-feed`,
+      work: {
+        id: work.id,
+        title: work.title,
+        description: work.description,
+        formatType: work.formatType,
+        coverImage: work.coverImage,
+        status: work.status,
+        maturityRating: work.maturityRating,
+        genres: safeJsonParse(work.genres, []),
+        tags: safeJsonParse(work.tags, []),
+        author: {
+          id: work.author.id,
+          username: work.author.user.username,
+          displayName: work.author.user.displayName,
+          avatar: work.author.user.avatar,
+          verified: work.author.verified
+        },
+        statistics: {
+          bookmarks: work._count.bookmarks,
+          likes: work._count.likes,
+          sections: work._count.sections,
+          views: 0,
+          subscribers: 0,
+          comments: 0,
+          averageRating: 0,
+          ratingCount: 0,
+          ...safeJsonParse(work.statistics, {})
+        },
+        createdAt: work.createdAt,
+        updatedAt: work.updatedAt
       },
-      statistics: {
-        bookmarks: work._count.bookmarks,
-        likes: work._count.likes,
-        sections: work._count.sections,
-        views: 0,
-        subscribers: 0,
-        comments: 0,
-        averageRating: 0,
-        ratingCount: 0,
-        ...safeJsonParse(work.statistics, {})
-      },
-      createdAt: work.createdAt,
-      updatedAt: work.updatedAt
-    },
-    feedType: subscribedAuthorIds.includes(work.authorId) ? 'subscribed' as const
-      : (work._count.likes + work._count.bookmarks) > 3 ? 'algorithmic' as const
-      : 'discovery' as const,
-    reason: subscribedAuthorIds.includes(work.authorId) ? 'From an author you follow'
-      : (work._count.likes + work._count.bookmarks) > 3 ? 'Trending with readers'
-      : 'Popular content',
-    score: (work._count.likes * 2 + work._count.bookmarks + work._count.sections) / 10 + Math.random() * 0.1,
-    readingStatus: 'unread' as const,
-    addedToFeedAt: new Date(),
-    bookmark: false,
-    liked: false
-  }))
+      feedType: subscribedAuthorIds.includes(work.authorId) ? 'subscribed' as const
+        : (work._count.likes + work._count.bookmarks) > 3 ? 'algorithmic' as const
+        : 'discovery' as const,
+      reason: subscribedAuthorIds.includes(work.authorId) ? 'From an author you follow'
+        : (work._count.likes + work._count.bookmarks) > 3 ? 'Trending with readers'
+        : 'Popular content',
+      score: (work._count.likes * 2 + work._count.bookmarks + work._count.sections) / 10 + Math.random() * 0.1,
+      readingStatus: 'unread' as const,
+      addedToFeedAt: new Date(),
+      bookmark: false,
+      liked: false
+    }))
 }
 
 // Handle preflight requests

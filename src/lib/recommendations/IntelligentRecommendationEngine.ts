@@ -569,7 +569,10 @@ export class IntelligentRecommendationEngine {
   }
   
   private static async findSimilarUsers(userId: string, limit: number): Promise<{userId: string, similarity: number}[]> {
-    // This would implement user similarity calculation based on reading patterns
+    // Collaborative filtering is not yet implemented.
+    // When implemented, replace this stub with a batched query — DO NOT
+    // query getUserWorkInteraction per (user × work) or you will generate
+    // up to 4 000 sequential DB calls per feed request.
     return []
   }
   

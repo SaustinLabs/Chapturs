@@ -207,27 +207,69 @@ export function addCorsHeaders(response: NextResponse): NextResponse {
   return response
 }
 
-// Rate Limiting (Simple in-memory implementation - use Redis in production)
-const requestCounts = new Map<string, { count: number; resetTime: number }>()
+// Rate Limiting — Redis sliding window in production, in-memory fallback for local dev
+import { getRedis } from '@/lib/redis'
 
-export function checkRateLimit(identifier: string, limit: number = 100, windowMs: number = 60000): void {
-  const now = Date.now()
-  const userRequests = requestCounts.get(identifier)
+const _inMemoryCounts = new Map<string, { count: number; resetTime: number }>()
 
-  if (!userRequests || now > userRequests.resetTime) {
-    // Reset or initialize counter
-    requestCounts.set(identifier, { count: 1, resetTime: now + windowMs })
+export async function checkRateLimitAsync(
+  identifier: string,
+  limit: number = 100,
+  windowMs: number = 60000
+): Promise<void> {
+  const redis = getRedis()
+
+  if (redis) {
+    // Sliding window using Redis INCR + EXPIRE
+    const key = `rl:${identifier}`
+    const count = await redis.incr(key)
+    if (count === 1) {
+      await redis.expire(key, Math.ceil(windowMs / 1000))
+    }
+    if (count > limit) {
+      throw new ApiError(
+        'Rate limit exceeded',
+        429,
+        ApiErrorType.RATE_LIMIT_ERROR,
+        { limit, windowMs }
+      )
+    }
     return
   }
 
-  if (userRequests.count >= limit) {
+  // Fallback: in-memory (single-process only — acceptable for low traffic / local dev)
+  const now = Date.now()
+  const entry = _inMemoryCounts.get(identifier)
+  if (!entry || now > entry.resetTime) {
+    _inMemoryCounts.set(identifier, { count: 1, resetTime: now + windowMs })
+    return
+  }
+  if (entry.count >= limit) {
     throw new ApiError(
       'Rate limit exceeded',
       429,
       ApiErrorType.RATE_LIMIT_ERROR,
-      { limit, windowMs, resetTime: userRequests.resetTime }
+      { limit, windowMs, resetTime: entry.resetTime }
     )
   }
+  entry.count++
+}
 
-  userRequests.count++
+/** @deprecated Use checkRateLimitAsync — this sync version uses in-memory only */
+export function checkRateLimit(identifier: string, limit: number = 100, windowMs: number = 60000): void {
+  const now = Date.now()
+  const entry = _inMemoryCounts.get(identifier)
+  if (!entry || now > entry.resetTime) {
+    _inMemoryCounts.set(identifier, { count: 1, resetTime: now + windowMs })
+    return
+  }
+  if (entry.count >= limit) {
+    throw new ApiError(
+      'Rate limit exceeded',
+      429,
+      ApiErrorType.RATE_LIMIT_ERROR,
+      { limit, windowMs, resetTime: entry.resetTime }
+    )
+  }
+  entry.count++
 }
