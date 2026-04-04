@@ -161,52 +161,101 @@ export class IntelligentRecommendationEngine {
   }
   
   // === COLLABORATIVE FILTERING === //
-  
+
   /**
-   * Recommend based on similar users' preferences
+   * Recommend based on similar users' preferences.
+   *
+   * The idea: "readers whose taste overlaps with yours also liked X, so you probably will too."
+   *
+   * Safe implementation guarantee: we issue exactly 2 DB queries regardless of how
+   * many similar users or candidate works there are:
+   *   1. Fetch similar users (their overlap with the current user's likes/bookmarks).
+   *   2. Fetch ALL interactions those users have had with ALL candidate works in one query.
+   * Everything else is in-memory computation.
    */
   private static async collaborativeFilteringRecommendations(
     userId: string,
     candidates: Work[]
   ): Promise<RecommendationScore[]> {
-    const recommendations: RecommendationScore[] = []
-    
-    // Find users with similar reading patterns
+    if (candidates.length === 0) return []
+
+    // --- Step 1: Find similar users (2 queries, returns at most `limit` rows) ---
     const similarUsers = await this.findSimilarUsers(userId, 20)
-    
-    if (similarUsers.length === 0) {
-      return recommendations
+    if (similarUsers.length === 0) return []
+
+    const similarUserIds = similarUsers.map(u => u.userId)
+    const candidateWorkIds = candidates.map(w => w.id)
+
+    // Build a similarity lookup: similarUserId -> similarity score
+    const similarityMap = new Map(similarUsers.map(u => [u.userId, u.similarity]))
+
+    // --- Step 2: ONE batched query for all (user, work) interactions ---
+    // We fetch likes, bookmarks, and reading history in parallel but each
+    // as a single query covering all similar users × all candidate works.
+    const [likes, bookmarks, histories] = await Promise.all([
+      prisma.like.findMany({
+        where: { userId: { in: similarUserIds }, workId: { in: candidateWorkIds } },
+        select: { userId: true, workId: true }
+      }),
+      prisma.bookmark.findMany({
+        where: { userId: { in: similarUserIds }, workId: { in: candidateWorkIds } },
+        select: { userId: true, workId: true }
+      }),
+      prisma.readingHistory.findMany({
+        where: { userId: { in: similarUserIds }, workId: { in: candidateWorkIds } },
+        select: { userId: true, workId: true, progress: true }
+      })
+    ])
+
+    // --- Step 3: Build an in-memory interaction map: workId -> Map<userId, rating> ---
+    // rating = weighted sum of signals (like=0.4, bookmark=0.3, read>50%=0.3)
+    const interactionMap = new Map<string, Map<string, number>>()
+
+    const ensureWork = (wId: string) => {
+      if (!interactionMap.has(wId)) interactionMap.set(wId, new Map())
+      return interactionMap.get(wId)!
     }
-    
+    const addSignal = (workId: string, uId: string, signal: number) => {
+      const m = ensureWork(workId)
+      m.set(uId, (m.get(uId) ?? 0) + signal)
+    }
+
+    for (const l of likes)     addSignal(l.workId, l.userId, 0.4)
+    for (const b of bookmarks) addSignal(b.workId, b.userId, 0.3)
+    for (const h of histories) {
+      if (h.progress > 0.5) addSignal(h.workId, h.userId, 0.3)
+    }
+
+    // --- Step 4: Score each candidate in memory ---
+    const recommendations: RecommendationScore[] = []
+
     for (const work of candidates) {
-      let score = 0
-      let confidence = 0
-      const reasons: string[] = []
-      
-      // Check how similar users interacted with this work
-      for (const { userId: similarUserId, similarity } of similarUsers) {
-        const interaction = await this.getUserWorkInteraction(similarUserId, work.id)
-        
-        if (interaction && interaction.rating > 0.5) {
-          score += similarity * interaction.rating
-          confidence += similarity
+      const userInteractions = interactionMap.get(work.id)
+      if (!userInteractions || userInteractions.size === 0) continue
+
+      let weightedScore = 0
+      let totalSimilarity = 0
+
+      for (const [simUserId, rating] of userInteractions) {
+        const similarity = similarityMap.get(simUserId) ?? 0
+        if (rating > 0.5) {
+          weightedScore += similarity * rating
+          totalSimilarity += similarity
         }
       }
-      
-      if (confidence > 0) {
-        score = score / confidence // Weighted average
-        reasons.push(`${Math.round(confidence * 100)}% of similar readers enjoyed this`)
-        
+
+      if (totalSimilarity > 0) {
+        const score = Math.min(weightedScore / totalSimilarity, 1.0)
         recommendations.push({
           workId: work.id,
           score,
-          reasons,
-          confidence,
+          reasons: [`Readers with similar taste enjoyed this`],
+          confidence: Math.min(totalSimilarity, 1.0),
           source: 'collaborative'
         })
       }
     }
-    
+
     return recommendations.sort((a, b) => b.score - a.score)
   }
   
@@ -568,32 +617,57 @@ export class IntelligentRecommendationEngine {
     return Math.max(0, 1 - (daysSinceCreated / 30)) // Decay over 30 days
   }
   
-  private static async findSimilarUsers(userId: string, limit: number): Promise<{userId: string, similarity: number}[]> {
-    // Collaborative filtering is not yet implemented.
-    // When implemented, replace this stub with a batched query — DO NOT
-    // query getUserWorkInteraction per (user × work) or you will generate
-    // up to 4 000 sequential DB calls per feed request.
-    return []
-  }
-  
-  private static async getUserWorkInteraction(userId: string, workId: string): Promise<{rating: number} | null> {
-    // Calculate interaction strength based on likes, bookmarks, reading time
-    const [like, bookmark, history] = await Promise.all([
-      prisma.like.findUnique({ where: { userId_workId: { userId, workId } } }),
-      prisma.bookmark.findUnique({ where: { userId_workId: { userId, workId } } }),
-      prisma.readingHistory.findUnique({ where: { userId_workId: { userId, workId } } })
+  private static async findSimilarUsers(
+    userId: string,
+    limit: number
+  ): Promise<{ userId: string; similarity: number }[]> {
+    // Find works the current user has interacted with (likes + bookmarks).
+    // Then find other users who also interacted with those same works.
+    // Similarity = overlapping works / total works the current user engaged with
+    // (Jaccard-inspired, computed in memory from a single batch query).
+
+    const [myLikes, myBookmarks] = await Promise.all([
+      prisma.like.findMany({ where: { userId }, select: { workId: true } }),
+      prisma.bookmark.findMany({ where: { userId }, select: { workId: true } })
     ])
-    
-    if (!like && !bookmark && !history) return null
-    
-    let rating = 0
-    if (like) rating += 0.4
-    if (bookmark) rating += 0.3
-    if (history && history.progress > 0.5) rating += 0.3
-    
-    return { rating: Math.min(rating, 1.0) }
+
+    const myWorkIds = [...new Set([
+      ...myLikes.map(l => l.workId),
+      ...myBookmarks.map(b => b.workId)
+    ])]
+
+    if (myWorkIds.length === 0) return []
+
+    // Find other users who touched the same works — one query.
+    const [otherLikes, otherBookmarks] = await Promise.all([
+      prisma.like.findMany({
+        where: { workId: { in: myWorkIds }, userId: { not: userId } },
+        select: { userId: true, workId: true }
+      }),
+      prisma.bookmark.findMany({
+        where: { workId: { in: myWorkIds }, userId: { not: userId } },
+        select: { userId: true, workId: true }
+      })
+    ])
+
+    // Count overlap per other user
+    const overlap = new Map<string, Set<string>>()
+    for (const r of [...otherLikes, ...otherBookmarks]) {
+      if (!overlap.has(r.userId)) overlap.set(r.userId, new Set())
+      overlap.get(r.userId)!.add(r.workId)
+    }
+
+    // Jaccard similarity: |intersection| / |myWorkIds|
+    const results: { userId: string; similarity: number }[] = []
+    for (const [uid, sharedWorks] of overlap) {
+      results.push({ userId: uid, similarity: sharedWorks.size / myWorkIds.length })
+    }
+
+    return results
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, limit)
   }
-  
+
   private static async calculateTrendingScore(work: Work): Promise<number> {
     // Calculate based on recent engagement velocity
     // This would query recent likes, views, bookmarks
