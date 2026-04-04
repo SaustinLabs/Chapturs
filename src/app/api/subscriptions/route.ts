@@ -17,6 +17,7 @@ import {
 } from '@/lib/api/errorHandling'
 import { toggleSubscriptionSchema, updateSubscriptionPreferencesSchema } from '@/lib/api/schemas'
 import { notifyNewSubscriber } from '@/lib/email'
+import { createNotification } from '@/lib/notifications'
 
 // use shared prisma instance from PrismaService
 
@@ -71,11 +72,24 @@ export async function POST(request: NextRequest) {
             where: { id: session.user.id },
             select: { displayName: true, username: true }
           })
-          if (author.user.email && subscriber) {
+          if (!subscriber) return
+          const subscriberName = subscriber.displayName ?? subscriber.username ?? 'A reader'
+
+          // In-app notification to author
+          await createNotification({
+            userId: author.userId,
+            type: 'new_subscriber',
+            title: 'New subscriber',
+            message: `${subscriberName} subscribed to your works`,
+            url: '/creator/dashboard',
+          })
+
+          // Email notification
+          if (author.user.email) {
             await notifyNewSubscriber({
               authorEmail: author.user.email,
               authorName: author.user.displayName ?? author.user.username,
-              subscriberName: subscriber.displayName ?? subscriber.username ?? 'A reader',
+              subscriberName,
             })
           }
         } catch {}

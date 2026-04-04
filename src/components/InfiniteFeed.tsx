@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { FeedItem } from '@/types'
 import FeedCard from './FeedCard'
 import FeedCardSkeleton from './ui/FeedCardSkeleton'
@@ -13,6 +14,7 @@ interface InfiniteFeedProps {
 
 export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
   const { userId, isAuthenticated, isLoading: authLoading } = useUser()
+  const router = useRouter()
   const [items, setItems] = useState<FeedItem[]>([])
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
@@ -168,7 +170,10 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
         <p className="text-gray-600 dark:text-gray-300 mb-4 max-w-md">
           {emptyState.message}
         </p>
-        <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+        <button
+          onClick={() => router.push(hubMode === 'reader' ? '/browse' : '/creator/upload')}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+        >
           {emptyState.action}
         </button>
       </div>

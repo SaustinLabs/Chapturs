@@ -17,6 +17,7 @@ import {
   PhotoIcon,
   CurrencyDollarIcon
 } from '@heroicons/react/24/outline'
+import NotificationBell from './NotificationBell'
 
 interface SidebarProps {
   currentHub: 'reader' | 'creator'
@@ -256,6 +257,9 @@ export default function Sidebar({ currentHub, onHubChange }: SidebarProps) {
                 )}
               </a>
               
+              {/* Notifications */}
+              <NotificationBell isCollapsed={isCollapsed} />
+
               {/* Sign Out Button */}
               <button
                 onClick={handleSignOut}

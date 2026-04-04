@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
 import { auth } from '@/auth'
 import { notifyNewComment } from '@/lib/email'
+import { createNotification } from '@/lib/notifications'
 
 function normalizeUsername(value: string): string {
   const normalized = value
@@ -311,6 +312,48 @@ export async function POST(
         likes: true
       }
     })
+
+    // Fire-and-forget: notify the work author about the new comment
+    ;(async () => {
+      try {
+        const workForNotify = await prisma.work.findUnique({
+          where: { id: params.id },
+          select: {
+            title: true,
+            author: {
+              select: {
+                user: { select: { id: true, email: true, displayName: true } }
+              }
+            }
+          }
+        })
+        if (!workForNotify) return
+        const authorUserId = workForNotify.author?.user?.id
+        const authorEmail = workForNotify.author?.user?.email
+        if (!authorUserId || authorUserId === commentUserId) return // don't notify self
+
+        // In-app notification
+        await createNotification({
+          userId: authorUserId,
+          type: 'new_comment',
+          title: 'New comment',
+          message: `${comment.user.displayName ?? comment.user.username ?? 'Someone'} commented on "${workForNotify.title}"`,
+          url: `/story/${params.id}#comments`,
+        })
+
+        // Email notification (requires RESEND_API_KEY)
+        if (authorEmail) {
+          await notifyNewComment({
+            authorEmail,
+            authorName: workForNotify.author?.user?.displayName ?? 'Creator',
+            commenterName: comment.user.displayName ?? comment.user.username ?? 'A reader',
+            workTitle: workForNotify.title,
+            workId: params.id,
+            commentPreview: content.trim(),
+          })
+        }
+      } catch {}
+    })()
 
     return NextResponse.json({
       comment: {

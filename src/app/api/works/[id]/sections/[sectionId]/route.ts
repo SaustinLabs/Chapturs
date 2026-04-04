@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '../../../../../../../auth'
 import DatabaseService, { prisma } from '../../../../../../lib/database/PrismaService'
 import { assessWorkSynchronously } from '@/lib/quality-assessment/assessment-sync'
+import { notifyNewChapter } from '@/lib/email'
+import { createNotification } from '@/lib/notifications'
 
 interface RouteParams {
   params: Promise<{
@@ -73,6 +75,53 @@ export async function PATCH(request: NextRequest, props: RouteParams) {
         console.error('[SECTIONS] Assessment error:', assessmentError)
         // Don't fail the publish if assessment fails - log it and continue
       }
+    }
+
+    // Fire-and-forget chapter notification to all subscribers
+    if (status === 'published') {
+      ;(async () => {
+        try {
+          const fullWork = await prisma.work.findUnique({
+            where: { id: workId },
+            include: {
+              author: {
+                include: {
+                  user: { select: { displayName: true } },
+                  subscriptions: {
+                    where: { notificationsEnabled: true },
+                    include: { user: { select: { id: true, email: true, displayName: true } } },
+                  },
+                },
+              },
+            },
+          })
+          if (!fullWork) return
+          const authorName = fullWork.author.user.displayName ?? 'An author'
+          for (const sub of fullWork.author.subscriptions) {
+            // In-app notification (doesn't require email)
+            await createNotification({
+              userId: sub.userId,
+              type: 'new_chapter',
+              title: `New chapter: ${updatedSection.title}`,
+              message: `${authorName} published a new chapter of "${fullWork.title}"`,
+              url: `/story/${fullWork.id}/chapter/${updatedSection.id}`,
+            })
+            // Email notification
+            if (!sub.user.email) continue
+            await notifyNewChapter({
+              subscriberEmail: sub.user.email,
+              subscriberName: sub.user.displayName ?? 'Reader',
+              authorDisplayName: authorName,
+              workTitle: fullWork.title,
+              workId: fullWork.id,
+              chapterTitle: updatedSection.title,
+              chapterId: updatedSection.id,
+            })
+          }
+        } catch (err) {
+          console.error('[notify] New chapter notification failed:', err)
+        }
+      })()
     }
 
     return NextResponse.json({
