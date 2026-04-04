@@ -81,7 +81,7 @@ export default function Sidebar({ currentHub, onHubChange }: SidebarProps) {
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           {!isCollapsed && (
             <a href="/" className="flex items-center gap-2 px-2 py-1 bg-indigo-600 rounded-lg">
-              <img src="/logo-transparent.png" alt="Chapturs" className="w-6 h-6 rounded" />
+              <img src="/logo-transparent.png" alt="Chapturs" className="w-6 h-6 rounded mix-blend-multiply" />
               <h1 className="text-base font-bold text-white tracking-wide">
                 Chapturs
               </h1>
@@ -89,7 +89,7 @@ export default function Sidebar({ currentHub, onHubChange }: SidebarProps) {
           )}
           {isCollapsed && (
             <a href="/" className="mx-auto p-1.5 bg-indigo-600 rounded-lg">
-              <img src="/logo-transparent.png" alt="Chapturs" className="w-6 h-6 rounded" />
+              <img src="/logo-transparent.png" alt="Chapturs" className="w-6 h-6 rounded mix-blend-multiply" />
             </a>
           )}
           <button
