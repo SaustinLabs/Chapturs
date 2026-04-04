@@ -81,8 +81,12 @@ export async function GET(request: NextRequest) {
 
     // If we didn't get enough items, supplement with generic content
     if (feedItems.length < limit) {
-      const supplemental = await getFallbackFeed(limit - feedItems.length, offset + feedItems.length, session?.user?.id)
-      feedItems.push(...supplemental)
+      try {
+        const supplemental = await getFallbackFeed(limit - feedItems.length, offset + feedItems.length, session?.user?.id)
+        feedItems.push(...supplemental)
+      } catch (suppErr) {
+        console.error('Supplemental feed fetch failed (non-fatal):', suppErr)
+      }
     }
 
     const response = createSuccessResponse({
@@ -145,7 +149,13 @@ async function getFallbackFeed(limit: number, offset: number, userId?: string) {
     take: limit
   })
 
-  return works.map((work: any) => ({
+  const safeJsonParse = (str: string | null | undefined, fallback: any) => {
+    try { return str ? JSON.parse(str) : fallback } catch { return fallback }
+  }
+
+  return works
+    .filter((work: any) => work.author && work.author.user)
+    .map((work: any) => ({
     id: `${work.id}-feed`,
     work: {
       id: work.id,
@@ -155,8 +165,8 @@ async function getFallbackFeed(limit: number, offset: number, userId?: string) {
       coverImage: work.coverImage,
       status: work.status,
       maturityRating: work.maturityRating,
-      genres: JSON.parse(work.genres || '[]'),
-      tags: JSON.parse(work.tags || '[]'),
+      genres: safeJsonParse(work.genres, []),
+      tags: safeJsonParse(work.tags, []),
       author: {
         id: work.author.id,
         username: work.author.user.username,
@@ -173,7 +183,7 @@ async function getFallbackFeed(limit: number, offset: number, userId?: string) {
         comments: 0,
         averageRating: 0,
         ratingCount: 0,
-        ...JSON.parse(work.statistics || '{}')
+        ...safeJsonParse(work.statistics, {})
       },
       createdAt: work.createdAt,
       updatedAt: work.updatedAt

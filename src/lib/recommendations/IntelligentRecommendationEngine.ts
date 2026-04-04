@@ -439,20 +439,35 @@ export class IntelligentRecommendationEngine {
   }
   
   private static worksToFeedItems(works: any[], feedType: string): FeedItem[] {
-    return works.map(work => ({
-      id: `${feedType}-${work.id}`,
-      work: this.transformWorkForFeed(work),
-      feedType: feedType as any,
-      reason: 'Popular content',
-      score: Math.random(),
-      readingStatus: 'unread' as const,
-      addedToFeedAt: new Date(),
-      bookmark: false,
-      liked: false
-    }))
+    const items: FeedItem[] = []
+    for (const work of works) {
+      try {
+        items.push({
+          id: `${feedType}-${work.id}`,
+          work: this.transformWorkForFeed(work),
+          feedType: feedType as any,
+          reason: 'Popular content',
+          score: Math.random(),
+          readingStatus: 'unread' as const,
+          addedToFeedAt: new Date(),
+          bookmark: false,
+          liked: false
+        })
+      } catch {
+        // skip works with invalid data (e.g. deleted author)
+      }
+    }
+    return items
   }
   
+  private static safeJsonParse(str: string | null | undefined, fallback: any): any {
+    try { return str ? JSON.parse(str) : fallback } catch { return fallback }
+  }
+
   private static transformWorkForFeed(work: any): Work {
+    if (!work.author || !work.author.user) {
+      throw new Error(`Work ${work.id} has no valid author — skipping`)
+    }
     return {
       id: work.id,
       title: work.title,
@@ -462,8 +477,8 @@ export class IntelligentRecommendationEngine {
       coverImage: work.coverImage,
       status: work.status,
       maturityRating: work.maturityRating,
-      genres: JSON.parse(work.genres || '[]'),
-      tags: JSON.parse(work.tags || '[]'),
+      genres: this.safeJsonParse(work.genres, []),
+      tags: this.safeJsonParse(work.tags, []),
       languages: [],
       thumbnails: [],
       sections: [],
