@@ -305,35 +305,63 @@ export class SignalTracker {
     engagementLevel: number
     discoveryOpenness: number
   }> {
-    // This would implement actual analytics queries
-    // For now, return structure for type safety
+    // Load stored taste-profile preferences (set via onboarding survey or accumulated behavior)
+    const userProfile = await prisma.userProfile.findUnique({
+      where: { userId },
+      select: {
+        genreAffinities: true,
+        formatPreferences: true,
+        qualityPreference: true,
+        diversityPreference: true,
+      },
+    })
+
+    const genreAffinities = new Map<string, number>()
+    const formatPreferences = new Map<string, number>()
+
+    if (userProfile?.genreAffinities) {
+      try {
+        const parsed = JSON.parse(userProfile.genreAffinities) as Record<string, number>
+        for (const [genre, score] of Object.entries(parsed)) {
+          // Skip internal sentinel keys
+          if (!genre.startsWith('_')) genreAffinities.set(genre, score)
+        }
+      } catch { /* ignore malformed JSON */ }
+    }
+
+    if (userProfile?.formatPreferences) {
+      try {
+        const parsed = JSON.parse(userProfile.formatPreferences) as Record<string, number>
+        for (const [format, score] of Object.entries(parsed)) {
+          formatPreferences.set(format, score)
+        }
+      } catch { /* ignore malformed JSON */ }
+    }
+
     return {
-      genreAffinities: new Map(),
-      formatPreferences: new Map(), 
+      genreAffinities,
+      formatPreferences,
       readingPatterns: {
         averageSessionLength: 0,
         peakHours: [],
         completionRate: 0,
-        readingSpeed: 0
+        readingSpeed: 0,
       },
-      engagementLevel: 0,
-      discoveryOpenness: 0
+      engagementLevel: userProfile?.qualityPreference ?? 0,
+      discoveryOpenness: userProfile?.diversityPreference ?? 0,
     }
   }
-  
-  // === UTILITY METHODS === //
-  
-  private static async storeRawSignal(signal: UserSignal): Promise<void> {
-    // Store in analytics table or time-series database
-    // This could be implemented with Prisma or direct analytics service
-    console.log('Storing signal:', signal.signalType, 'for user:', signal.userId)
-  }
-  
-  private static async updateAggregatedMetrics(signal: UserSignal): Promise<void> {
+
+  private static async updateAggregatedMetrics(_signal: UserSignal): Promise<void> {
     // Update aggregated metrics for fast retrieval
     // Could use Redis for real-time updates
   }
-  
+
+  private static async storeRawSignal(signal: UserSignal): Promise<void> {
+    // Store in analytics table or time-series database
+    console.log('Storing signal:', signal.signalType, 'for user:', signal.userId)
+  }
+
   private static async updateUserProfile(signal: UserSignal): Promise<void> {
     // Update user preference profile based on significant signals
   }

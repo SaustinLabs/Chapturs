@@ -501,7 +501,11 @@ export class IntelligentRecommendationEngine {
           work: this.transformWorkForFeed(work),
           feedType: feedType as any,
           reason: 'Popular content',
-          score: Math.random(),
+          // Deterministic popularity score — prevents feed shuffle on every reload
+          score: Math.min(
+            ((work._count?.likes ?? 0) + (work._count?.bookmarks ?? 0) * 2) / 200,
+            1
+          ),
           readingStatus: 'unread' as const,
           addedToFeedAt: new Date(),
           bookmark: false,
