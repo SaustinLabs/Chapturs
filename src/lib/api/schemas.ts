@@ -37,7 +37,13 @@ export const updateSectionSchema = createSectionSchema.partial()
 
 // Bookmark schemas
 export const toggleBookmarkSchema = z.object({
-  workId: z.string().min(1, 'Work ID is required')
+  workId: z.string().min(1, 'Work ID is required'),
+  shelf: z.enum(['reading', 'want_to_read', 'on_hold', 'finished']).optional()
+})
+
+export const updateBookmarkShelfSchema = z.object({
+  workId: z.string().min(1, 'Work ID is required'),
+  shelf: z.enum(['reading', 'want_to_read', 'on_hold', 'finished'])
 })
 
 // Subscription schemas

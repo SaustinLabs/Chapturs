@@ -14,7 +14,7 @@ import {
   ApiError,
   ApiErrorType
 } from '@/lib/api/errorHandling'
-import { toggleBookmarkSchema, workIdParamSchema, validateSearchParams } from '@/lib/api/schemas'
+import { toggleBookmarkSchema, updateBookmarkShelfSchema, workIdParamSchema, validateSearchParams } from '@/lib/api/schemas'
 
 export async function POST(request: NextRequest) {
   const requestId = generateRequestId()
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     // Validation
     const validatedData = await validateRequest(request, toggleBookmarkSchema)
-    const { workId } = validatedData
+    const { workId, shelf } = validatedData
 
     // Check if work exists (prevent bookmarking non-existent works)
     const work = await DatabaseService.getWork(workId)
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Toggle bookmark
-    const isBookmarked = await DatabaseService.toggleBookmark(workId, session.user.id)
+    const isBookmarked = await DatabaseService.toggleBookmark(workId, session.user.id, shelf || 'reading')
     
     const response = createSuccessResponse({
       bookmarked: isBookmarked,
@@ -114,4 +114,26 @@ export async function GET(request: NextRequest) {
 export async function OPTIONS() {
   const response = new NextResponse(null, { status: 200 })
   return addCorsHeaders(response)
+}
+
+export async function PATCH(request: NextRequest) {
+  const requestId = generateRequestId()
+
+  try {
+    const clientId = request.headers.get('x-forwarded-for') || 'anonymous'
+    checkRateLimit(`bookmark_patch_${clientId}`, 60, 60000)
+
+    const session = await auth()
+    requireAuth(session)
+
+    const validatedData = await validateRequest(request, updateBookmarkShelfSchema)
+    const { workId, shelf } = validatedData
+
+    await DatabaseService.updateBookmarkShelf(workId, session.user.id, shelf)
+
+    const response = createSuccessResponse({ workId, shelf }, 'Shelf updated', requestId)
+    return addCorsHeaders(response)
+  } catch (error) {
+    return createErrorResponse(error, requestId)
+  }
 }

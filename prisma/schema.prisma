@@ -82,6 +82,9 @@ model User {
   // In-app notifications
   notifications Notification[]
 
+  // Chapter reactions
+  chapterReactions ChapterReaction[]
+
   @@map("users")
 }
 
@@ -255,6 +258,9 @@ model Work {
   contestEntries ContestEntry[]
   workRatings    WorkRating[]
 
+  // Chapter reactions
+  chapterReactions ChapterReaction[]
+
   @@map("works")
 }
 
@@ -295,6 +301,9 @@ model Section {
   fanTranslations FanTranslation[] @relation("FanTranslations")
   fanAudiobooks   FanAudiobook[]   @relation("FanAudiobooks")
 
+  // Chapter reactions
+  chapterReactions ChapterReaction[]
+
   @@map("sections")
 }
 
@@ -334,6 +343,7 @@ model Bookmark {
   id           String   @id @default(cuid())
   userId       String
   workId       String
+  shelf        String   @default("reading") // reading | want_to_read | on_hold | finished
   bookmarkedAt DateTime @default(now())
 
   // Relations
@@ -1810,4 +1820,29 @@ model SiteSettings {
   updatedBy   String?
 
   @@map("site_settings")
+}
+
+// ============================================================================
+// CHAPTER REACTIONS
+// ============================================================================
+
+// Per-user emoji reaction on a chapter (section). One row per user+section+emoji.
+// Aggregates are computed on read — normalized, not denormalized.
+model ChapterReaction {
+  id        String   @id @default(cuid())
+  userId    String
+  sectionId String
+  workId    String   // denormalized for fast author analytics queries
+  emoji     String   // one of: ❤️ 🔥 😂 😭 🤯
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  work    Work    @relation(fields: [workId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sectionId, emoji])
+  @@index([sectionId])
+  @@index([workId])
+  @@index([userId])
+  @@map("chapter_reactions")
 }

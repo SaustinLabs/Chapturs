@@ -32,11 +32,12 @@ export class DataService {
     return response.json()
   }
 
-  static async getFeedItems(hubMode: 'reader' | 'creator', userId?: string, page = 1): Promise<FeedItem[]> {
+  static async getFeedItems(hubMode: 'reader' | 'creator', userId?: string, page = 1, filter: 'all' | 'following' = 'all'): Promise<FeedItem[]> {
     const limit = 20
     const offset = (page - 1) * limit
     const params = new URLSearchParams({
       hubMode,
+      filter,
       limit: String(limit),
       offset: String(offset),
       ...(userId && { userId })

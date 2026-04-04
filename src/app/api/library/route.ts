@@ -50,7 +50,8 @@ export async function GET(request: NextRequest) {
         lastUpdated: bookmark.work?.updatedAt || bookmark.createdAt,
         coverImage: bookmark.work?.coverImage,
         genres: genres,
-        status: String(bookmark.work?.status || 'unknown')
+        status: String(bookmark.work?.status || 'unknown'),
+        shelf: bookmark.shelf || 'reading'
       }
     })
 

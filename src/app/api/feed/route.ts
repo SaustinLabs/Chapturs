@@ -22,6 +22,7 @@ import { getRedis } from '@/lib/redis'
 const feedQuerySchema = z.object({
   hubMode: z.enum(['reader', 'creator']).default('reader'),
   userId: z.string().optional(),
+  filter: z.enum(['all', 'following']).default('all'),
   limit: z.number().min(1).max(50).default(20),
   offset: z.number().min(0).default(0)
 })
@@ -43,11 +44,12 @@ export async function GET(request: NextRequest) {
     const queryParams = {
       hubMode: searchParams.get('hubMode') || 'reader',
       userId: searchParams.get('userId') || undefined,
+      filter: searchParams.get('filter') || 'all',
       limit: parseInt(searchParams.get('limit') || '20', 10),
       offset: parseInt(searchParams.get('offset') || '0', 10)
     }
 
-    const { hubMode, userId, limit, offset } = feedQuerySchema.parse(queryParams)
+    const { hubMode, userId, filter, limit, offset } = feedQuerySchema.parse(queryParams)
 
     // Optional authentication - feed works without login but can be personalized
     let session = null
@@ -58,8 +60,17 @@ export async function GET(request: NextRequest) {
     }
 
     let feedItems
-    
-    if (session?.user?.id) {
+
+    // Following feed: only show works from subscribed authors
+    if (filter === 'following') {
+      if (!session?.user?.id) {
+        return NextResponse.json(
+          { data: { items: [], pagination: { offset, limit, total: 0, hasMore: false }, isAuthenticated: false } },
+          { status: 200 }
+        )
+      }
+      feedItems = await getFollowingFeed(session.user.id, limit, offset)
+    } else if (session?.user?.id) {
       // Authenticated user - use intelligent recommendations
       try {
         feedItems = await IntelligentRecommendationEngine.generatePersonalizedFeed(
@@ -119,6 +130,7 @@ export async function GET(request: NextRequest) {
         hasMore: feedItems.length === limit
       },
       hubMode,
+      filter,
       userId,
       isAuthenticated: !!session?.user
     }, `Found ${feedItems.length} items`, requestId)
@@ -260,6 +272,75 @@ async function buildFallbackFeed(limit: number, offset: number, userId: string |
       addedToFeedAt: new Date(),
       bookmark: false,
       liked: false
+    }))
+}
+
+// Following feed — shows the latest chapters from authors the user subscribes to
+async function getFollowingFeed(userId: string, limit: number, offset: number) {
+  const subs = await prisma.subscription.findMany({
+    where: { userId },
+    select: { authorId: true },
+  })
+  if (subs.length === 0) return []
+
+  const authorIds = subs.map((s: any) => s.authorId)
+
+  const works = await prisma.work.findMany({
+    where: {
+      authorId: { in: authorIds },
+      status: { in: ['published', 'ongoing', 'completed'] },
+    },
+    include: {
+      author: { include: { user: true } },
+      _count: { select: { bookmarks: true, likes: true, sections: true } },
+    },
+    orderBy: { updatedAt: 'desc' },
+    skip: offset,
+    take: limit,
+  })
+
+  const safeJsonParse = (str: string | null | undefined, fallback: any) => {
+    try { return str ? JSON.parse(str) : fallback } catch { return fallback }
+  }
+
+  return works
+    .filter((work: any) => work.author && work.author.user)
+    .map((work: any) => ({
+      id: `${work.id}-following`,
+      work: {
+        id: work.id,
+        title: work.title,
+        description: work.description,
+        formatType: work.formatType,
+        coverImage: work.coverImage,
+        status: work.status,
+        maturityRating: work.maturityRating,
+        genres: safeJsonParse(work.genres, []),
+        tags: safeJsonParse(work.tags, []),
+        author: {
+          id: work.author.id,
+          username: work.author.user.username,
+          displayName: work.author.user.displayName,
+          avatar: work.author.user.avatar,
+          verified: work.author.verified,
+        },
+        statistics: {
+          bookmarks: work._count.bookmarks,
+          likes: work._count.likes,
+          sections: work._count.sections,
+          views: 0,
+          ...safeJsonParse(work.statistics, {}),
+        },
+        createdAt: work.createdAt,
+        updatedAt: work.updatedAt,
+      },
+      feedType: 'subscribed' as const,
+      reason: 'From an author you follow',
+      score: 1,
+      readingStatus: 'unread' as const,
+      addedToFeedAt: new Date(),
+      bookmark: false,
+      liked: false,
     }))
 }
 

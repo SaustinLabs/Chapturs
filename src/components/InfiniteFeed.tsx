@@ -28,6 +28,7 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [feedFilter, setFeedFilter] = useState<'all' | 'following'>('all')
   const sentinelRef = useRef<HTMLDivElement>(null)
   const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map())
   const feedObserverRef = useRef<IntersectionObserver | null>(null)
@@ -39,7 +40,7 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
     try {
       setLoading(true)
       setError(null)
-      const initialItems = await DataService.getFeedItems(hubMode, userId || undefined)
+      const initialItems = await DataService.getFeedItems(hubMode, userId || undefined, 1, feedFilter)
       setItems(initialItems)
       setPage(2)
       setHasMore(initialItems.length >= 20)
@@ -49,7 +50,15 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
     } finally {
       setLoading(false)
     }
-  }, [hubMode, userId])
+  }, [hubMode, userId, feedFilter])
+
+  const handleFilterSwitch = useCallback((newFilter: 'all' | 'following') => {
+    if (newFilter === feedFilter) return
+    setFeedFilter(newFilter)
+    setItems([])
+    setPage(1)
+    setHasMore(true)
+  }, [feedFilter])
 
   useEffect(() => {
     if (!authLoading) {
@@ -62,7 +71,7 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
     try {
       setLoading(true)
       setError(null)
-      const newItems = await DataService.getFeedItems(hubMode, userId || undefined, page)
+      const newItems = await DataService.getFeedItems(hubMode, userId || undefined, page, feedFilter)
       if (newItems.length === 0) {
         setHasMore(false)
       } else {
@@ -76,7 +85,7 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
     } finally {
       setLoading(false)
     }
-  }, [page, loading, hasMore, hubMode, userId])
+  }, [page, loading, hasMore, hubMode, userId, feedFilter])
 
   useEffect(() => {
     const sentinel = sentinelRef.current
@@ -222,12 +231,21 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
   )
 
   const getEmptyStateMessage = () => {
+    if (hubMode === 'reader' && feedFilter === 'following') {
+      return {
+        title: 'No updates yet',
+        message: "You're not following anyone yet. Subscribe to authors you love to see their latest chapters here.",
+        action: 'Browse Stories',
+        href: '/browse',
+      }
+    }
     if (hubMode === 'reader') {
       return {
         title: 'Welcome to Chapturs!',
         message:
           'Your personalized feed will appear here. Start by subscribing to some stories or exploring our catalog.',
         action: 'Browse Stories',
+        href: '/browse',
       }
     }
     return {
@@ -235,6 +253,7 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
       message:
         'Track your story performance and reader engagement here. Upload your first story to get started!',
       action: 'Upload Story',
+      href: '/creator/upload',
     }
   }
 
@@ -287,7 +306,7 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
           {emptyState.message}
         </p>
         <button
-          onClick={() => router.push(hubMode === 'reader' ? '/browse' : '/creator/upload')}
+          onClick={() => router.push(emptyState.href)}
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
         >
           {emptyState.action}
@@ -308,6 +327,31 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
             : 'Monitor your stories and reader engagement'}
         </p>
       </div>
+
+      {hubMode === 'reader' && isAuthenticated && (
+        <div className="flex gap-1 mb-6 border-b border-gray-200 dark:border-gray-700">
+          <button
+            onClick={() => handleFilterSwitch('all')}
+            className={`px-5 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              feedFilter === 'all'
+                ? 'border-violet-600 text-violet-600 dark:border-violet-400 dark:text-violet-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+            }`}
+          >
+            For You
+          </button>
+          <button
+            onClick={() => handleFilterSwitch('following')}
+            className={`px-5 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              feedFilter === 'following'
+                ? 'border-violet-600 text-violet-600 dark:border-violet-400 dark:text-violet-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+            }`}
+          >
+            Following
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredItems.map((item, index) => (

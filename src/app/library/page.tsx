@@ -21,12 +21,22 @@ interface LibraryItem {
   coverImage?: string
   genres: string[]
   status: string
+  shelf?: string
+}
+
+const SHELF_LABELS: Record<string, string> = {
+  all: 'All Bookmarks',
+  reading: 'Reading',
+  want_to_read: 'Want to Read',
+  on_hold: 'On Hold',
+  finished: 'Finished',
 }
 
 export default function LibraryPage() {
   const { userId, isAuthenticated, isLoading } = useUser()
   const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([])
   const [activeTab, setActiveTab] = useState<'all' | 'subscriptions' | 'bookmarks'>('all')
+  const [shelfFilter, setShelfFilter] = useState<'all' | 'reading' | 'want_to_read' | 'on_hold' | 'finished'>('all')
   const [loading, setLoading] = useState(true)
   const [resumeMap, setResumeMap] = useState<Record<string, string>>({})
 
@@ -93,9 +103,11 @@ export default function LibraryPage() {
   }
 
   const filteredItems = libraryItems.filter(item => {
-    if (activeTab === 'all') return true
     if (activeTab === 'subscriptions') return item.type === 'subscription'
-    if (activeTab === 'bookmarks') return item.type === 'bookmark'
+    if (activeTab === 'bookmarks') {
+      if (item.type !== 'bookmark') return false
+      return shelfFilter === 'all' || item.shelf === shelfFilter
+    }
     return true
   })
 
@@ -150,7 +162,7 @@ export default function LibraryPage() {
           <div className="border-b border-gray-200 dark:border-gray-700">
             <nav className="-mb-px flex space-x-8">
               <button
-                onClick={() => setActiveTab('all')}
+                onClick={() => { setActiveTab('all'); setShelfFilter('all') }}
                 className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === 'all'
                     ? 'border-blue-500 text-blue-600 dark:text-blue-400'
@@ -160,7 +172,7 @@ export default function LibraryPage() {
                 All ({libraryItems.length})
               </button>
               <button
-                onClick={() => setActiveTab('subscriptions')}
+                onClick={() => { setActiveTab('subscriptions'); setShelfFilter('all') }}
                 className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors inline-flex items-center ${
                   activeTab === 'subscriptions'
                     ? 'border-blue-500 text-blue-600 dark:text-blue-400'
@@ -171,7 +183,7 @@ export default function LibraryPage() {
                 Subscriptions ({libraryItems.filter(item => item.type === 'subscription').length})
               </button>
               <button
-                onClick={() => setActiveTab('bookmarks')}
+                onClick={() => { setActiveTab('bookmarks'); setShelfFilter('all') }}
                 className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors inline-flex items-center ${
                   activeTab === 'bookmarks'
                     ? 'border-blue-500 text-blue-600 dark:text-blue-400'
@@ -183,6 +195,25 @@ export default function LibraryPage() {
               </button>
             </nav>
           </div>
+
+          {/* Shelf filter pills (visible only when Bookmarks tab is active) */}
+          {activeTab === 'bookmarks' && (
+            <div className="flex flex-wrap gap-2 mt-4">
+              {(['all', 'reading', 'want_to_read', 'on_hold', 'finished'] as const).map((shelf) => (
+                <button
+                  key={shelf}
+                  onClick={() => setShelfFilter(shelf)}
+                  className={`px-3 py-1 text-sm rounded-full border transition-colors ${
+                    shelfFilter === shelf
+                      ? 'bg-violet-600 border-violet-600 text-white'
+                      : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-violet-400 dark:hover:border-violet-400'
+                  }`}
+                >
+                  {SHELF_LABELS[shelf]}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Content */}
@@ -311,6 +342,32 @@ export default function LibraryPage() {
                       >
                         Resume
                       </a>
+                    )}
+                    {item.type === 'bookmark' && item.workId && (
+                      <select
+                        value={item.shelf || 'reading'}
+                        onChange={async (e) => {
+                          const shelf = e.target.value
+                          try {
+                            await fetch('/api/bookmarks', {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ workId: item.workId, shelf }),
+                            })
+                            setLibraryItems(prev =>
+                              prev.map(i => i.id === item.id ? { ...i, shelf } : i)
+                            )
+                          } catch (err) {
+                            console.error('Failed to update shelf:', err)
+                          }
+                        }}
+                        className="px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 cursor-pointer"
+                      >
+                        <option value="reading">Reading</option>
+                        <option value="want_to_read">Want to Read</option>
+                        <option value="on_hold">On Hold</option>
+                        <option value="finished">Finished</option>
+                      </select>
                     )}
                     <button
                       onClick={() => {

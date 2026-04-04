@@ -259,14 +259,18 @@ export default class DatabaseService {
     } as any
   }
 
-  static async toggleBookmark(workId: string, userId: string) {
+  static async toggleBookmark(workId: string, userId: string, shelf = 'reading') {
     const existing = await prisma.bookmark.findFirst({ where: { workId, userId } })
     if (existing) {
       await prisma.bookmark.delete({ where: { id: existing.id } })
       return false
     }
-    await prisma.bookmark.create({ data: { workId, userId } })
+    await prisma.bookmark.create({ data: { workId, userId, shelf } })
     return true
+  }
+
+  static async updateBookmarkShelf(workId: string, userId: string, shelf: string) {
+    await prisma.bookmark.updateMany({ where: { workId, userId }, data: { shelf } })
   }
 
   static async checkUserBookmark(userId: string, workId: string) {

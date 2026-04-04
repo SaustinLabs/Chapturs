@@ -29,6 +29,7 @@ import {
 import { MessageSquare, Send, Sparkles, Edit3, Globe } from 'lucide-react'
 import ReportButton from '@/components/ReportButton'
 import AdSlot from '@/components/ads/AdSlot'
+import ChapterReactionBar from '@/components/ChapterReactionBar'
 
 interface ReaderCharacter {
   id: string
@@ -204,6 +205,24 @@ export default function ChapterPage() {
         ])
 
         if (workData) setWork(workData)
+
+        // Load social state (like/bookmark/subscription) — fire in parallel, non-blocking
+        if (workData) {
+          Promise.all([
+            fetch(`/api/likes?workId=${storyId}`).then(r => r.ok ? r.json() : null).catch(() => null),
+            fetch(`/api/bookmarks?workId=${storyId}`).then(r => r.ok ? r.json() : null).catch(() => null),
+            workData.authorId
+              ? fetch(`/api/subscriptions?authorId=${workData.authorId}`).then(r => r.ok ? r.json() : null).catch(() => null)
+              : Promise.resolve(null),
+          ]).then(([likeData, bookmarkData, subData]) => {
+            if (likeData?.data?.liked !== undefined) setIsLiked(likeData.data.liked)
+            else if (likeData?.liked !== undefined) setIsLiked(likeData.liked)
+            if (bookmarkData?.data?.bookmarked !== undefined) setIsBookmarked(bookmarkData.data.bookmarked)
+            else if (bookmarkData?.bookmarked !== undefined) setIsBookmarked(bookmarkData.bookmarked)
+            if (subData?.data?.subscribed !== undefined) setIsSubscribed(subData.data.subscribed)
+            else if (subData?.subscribed !== undefined) setIsSubscribed(subData.subscribed)
+          }).catch(() => {})
+        }
 
         if (sectionsResponse.ok) {
           const responseData = await sectionsResponse.json()
@@ -1056,9 +1075,49 @@ export default function ChapterPage() {
         isBookmarked={isBookmarked}
         isLiked={isLiked}
         isSubscribed={isSubscribed}
-        onBookmark={() => setIsBookmarked(!isBookmarked)}
-        onLike={() => setIsLiked(!isLiked)}
-        onSubscribe={() => setIsSubscribed(!isSubscribed)}
+        onBookmark={async () => {
+          const next = !isBookmarked
+          setIsBookmarked(next)
+          try {
+            const res = await fetch('/api/bookmarks', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ workId: storyId }),
+            })
+            const data = await res.json()
+            const actual = data?.data?.bookmarked ?? data?.bookmarked
+            if (actual !== undefined) setIsBookmarked(actual)
+          } catch { setIsBookmarked(!next) }
+        }}
+        onLike={async () => {
+          const next = !isLiked
+          setIsLiked(next)
+          try {
+            const res = await fetch('/api/likes', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ workId: storyId }),
+            })
+            const data = await res.json()
+            const actual = data?.data?.liked ?? data?.liked
+            if (actual !== undefined) setIsLiked(actual)
+          } catch { setIsLiked(!next) }
+        }}
+        onSubscribe={async () => {
+          if (!work?.authorId) return
+          const next = !isSubscribed
+          setIsSubscribed(next)
+          try {
+            const res = await fetch('/api/subscriptions', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ authorId: work.authorId }),
+            })
+            const data = await res.json()
+            const actual = data?.data?.subscribed ?? data?.subscribed
+            if (actual !== undefined) setIsSubscribed(actual)
+          } catch { setIsSubscribed(!next) }
+        }}
         audioEnabled={audioEnabled}
         onAudioToggle={() => setAudioEnabled(!audioEnabled)}
         targetLanguage={targetLanguage}
@@ -1229,6 +1288,9 @@ export default function ChapterPage() {
             className="my-4"
           />
         )}
+
+        {/* Chapter reaction bar */}
+        <ChapterReactionBar workId={storyId} sectionId={chapterId} />
 
         {/* Navigation Footer */}
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">

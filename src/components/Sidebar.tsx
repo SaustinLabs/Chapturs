@@ -54,7 +54,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
     { icon: HomeIcon, label: 'Home', href: '/' },
     { icon: BookmarkIcon, label: 'Library', href: '/library' },
     { icon: BookOpenIcon, label: 'Subscriptions', href: '/subscriptions' },
-    { icon: MagnifyingGlassIcon, label: 'Browse', href: '/browse' },
+    { icon: MagnifyingGlassIcon, label: 'Search', href: '/search' },
     { icon: CogIcon, label: 'Settings', href: '/reader/settings' },
     { icon: UserIcon, label: 'Profile', href: username ? `/profile/${username}` : '/auth/signin' },
   ]
