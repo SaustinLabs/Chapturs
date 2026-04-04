@@ -45,7 +45,10 @@ export default function HtmlWithHighlights({
 
   // During SSR or before mount, render raw HTML (no highlighting)
   if (!mounted || ((!glossaryTerms || glossaryTerms.length === 0) && (!characters || characters.length === 0))) {
-    return <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }} /> (including aliases)
+    return <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }} />
+  }
+
+  // Build character name patterns (including aliases)
   const characterPatterns: Array<{ pattern: string; character: Character }> = []
   characters.forEach(char => {
     characterPatterns.push({ pattern: char.name, character: char })
