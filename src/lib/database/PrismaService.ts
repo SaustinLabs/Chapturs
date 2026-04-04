@@ -373,4 +373,32 @@ export default class DatabaseService {
     // Stub for seed script - implement actual seeding logic if needed
     console.log('Seed database called - implement seeding logic in prisma/seed.ts')
   }
+
+  /** Fetch a single section with full content — for server-side chapter rendering. */
+  static async getSection(workId: string, sectionId: string) {
+    const section = await prisma.section.findFirst({
+      where: { id: sectionId, workId }
+    })
+    if (!section) return null
+    let content: any
+    try {
+      content = typeof section.content === 'string' ? JSON.parse(section.content) : section.content
+    } catch {
+      content = section.content
+    }
+    return {
+      id: section.id,
+      workId: section.workId,
+      title: section.title,
+      chapterNumber: section.chapterNumber ?? 1,
+      orderIndex: 0,
+      content,
+      wordCount: section.wordCount || 0,
+      estimatedReadTime: Math.ceil((section.wordCount || 0) / 200),
+      publishedAt: section.publishedAt?.toISOString(),
+      isPublished: section.status === 'published',
+      status: section.status,
+      definitions: [],
+    }
+  }
 }
