@@ -65,7 +65,15 @@ jobs:
             fi
 
             # Append each managed secret only if GitHub provided a value
-            write_if_set() { [ -n "$2" ] && printf '%s=%s\n' "$1" "$2" >> "$TMP_FILE"; }
+            # Values are single-quoted to safely handle special characters (<, >, @, spaces, etc.)
+            write_if_set() {
+              if [ -n "$2" ]; then
+                # Escape any single quotes inside the value, then wrap in single quotes
+                local safe_val
+                safe_val=$(printf '%s' "$2" | sed "s/'/'\''/g")
+                printf "%s='%s'\n" "$1" "$safe_val" >> "$TMP_FILE"
+              fi
+            }
 
             write_if_set "DATABASE_URL"                  "$DATABASE_URL"
             write_if_set "DIRECT_URL"                    "$DIRECT_URL"

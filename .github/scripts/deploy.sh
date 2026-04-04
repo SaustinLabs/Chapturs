@@ -26,19 +26,25 @@ load_env_file() {
 
     echo -e "${YELLOW}Loading environment from ${env_file}${NC}"
 
-    # Source file without aborting deployment if syntax is invalid
-    set +e
-    set -a
-    # shellcheck disable=SC1090
-    . "$env_file"
-    local source_status=$?
-    set +a
-    set -e
-
-    if [[ $source_status -ne 0 ]]; then
-        echo -e "${YELLOW}Warning: Failed to source ${env_file}. Continuing deployment with existing environment.${NC}"
-        return 1
-    fi
+    # Use grep+export instead of source so special characters in values
+    # (angle brackets, spaces, etc.) don't cause bash syntax errors.
+    local line key value
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        # Skip blank lines and comments
+        [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+        # Must look like KEY=...
+        [[ "$line" =~ ^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=(.*)$ ]] || continue
+        key="${BASH_REMATCH[1]}"
+        value="${BASH_REMATCH[2]}"
+        # Strip surrounding single or double quotes
+        value="${value%$'\r'}"
+        if [[ "$value" =~ ^\'(.*)\'$ ]]; then
+            value="${BASH_REMATCH[1]}"
+        elif [[ "$value" =~ ^\"(.*)\"$ ]]; then
+            value="${BASH_REMATCH[1]}"
+        fi
+        export "$key=$value"
+    done < "$env_file"
 
     return 0
 }
