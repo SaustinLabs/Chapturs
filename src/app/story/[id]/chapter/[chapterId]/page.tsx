@@ -28,6 +28,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { MessageSquare, Send, Sparkles, Edit3, Globe } from 'lucide-react'
 import ReportButton from '@/components/ReportButton'
+import AdSlot from '@/components/ads/AdSlot'
 
 interface ReaderCharacter {
   id: string
@@ -262,6 +263,21 @@ export default function ChapterPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ sectionId: chapterId })
               }).catch(() => {})
+
+              // Track ad impression for creator revenue — fire and forget
+              if (workData?.authorId) {
+                fetch('/api/ads/impression', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    type: 'platform',
+                    authorId: workData.authorId,
+                    workId: storyId,
+                    placement: 'inline',
+                    chapterId,
+                  }),
+                }).catch(() => {})
+              }
             }
           }
         }
@@ -1202,6 +1218,17 @@ export default function ChapterPage() {
             />
           </div>
         </div>
+
+        {/* Ad unit — shown between chapter content and nav footer */}
+        {work && (
+          <AdSlot
+            placement="inline"
+            maturityRating={(
+              { general: 'G', teen: 'PG', mature: 'PG-13', adult: 'R' } as const
+            )[work.maturityRating as string] ?? 'PG'}
+            className="my-4"
+          />
+        )}
 
         {/* Navigation Footer */}
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">

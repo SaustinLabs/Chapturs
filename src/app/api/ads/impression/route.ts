@@ -19,25 +19,32 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { type, authorId, workTitle, placement, chapterId } = body
+    const { type, authorId, workId, placement, chapterId } = body
 
-    if (!type || !authorId) {
+    if (!type || !authorId || !workId) {
       return NextResponse.json(
-        { error: 'Missing required fields: type, authorId' },
+        { error: 'Missing required fields: type, authorId, workId' },
         { status: 400 }
       )
     }
 
-    // For now, just log the impression
-    // TODO: Store in AdImpression table when schema is updated
-    console.log('Ad impression:', {
-      type,
-      authorId,
-      workTitle,
-      placement,
-      chapterId,
-      userId: session?.user?.id,
-      timestamp: new Date().toISOString(),
+    // Verify the author exists before writing (avoids FK violation)
+    const author = await prisma.author.findUnique({ where: { id: authorId }, select: { id: true } })
+    if (!author) {
+      return NextResponse.json({ error: 'Author not found' }, { status: 404 })
+    }
+
+    await prisma.adImpression.create({
+      data: {
+        userId:    session?.user?.id ?? null,
+        authorId,
+        workId,
+        sectionId: chapterId ?? null,
+        placement: placement ?? 'inline',
+        adType:    type,
+        revenue:   0, // updated later by revenue reconciliation job
+        clicked:   false,
+      },
     })
 
     return NextResponse.json({ success: true })
