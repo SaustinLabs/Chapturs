@@ -16,6 +16,7 @@ import LanguageSelectorMenu from './LanguageSelectorMenu'
 import AudiobookSelectorMenu from './AudiobookSelectorMenu'
 import TranslationSubmissionForm from './TranslationSubmissionForm'
 import AudiobookSubmissionForm from './AudiobookSubmissionForm'
+import ReportModal from './ReportModal'
 import { Tooltip } from '@/components/ui/Tooltip'
 
 interface ChapterTopBarProps {
@@ -54,6 +55,7 @@ export default function ChapterTopBar({
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [showTranslationForm, setShowTranslationForm] = useState(false)
   const [showAudiobookForm, setShowAudiobookForm] = useState(false)
+  const [showReportModal, setShowReportModal] = useState(false)
 
   return (
     <div className="sticky top-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
@@ -228,7 +230,13 @@ export default function ChapterTopBar({
                   >
                     ⚙️ Reading Settings
                   </button>
-                  <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <button
+                    onClick={() => {
+                      setShowMoreMenu(false)
+                      setShowReportModal(true)
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
                     🚩 Report Issue
                   </button>
                 </div>
@@ -258,6 +266,15 @@ export default function ChapterTopBar({
           onSuccess={() => {
             // Refresh audiobooks
           }}
+        />
+      )}
+
+      {showReportModal && (
+        <ReportModal
+          isOpen={showReportModal}
+          onClose={() => setShowReportModal(false)}
+          targetId={chapterId}
+          targetType="section"
         />
       )}
     </div>
