@@ -1,10 +1,10 @@
 import AppLayout from '@/components/AppLayout'
-import CommentModerationPanel from '@/components/CommentModerationPanel'
+import CreatorCommentModerationHub from '@/components/CreatorCommentModerationHub'
 
 export default function ModerationPage() {
   return (
     <AppLayout>
-      <CommentModerationPanel />
+      <CreatorCommentModerationHub />
     </AppLayout>
   )
 }
