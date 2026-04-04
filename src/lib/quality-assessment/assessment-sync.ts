@@ -157,12 +157,12 @@ export async function assessWorkSynchronously(
       content: textContent,
     }
 
-    console.log('[ASSESS_SYNC] Context prepared. Calling Groq...')
+    console.log('[ASSESS_SYNC] Context prepared. Calling OpenRouter...')
 
-    // Call Groq API
+    // Call OpenRouter API
     const llmResponse = await assessContentQuality(context, DEFAULT_ASSESSMENT_CONFIG)
 
-    console.log('[ASSESS_SYNC] Groq assessment complete. Score:', llmResponse.scores.overallScore)
+    console.log('[ASSESS_SYNC] OpenRouter assessment complete. Score:', llmResponse.scores.overallScore)
 
     // Save assessment to DB
     const assessment = await prisma.qualityAssessment.upsert({
@@ -185,6 +185,7 @@ export async function assessWorkSynchronously(
         qualityTier: llmResponse.qualityTier,
         discoveryTags: JSON.stringify(llmResponse.discoveryTags),
         feedbackMessage: llmResponse.feedbackMessage,
+        ...(llmResponse.readerBlurb && { earlyReview: llmResponse.readerBlurb }),
         model: DEFAULT_ASSESSMENT_CONFIG.model,
         version: '1.0',
         processingTime: llmResponse.processingTime,
@@ -202,6 +203,7 @@ export async function assessWorkSynchronously(
         qualityTier: llmResponse.qualityTier,
         discoveryTags: JSON.stringify(llmResponse.discoveryTags),
         feedbackMessage: llmResponse.feedbackMessage,
+        ...(llmResponse.readerBlurb && { earlyReview: llmResponse.readerBlurb }),
         processingTime: llmResponse.processingTime,
         tokenCount: llmResponse.tokenCount,
         updatedAt: new Date(),
@@ -246,7 +248,7 @@ export async function assessWorkSynchronously(
         return {
           success: false,
           rateLimited: true,
-          message: `Rate limited by Groq API. Assessment will be retried in ${Math.round(error.retryAfter / 60)} minutes.`,
+          message: `Rate limited by OpenRouter API. Assessment will be retried in ${Math.round(error.retryAfter / 60)} minutes.`,
         }
       } catch (queueError) {
         console.error('[ASSESS_SYNC] Failed to queue for retry:', queueError)

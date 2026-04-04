@@ -1028,6 +1028,12 @@ model QualityAssessment {
   discoveryTags   String // JSON array of AI-suggested tags for discoverability
   feedbackMessage String // Brief constructive feedback for author
 
+  // Reader-facing AI Reviews
+  earlyReview               String?   // 1-2 sentence reader blurb generated on first-chapter publish
+  cumulativeReview          String?   // Amazon-style rolling AI summary, updated at chapter milestones
+  cumulativeReviewUpdatedAt DateTime?
+  cumulativeReviewChapterCount Int?   // Chapter count when cumulativeReview was last generated
+
   // Algorithm Boost Configuration
   boostMultiplier Float     @default(1.0) // 1.0 = no boost, >1.0 = boost, <1.0 = suppress
   boostExpiry     DateTime? // When the boost expires

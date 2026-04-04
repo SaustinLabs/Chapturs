@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import StoryPageClient from '@/components/story/StoryPageClient'
 import PrismaService from '@/lib/database/PrismaService'
+import { prisma } from '@/lib/database/PrismaService'
 import { resolveCoverSrc } from '@/lib/images'
 
 interface Props {
@@ -59,6 +60,17 @@ export default async function StoryPage({ params }: Props) {
   const sections: any[] = (work as any).sections ?? []
   const genres: string[] = (work as any).genres ?? []
 
+  // Fetch AI review text (cumulativeReview takes priority; fall back to earlyReview for new stories)
+  const qa = await prisma.qualityAssessment.findFirst({
+    where: { workId: id },
+    orderBy: { createdAt: 'asc' },
+    select: { earlyReview: true, cumulativeReview: true },
+  })
+  const aiReview =
+    qa?.cumulativeReview ||
+    (sections.length < 5 ? qa?.earlyReview : null) ||
+    null
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Book',
@@ -88,7 +100,7 @@ export default async function StoryPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <StoryPageClient initialWork={work as any} />
+      <StoryPageClient initialWork={work as any} aiReview={aiReview} />
     </AppLayout>
   )
 }

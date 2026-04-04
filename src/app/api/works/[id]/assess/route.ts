@@ -4,10 +4,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/database/PrismaService'
 import { createErrorResponse, createSuccessResponse } from '@/lib/api/errorHandling'
-import Groq from 'groq-sdk'
+import OpenAI from 'openai'
 
-// Initialize Groq - ensure process.env.GROQ_API_KEY is set in production
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || 'dummy_key' })
+// Initialize OpenRouter client (OpenAI-compatible)
+const openRouterClient = new OpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY || 'dummy_key',
+  baseURL: 'https://openrouter.ai/api/v1',
+  defaultHeaders: {
+    'HTTP-Referer': 'https://chapturs.com',
+    'X-Title': 'Chapturs',
+  },
+})
 
 export async function POST(
   req: NextRequest,
@@ -85,7 +92,7 @@ ${textToAnalyze}
     let parseResult
     
     // Check if we actually have an API key. If not, use mock data to prevent crashes during dev.
-    if (!process.env.GROQ_API_KEY || process.env.GROQ_API_KEY === 'dummy_key') {
+    if (!process.env.OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY === 'dummy_key') {
       parseResult = {
         writingQuality: 85,
         storytelling: 80,
@@ -99,9 +106,9 @@ ${textToAnalyze}
         feedbackMessage: "Great pacing and world-building! Consider adding more dialogue to flesh out the characters."
       }
     } else {
-      const completion = await groq.chat.completions.create({
+      const completion = await openRouterClient.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
-        model: 'llama3-8b-8192',
+        model: 'meta-llama/llama-3.1-8b-instruct',
         temperature: 0.3,
         response_format: { type: "json_object" }
       })
@@ -129,7 +136,7 @@ ${textToAnalyze}
         qualityTier: parseResult.qualityTier,
         discoveryTags: JSON.stringify(parseResult.discoveryTags),
         feedbackMessage: parseResult.feedbackMessage,
-        model: 'llama3-8b-8192',
+        model: 'meta-llama/llama-3.1-8b-instruct',
         version: '1.0'
       },
       create: {
@@ -145,7 +152,7 @@ ${textToAnalyze}
         qualityTier: parseResult.qualityTier,
         discoveryTags: JSON.stringify(parseResult.discoveryTags),
         feedbackMessage: parseResult.feedbackMessage,
-        model: 'llama3-8b-8192',
+        model: 'meta-llama/llama-3.1-8b-instruct',
         version: '1.0'
       }
     })

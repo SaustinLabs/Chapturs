@@ -10,23 +10,27 @@ import type {
   AssessmentConfig,
 } from './types'
 
-// Lazy initialization of Groq client (OpenAI-compatible)
+// Lazy initialization of OpenRouter client (OpenAI-compatible)
 // This prevents initialization during build time when env vars aren't available
-let groq: OpenAI | null = null
+let openRouter: OpenAI | null = null
 
-function getGroqClient(): OpenAI {
-  if (!groq) {
-    const apiKey = process.env.GROQ_API_KEY
+function getOpenRouterClient(): OpenAI {
+  if (!openRouter) {
+    const apiKey = process.env.OPENROUTER_API_KEY
     if (!apiKey) {
-      console.error('[LLM] GROQ_API_KEY is not set in environment variables')
-      throw new Error('GROQ_API_KEY not configured. Quality assessment cannot proceed.')
+      console.error('[LLM] OPENROUTER_API_KEY is not set in environment variables')
+      throw new Error('OPENROUTER_API_KEY not configured. Quality assessment cannot proceed.')
     }
-    groq = new OpenAI({
+    openRouter = new OpenAI({
       apiKey,
-      baseURL: 'https://api.groq.com/openai/v1',
+      baseURL: 'https://openrouter.ai/api/v1',
+      defaultHeaders: {
+        'HTTP-Referer': 'https://chapturs.com',
+        'X-Title': 'Chapturs',
+      },
     })
   }
-  return groq
+  return openRouter
 }
 
 // Rate-limit detection and error classification
@@ -41,10 +45,10 @@ export class RateLimitError extends Error {
   }
 }
 
-function handleGroqError(error: any): never {
+function handleLLMError(error: any): never {
   const status = error?.status || error?.response?.status
   
-  console.error('[LLM] Groq API error:', {
+  console.error('[LLM] OpenRouter API error:', {
     status,
     message: error?.message,
     code: error?.code,
@@ -54,9 +58,9 @@ function handleGroqError(error: any): never {
   if (status === 429) {
     const retryAfter = error?.response?.headers?.['retry-after']
     const retrySeconds = retryAfter ? parseInt(retryAfter, 10) : 60 * 60 // 1 hour default
-    console.warn('[LLM] Rate limited by Groq. Retry after:', retrySeconds, 'seconds')
+    console.warn('[LLM] Rate limited by OpenRouter. Retry after:', retrySeconds, 'seconds')
     throw new RateLimitError(
-      'Groq API rate limit exceeded. Assessment will be retried later.',
+      'OpenRouter API rate limit exceeded. Assessment will be retried later.',
       retrySeconds,
       true
     )
@@ -64,12 +68,12 @@ function handleGroqError(error: any): never {
 
   // Handle authentication errors (401, 403)
   if (status === 401 || status === 403) {
-    console.error('[LLM] Authentication failed. Check GROQ_API_KEY.')
-    throw new Error('Authentication failed. Invalid GROQ_API_KEY.')
+    console.error('[LLM] Authentication failed. Check OPENROUTER_API_KEY.')
+    throw new Error('Authentication failed. Invalid OPENROUTER_API_KEY.')
   }
 
   // Handle other errors
-  throw new Error(`Groq API error (${status || 'unknown'}): ${error?.message || 'Unknown error'}`)
+  throw new Error(`OpenRouter API error (${status || 'unknown'}): ${error?.message || 'Unknown error'}`)
 }
 
 // Default configuration
@@ -77,7 +81,7 @@ export const DEFAULT_ASSESSMENT_CONFIG: AssessmentConfig = {
   maxContentLength: 50000,  // ~10k words
   minContentLength: 1000,   // ~200 words minimum
   
-  model: 'llama-3.3-70b-versatile',  // Using Groq Llama 3.3 70B for superior quality
+  model: 'meta-llama/llama-3.3-70b-instruct',  // Using OpenRouter Llama 3.3 70B for superior quality
   temperature: 0.3,  // Lower temperature for consistent grading
   maxTokens: 800,    // Reduced - just scores and tags
   
@@ -153,6 +157,9 @@ AUTHOR FEEDBACK:
 If overall score >= 70: Provide ONE encouraging sentence about what's working well
 If overall score < 70: Provide ONE constructive tip (gentle, specific, actionable)
 
+READER BLURB:
+Write 1-2 sentences a potential reader would see on the story page to decide if they want to read this. Write like a book reviewer — compelling, specific, not generic. Example: "A slow-burn rivals-to-lovers romance set in a morally grey magical academy. Fans of enemies-to-lovers and political intrigue will find it hard to put down."
+
 GUIDELINES:
 - "Exceptional" (85+): Rare, standout work
 - "Strong" (70-84): Good publication potential
@@ -175,6 +182,7 @@ Respond ONLY with valid JSON:
   "discoveryTags": [array of 5-15 string tags],
   "qualityTier": "exceptional" | "strong" | "developing" | "needs_work",
   "feedbackMessage": "one sentence for author",
+  "readerBlurb": "1-2 sentence reader-facing description",
   "confidence": number (0-1)
 }`
 }
@@ -200,13 +208,13 @@ export async function assessContentQuality(
 
     const truncatedContext = { ...context, content: truncatedContent }
 
-    // Get Groq client (lazy initialization)
-    const groqClient = getGroqClient()
+    // Get OpenRouter client (lazy initialization)
+    const client = getOpenRouterClient()
 
-    console.log('[LLM] Calling Groq API with model:', config.model)
+    console.log('[LLM] Calling OpenRouter API with model:', config.model)
 
-    // Call Groq API (OpenAI-compatible)
-    const response = await groqClient.chat.completions.create({
+    // Call OpenRouter API (OpenAI-compatible)
+    const response = await client.chat.completions.create({
       model: config.model,
       temperature: config.temperature,
       max_tokens: config.maxTokens,
@@ -222,14 +230,14 @@ export async function assessContentQuality(
       ],
       response_format: { type: 'json_object' },
     }).catch((error) => {
-      handleGroqError(error) // This throws
+      handleLLMError(error) // This throws
     })
 
     const processingTime = Date.now() - startTime
     const usage = response.usage
 
     if (!usage) {
-      throw new Error('No usage data returned from Groq')
+      throw new Error('No usage data returned from OpenRouter')
     }
 
     console.log('[LLM] Assessment complete in', processingTime, 'ms. Tokens:', usage.total_tokens)
@@ -237,14 +245,14 @@ export async function assessContentQuality(
     // Parse response
     const content = response.choices[0]?.message?.content
     if (!content) {
-      throw new Error('No content in Groq response')
+      throw new Error('No content in OpenRouter response')
     }
 
     const parsed = JSON.parse(content)
 
     // Validate parsed structure
     if (!parsed.scores || typeof parsed.scores !== 'object') {
-      throw new Error('Invalid scores structure in Groq response')
+      throw new Error('Invalid scores structure in OpenRouter response')
     }
 
     // Calculate overall score
@@ -260,6 +268,7 @@ export async function assessContentQuality(
       discoveryTags: parsed.discoveryTags || [],
       qualityTier: parsed.qualityTier,
       feedbackMessage: parsed.feedbackMessage,
+      readerBlurb: parsed.readerBlurb,
       confidence: parsed.confidence || 0.8,
       processingTime,
       tokenCount: usage.total_tokens,
@@ -348,7 +357,7 @@ export function generateBoostReason(
  * Estimate cost of assessment
  */
 export function estimateCost(tokenCount: number, model: string): number {
-  // Groq Llama 3.3 70B pricing: $0.59/1M input tokens, $0.79/1M output tokens
+  // OpenRouter Llama 3.3 70B pricing: ~$0.59/1M input tokens, $0.79/1M output tokens
   // Rough estimate: 70% input, 30% output
   const inputTokens = Math.round(tokenCount * 0.7)
   const outputTokens = Math.round(tokenCount * 0.3)
@@ -357,4 +366,74 @@ export function estimateCost(tokenCount: number, model: string): number {
   const outputCost = (outputTokens / 1000000) * 0.79
   
   return inputCost + outputCost
+}
+
+// ============================================================================
+// CUMULATIVE REVIEW GENERATION
+// ============================================================================
+
+export interface CumulativeReviewContext {
+  title: string
+  genres: string[]
+  firstChapterSample: string   // First 2000 chars of chapter 1 for context
+  latestChapterSample?: string // First 1000 chars of the most recent chapter
+  commentExcerpts?: string[]   // Up to 10 reader comment snippets (80 chars each)
+  chapterCount: number
+}
+
+/**
+ * Generate a cumulative reader-voice summary of a work.
+ * Called at chapter milestones (5, 10, 20, 50). Token-lean: ~200 output tokens.
+ */
+export async function generateCumulativeReview(
+  context: CumulativeReviewContext
+): Promise<string> {
+  const { title, genres, firstChapterSample, latestChapterSample, commentExcerpts, chapterCount } = context
+
+  const hasComments = commentExcerpts && commentExcerpts.length > 0
+
+  const commentsSection = hasComments
+    ? `\nREADER COMMENTS (excerpts):\n${commentExcerpts!.slice(0, 10).map(c => `- "${c.slice(0, 80)}"`).join('\n')}`
+    : ''
+
+  const latestSection = latestChapterSample
+    ? `\nRECENT CHAPTER EXCERPT:\n${latestChapterSample.slice(0, 1000)}\n`
+    : ''
+
+  const instruction = hasComments
+    ? 'Use reader voice: e.g. "Readers have praised the world-building and sharp dialogue, though some note the pacing picks up after chapter 3."'
+    : 'Use reviewer voice: e.g. "A dark fantasy with a morally grey protagonist and intricate political scheming. Fans of slow-burn power dynamics will find plenty to sink into."'
+
+  const prompt = [
+    'You are summarizing reader reception of a webnovel for its story page.',
+    '',
+    `Title: ${title}`,
+    `Genres: ${genres.join(', ')}`,
+    `Chapters published: ${chapterCount}`,
+    '',
+    'OPENING EXCERPT:',
+    firstChapterSample.slice(0, 2000),
+    latestSection,
+    commentsSection,
+    '',
+    'Task: Write a 2-3 sentence summary that helps a new reader decide if this story is for them.',
+    instruction,
+    '',
+    'Return ONLY the summary text, no labels or JSON.',
+  ].join('\n')
+
+  const client = getOpenRouterClient()
+  const response = await client.chat.completions.create({
+    model: 'meta-llama/llama-3.1-8b-instruct',  // Fast + cheap for short summaries
+    temperature: 0.5,
+    max_tokens: 200,
+    messages: [
+      { role: 'system', content: 'You write concise reader-voice summaries for story pages. Output only the summary text, no extra formatting.' },
+      { role: 'user', content: prompt },
+    ],
+  })
+
+  const text = response.choices[0]?.message?.content?.trim()
+  if (!text) throw new Error('Empty response from OpenRouter for cumulative review')
+  return text
 }

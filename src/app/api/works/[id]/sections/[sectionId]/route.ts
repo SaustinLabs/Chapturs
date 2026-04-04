@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '../../../../../../../auth'
 import DatabaseService, { prisma } from '../../../../../../lib/database/PrismaService'
 import { assessWorkSynchronously } from '@/lib/quality-assessment/assessment-sync'
+import { maybeTriggerCumulativeReview } from '@/lib/quality-assessment/cumulative-review'
 import { notifyNewChapter } from '@/lib/email'
 import { createNotification } from '@/lib/notifications'
 
@@ -129,19 +130,29 @@ export async function PATCH(request: NextRequest, props: RouteParams) {
       }
     })
 
-    // If section is being published, run quality assessment
+    // If section is being published, run quality assessment (first chapter only) + milestone review
     let assessment = null
     let rateLimited = false
     if (status === 'published') {
-      console.log('[SECTIONS] Section being published, running assessment for:', { workId, sectionId })
-      try {
-        assessment = await assessWorkSynchronously(workId, sectionId)
-        console.log('[SECTIONS] Assessment result:', assessment)
-        rateLimited = assessment.rateLimited || false
-      } catch (assessmentError) {
-        console.error('[SECTIONS] Assessment error:', assessmentError)
-        // Don't fail the publish if assessment fails - log it and continue
+      // Count already-published sections for this work (excludes the one we just published)
+      const publishedCount = await prisma.section.count({
+        where: { workId, status: 'published' },
+      })
+
+      const isFirstChapter = publishedCount === 1 // the section we just updated is now counted
+
+      if (isFirstChapter) {
+        console.log('[SECTIONS] First chapter published, running LLM assessment for:', { workId, sectionId })
+        try {
+          assessment = await assessWorkSynchronously(workId, sectionId)
+          rateLimited = assessment.rateLimited || false
+        } catch (assessmentError) {
+          console.error('[SECTIONS] Assessment error:', assessmentError)
+        }
       }
+
+      // Fire-and-forget cumulative review at milestones
+      maybeTriggerCumulativeReview(workId, publishedCount).catch(() => {})
     }
 
     // Fire-and-forget chapter notification to all subscribers

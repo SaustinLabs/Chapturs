@@ -118,6 +118,7 @@ export interface LLMAssessmentResponse {
   discoveryTags: string[]
   qualityTier: QualityTier
   feedbackMessage: string
+  readerBlurb?: string         // Reader-facing 1-2 sentence description (stored as earlyReview)
   confidence: number           // 0-1 confidence in assessment
   processingTime: number
   tokenCount: number

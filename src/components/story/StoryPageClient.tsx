@@ -24,9 +24,11 @@ interface StoryPageClientProps {
   /** Work data pre-fetched by the Server Component. When provided, skips the
    *  client-side work fetch and renders immediately with no loading flash. */
   initialWork?: Work | null
+  /** AI-generated reader summary (earlyReview or cumulativeReview). */
+  aiReview?: string | null
 }
 
-export default function StoryPageClient({ initialWork }: StoryPageClientProps) {
+export default function StoryPageClient({ initialWork, aiReview }: StoryPageClientProps) {
   const params = useParams()
   const router = useRouter()
   const storyId = params?.id as string
@@ -330,6 +332,16 @@ export default function StoryPageClient({ initialWork }: StoryPageClientProps) {
                     </button>
                   )}
                 </div>
+
+                {/* AI Reader Summary */}
+                {aiReview && (
+                  <div className="mb-5 px-4 py-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 italic leading-relaxed">
+                      {aiReview}
+                    </p>
+                    <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">AI summary</p>
+                  </div>
+                )}
 
                 {/* Genres and Tags */}
                 <div className="space-y-3 mb-6">
