@@ -1,10 +1,10 @@
 import AppLayout from '@/components/AppLayout'
-import WorkCollaboratorsPage from '@/components/WorkCollaboratorsPage'
+import CreatorCollaboratorsHub from '@/components/CreatorCollaboratorsHub'
 
 export default function CollaboratorsPage() {
   return (
     <AppLayout>
-      <WorkCollaboratorsPage />
+      <CreatorCollaboratorsHub />
     </AppLayout>
   )
 }
