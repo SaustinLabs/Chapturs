@@ -52,7 +52,7 @@ const PACE_OPTIONS = [
   {
     key: 'deep',
     label: 'Deep Dives',
-    description: 'I lose myself in long stories for hours  Eor days',
+    description: 'I lose myself in long stories for hours — or days',
     icon: '🐋',
   },
   {
@@ -302,7 +302,9 @@ export default function TasteProfileSurvey({ onComplete }: TasteProfileSurveyPro
       if (!res.ok) throw new Error('Save failed')
       setStep(4)
     } catch {
-      setError("Couldn't save preferences  Eyour feed will still work. Try again later.")
+      setError("Couldn't save preferences — your feed will still work. Try again later.")
+      // Auto-close after 3 s so the user isn't stuck
+      setTimeout(() => onComplete(), 3000)
     } finally {
       setIsSubmitting(false)
     }
@@ -342,7 +344,7 @@ export default function TasteProfileSurvey({ onComplete }: TasteProfileSurveyPro
                 Tell us what you like
               </h2>
               <p className="text-gray-500 dark:text-gray-400 max-w-md text-sm leading-relaxed">
-                Three quick questions and your feed will be tuned to exactly what you love  Efiction, poetry, science, news, whatever it is.
+                Three quick questions and your feed will be tuned to exactly what you love — fiction, poetry, science, news, whatever it is.
               </p>
             </div>
             <p className="text-xs text-gray-400 dark:text-gray-500">Takes about 30 seconds</p>
@@ -372,7 +374,7 @@ export default function TasteProfileSurvey({ onComplete }: TasteProfileSurveyPro
                 Tap anything that looks interesting
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Mix freely  Enovels, articles, poetry, news. No right or wrong answers.
+                Mix freely — novels, articles, poetry, news. No right or wrong answers.
               </p>
             </div>
 
@@ -403,7 +405,7 @@ export default function TasteProfileSurvey({ onComplete }: TasteProfileSurveyPro
             <div className="p-6 pt-4 border-t border-gray-100 dark:border-gray-800 flex-shrink-0 flex items-center justify-between">
               <span className="text-xs text-gray-400">
                 {selections.selectedWorkIds.length === 0
-                  ? 'Select anything  Eor skip'
+                  ? 'Select anything — or skip'
                   : `${selections.selectedWorkIds.length} selected`}
               </span>
               <button

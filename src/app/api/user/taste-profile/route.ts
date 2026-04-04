@@ -32,6 +32,15 @@ export async function GET(_request: NextRequest) {
     return NextResponse.json({ needsOnboarding: false })
   }
 
+  // Don't trigger the survey until there are enough published works for the
+  // content picker to offer meaningful genre variety.
+  const workCount = await prisma.work.count({
+    where: { status: { in: ['published', 'ongoing', 'completed'] } },
+  })
+  if (workCount < 12) {
+    return NextResponse.json({ needsOnboarding: false })
+  }
+
   const profile = await prisma.userProfile.findUnique({
     where: { userId: session.user.id },
     select: { genreAffinities: true },
@@ -95,24 +104,29 @@ export async function POST(request: NextRequest) {
   const paceSettings      = PACE_SETTINGS[pace      ?? 'varied'] ?? PACE_SETTINGS.varied
   const discoverySettings = DISCOVERY_SETTINGS[discovery ?? 'mixed'] ?? DISCOVERY_SETTINGS.mixed
 
-  await prisma.userProfile.upsert({
-    where:  { userId: session.user.id },
-    create: {
-      userId:            session.user.id,
-      genreAffinities:   JSON.stringify(genreAffinities),
-      formatPreferences: JSON.stringify(formatPreferences),
-      ...paceSettings,
-      ...discoverySettings,
-      lastUpdated: new Date(),
-    },
-    update: {
-      genreAffinities:   JSON.stringify(genreAffinities),
-      formatPreferences: JSON.stringify(formatPreferences),
-      ...paceSettings,
-      ...discoverySettings,
-      lastUpdated: new Date(),
-    },
-  })
+  try {
+    await prisma.userProfile.upsert({
+      where:  { userId: session.user.id },
+      create: {
+        userId:            session.user.id,
+        genreAffinities:   JSON.stringify(genreAffinities),
+        formatPreferences: JSON.stringify(formatPreferences),
+        ...paceSettings,
+        ...discoverySettings,
+        lastUpdated: new Date(),
+      },
+      update: {
+        genreAffinities:   JSON.stringify(genreAffinities),
+        formatPreferences: JSON.stringify(formatPreferences),
+        ...paceSettings,
+        ...discoverySettings,
+        lastUpdated: new Date(),
+      },
+    })
+  } catch (err) {
+    console.error('taste-profile upsert failed — userId:', session.user.id, err)
+    return NextResponse.json({ error: 'Failed to save preferences' }, { status: 500 })
+  }
 
   return NextResponse.json({ ok: true })
 }
