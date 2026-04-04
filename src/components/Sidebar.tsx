@@ -78,30 +78,36 @@ export default function Sidebar({ currentHub, onHubChange }: SidebarProps) {
     `}>
       <div className="flex flex-col h-full">
         {/* Logo and Collapse Button */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          {!isCollapsed && (
+        {isCollapsed ? (
+          <div className="flex flex-col items-center py-3 gap-1 border-b border-gray-200 dark:border-gray-700">
+            <a href="/" className="p-1 bg-white rounded-lg shadow-sm border border-gray-100">
+              <img src="/logo-transparent.png" alt="Chapturs" className="w-8 h-8 rounded" />
+            </a>
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500"
+              aria-label="Expand sidebar"
+            >
+              <div className="w-4 h-4 flex items-center justify-center text-xs">→</div>
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
             <a href="/" className="flex items-center gap-2 px-2 py-1 bg-white rounded-lg shadow-sm border border-gray-100">
               <img src="/logo-transparent.png" alt="Chapturs" className="w-6 h-6 rounded" />
               <h1 className="text-base font-bold text-indigo-600 tracking-wide">
                 Chapturs
               </h1>
             </a>
-          )}
-          {isCollapsed && (
-            <a href="/" className="mx-auto p-1.5 bg-white rounded-lg shadow-sm border border-gray-100">
-              <img src="/logo-transparent.png" alt="Chapturs" className="w-6 h-6 rounded" />
-            </a>
-          )}
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            <div className="w-4 h-4 flex items-center justify-center">
-              {isCollapsed ? '→' : '←'}
-            </div>
-          </button>
-        </div>
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+              aria-label="Collapse sidebar"
+            >
+              <div className="w-4 h-4 flex items-center justify-center">←</div>
+            </button>
+          </div>
+        )}
 
         {/* Hub Toggle */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
