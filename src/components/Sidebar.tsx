@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession, signIn, signOut } from 'next-auth/react'
+import { usePathname } from 'next/navigation'
 import { 
   BookOpenIcon, 
   HomeIcon, 
@@ -29,6 +30,7 @@ interface SidebarProps {
 export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggleCollapsed }: SidebarProps) {
   const [username, setUsername] = useState<string | null>(null)
   const { data: session, status } = useSession()
+  const pathname = usePathname()
 
   // Fetch username when session is available
   useEffect(() => {
@@ -54,7 +56,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
     { icon: BookOpenIcon, label: 'Subscriptions', href: '/subscriptions' },
     { icon: MagnifyingGlassIcon, label: 'Browse', href: '/browse' },
     { icon: CogIcon, label: 'Settings', href: '/reader/settings' },
-    { icon: UserIcon, label: 'Profile', href: '/profile' },
+    { icon: UserIcon, label: 'Profile', href: username ? `/profile/${username}` : '/auth/signin' },
   ]
 
   const creatorItems = [
@@ -192,6 +194,9 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
             const IconComponent = item.icon
             const isCreatorItem = currentHub === 'creator'
             const requiresAuth = isCreatorItem && !session
+            const isActive = item.href === '/'
+              ? pathname === '/'
+              : pathname.startsWith(item.href)
             
             return (
               <a
@@ -208,13 +213,16 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
                   ${isCollapsed ? 'justify-center px-2 py-2' : 'px-3 py-2'}
                   ${requiresAuth 
                     ? 'text-gray-400 dark:text-gray-600 cursor-pointer hover:text-gray-500 dark:hover:text-gray-500' 
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+                    : isActive
+                      ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                   }
                   transition-colors
                 `}
                 title={requiresAuth ? `${item.label} (Sign in required)` : item.label}
+                aria-current={isActive ? 'page' : undefined}
               >
-                <IconComponent className="w-5 h-5 flex-shrink-0" />
+                <IconComponent className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-blue-600 dark:text-blue-400' : ''}`} />
                 <span className={`flex-1 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out ${
                   isCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[180px] opacity-100 ml-3'
                 }`}>

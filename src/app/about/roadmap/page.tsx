@@ -11,7 +11,7 @@ export default function RoadmapPage() {
             Our journey to build the best creator-first webnovel platform
           </p>
           <div className="mt-4 inline-block px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full font-semibold">
-            🚧 Currently in Beta - Last updated: October 2025
+            🚧 Currently in Beta - Last updated: April 2026
           </div>
         </div>
 

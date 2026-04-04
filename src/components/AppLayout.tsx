@@ -45,44 +45,37 @@ export default function AppLayout({ children }: AppLayoutProps) {
         
         {/* Main Content */}
         <div className={`${isCollapsed ? 'md:ml-16' : 'md:ml-64'} transition-[margin] duration-300 ease-in-out min-h-screen flex flex-col`}>
-          <main className={`flex-1 ${pathname.includes('/editor') ? '' : 'p-6'}`}>
+          <main className={`flex-1 pb-20 md:pb-0 ${pathname.includes('/editor') ? '' : 'p-6'}`}>
             {children}
           </main>
           
           {/* Footer */}
           <footer className="border-t border-gray-700 bg-gray-800 py-4 px-6">
-            <div className="flex items-center justify-between text-sm text-gray-400">
-              <div>
-                <span className="font-semibold">Chapturs</span>
-                <span className="mx-2">·</span>
+            <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-gray-400">
+              <div className="flex items-center gap-3">
+                <span className="font-semibold text-gray-200">Chapturs</span>
                 <span className="px-2 py-0.5 bg-yellow-900/30 text-yellow-200 text-xs font-semibold rounded">
                   BETA
                 </span>
               </div>
-              <div className="flex items-center gap-4">
-                <a 
-                  href="/legal/privacy" 
-                  className="hover:text-blue-400 transition-colors"
+              <div className="flex flex-wrap items-center gap-4">
+                <a href="/about" className="hover:text-blue-400 transition-colors">About</a>
+                <a href="/contests" className="hover:text-blue-400 transition-colors">Contests</a>
+                <a href="/legal/privacy" className="hover:text-blue-400 transition-colors">Privacy</a>
+                <a href="/legal/terms" className="hover:text-blue-400 transition-colors">Terms</a>
+                <a href="/legal/creator-agreement" className="hover:text-blue-400 transition-colors">Creator Agreement</a>
+                <a href="/about/roadmap" className="hover:text-blue-400 transition-colors">Roadmap</a>
+                <a
+                  href="https://x.com/chapturs"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-blue-400 transition-colors flex items-center gap-1"
+                  aria-label="Follow Chapturs on X"
                 >
-                  Privacy
-                </a>
-                <a 
-                  href="/legal/terms" 
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  Terms
-                </a>
-                <a 
-                  href="/legal/creator-agreement" 
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  Creator Agreement
-                </a>
-                <a 
-                  href="/about/roadmap" 
-                  className="hover:text-blue-400 transition-colors"
-                >
-                  Roadmap
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                  <span>@chapturs</span>
                 </a>
               </div>
             </div>

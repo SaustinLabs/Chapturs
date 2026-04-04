@@ -1,4 +1,4 @@
-export const runtime = 'nodejs'
+﻿export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
@@ -319,7 +319,7 @@ export async function POST(
     ;(async () => {
       try {
         const workForNotify = await prisma.work.findUnique({
-          where: { id: params.id },
+          where: { id: id },
           select: {
             title: true,
             author: {
@@ -340,7 +340,7 @@ export async function POST(
           type: 'new_comment',
           title: 'New comment',
           message: `${comment.user.displayName ?? comment.user.username ?? 'Someone'} commented on "${workForNotify.title}"`,
-          url: `/story/${params.id}#comments`,
+          url: `/story/${id}#comments`,
         })
 
         // Email notification (requires RESEND_API_KEY)
@@ -350,7 +350,7 @@ export async function POST(
             authorName: workForNotify.author?.user?.displayName ?? 'Creator',
             commenterName: comment.user.displayName ?? comment.user.username ?? 'A reader',
             workTitle: workForNotify.title,
-            workId: params.id,
+            workId: id,
             commentPreview: content.trim(),
           })
         }
@@ -370,7 +370,7 @@ export async function POST(
     ;(async () => {
       try {
         const work = await prisma.work.findUnique({
-          where: { id: params.id },
+          where: { id: id },
           select: {
             title: true,
             author: {
@@ -389,7 +389,7 @@ export async function POST(
           authorName: work.author?.user?.displayName ?? 'Creator',
           commenterName: comment.user.displayName ?? comment.user.username ?? 'A reader',
           workTitle: work.title,
-          workId: params.id,
+          workId: id,
           commentPreview: content.trim(),
         })
       } catch {}

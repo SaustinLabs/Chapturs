@@ -19,6 +19,8 @@ export async function POST(
         { status: 401 }
       )
     }
+
+    const comment = await prisma.blockComment.findUnique({
       where: { id: commentId }
     })
 

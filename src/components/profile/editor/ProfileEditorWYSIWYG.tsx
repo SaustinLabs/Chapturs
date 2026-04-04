@@ -212,8 +212,19 @@ export default function ProfileEditorWYSIWYG() {
   }
 
   const handleImageUpload = async (type: 'profile' | 'cover', file: File) => {
-    // TODO: Implement image upload to storage
-    console.log('Upload image:', type, file)
+    const formData = new FormData()
+    formData.append('file', file)
+    try {
+      const res = await fetch('/api/upload/cover', { method: 'POST', body: formData })
+      const json = await res.json()
+      if (res.ok && json?.data?.url) {
+        handleUpdate(type === 'profile' ? 'profileImage' : 'coverImage', json.data.url)
+      } else {
+        console.error('Image upload failed:', json)
+      }
+    } catch (err) {
+      console.error('Image upload error:', err)
+    }
     setHasUnsavedChanges(true)
   }
 

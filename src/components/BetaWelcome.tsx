@@ -169,7 +169,7 @@ export default function BetaWelcome({ isLoggedIn = false }: BetaWelcomeProps) {
           <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
               <Trophy className="text-yellow-600" />
-              Writing Contests (Coming Soon)
+              <Link href="/contests" className="hover:text-yellow-700 transition-colors">Writing Contests →</Link>
             </h2>
             <p className="text-gray-700 mb-4">
               Compete in writing contests where ad revenue from contest entries pools together to fund prizes. 
@@ -190,7 +190,7 @@ export default function BetaWelcome({ isLoggedIn = false }: BetaWelcomeProps) {
               Current features: Story upload, reading feed, glossary system, translation collaboration
             </p>
             <p className="text-yellow-800">
-              Coming soon: Monetization, contests, Premium subscriptions, mobile apps
+              Coming soon: Monetization, Premium subscriptions, mobile apps
             </p>
           </div>
 
@@ -266,7 +266,9 @@ export default function BetaWelcome({ isLoggedIn = false }: BetaWelcomeProps) {
           <div className="flex items-start gap-2">
             <Trophy className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-sm font-semibold text-gray-900">Writing Contests (Coming Soon)</p>
+              <Link href="/contests" className="text-sm font-semibold text-gray-900 hover:text-yellow-700 transition-colors">
+                Writing Contests →
+              </Link>
               <p className="text-xs text-gray-600">Create or enter community contests</p>
               <p className="text-xs text-gray-600 mt-1">Contest entries pool ad revenue to fund prizes for winners</p>
               <p className="text-xs text-gray-600">Platform may add bonus prizes to official contests</p>
