@@ -29,9 +29,13 @@ export async function GET(request: NextRequest) {
   const requestId = generateRequestId()
   
   try {
-    // Rate limiting
-    const clientId = request.headers.get('x-forwarded-for') || 'anonymous'
-    checkRateLimit(`feed_${clientId}`, 50, 60000) // 50 requests per minute
+    // Rate limiting — use a broad shared limit since x-forwarded-for may not be
+    // set by the reverse proxy, causing all traffic to share one 'anonymous' bucket.
+    // Per-IP limiting is enforced by Nginx upstream.
+    const clientId = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || null
+    if (clientId) {
+      checkRateLimit(`feed_${clientId}`, 120, 60000) // 120/min per real IP
+    }
 
     // Parse and validate query parameters
     const { searchParams } = new URL(request.url)
