@@ -37,12 +37,40 @@ export async function GET(request: Request, props: RouteParams) {
       )
     }
 
-    // Fetch author profile
+    // Fetch author profile (with CreatorProfile and blocks)
     const author = await prisma.author.findUnique({
       where: { userId: user.id },
       select: {
         id: true,
         verified: true,
+        creatorProfile: {
+          select: {
+            bio: true,
+            profileImage: true,
+            coverImage: true,
+            featuredType: true,
+            featuredWorkId: true,
+            accentColor: true,
+            fontStyle: true,
+            backgroundStyle: true,
+            isPublished: true,
+            blocks: {
+              where: { isVisible: true },
+              orderBy: { order: 'asc' },
+              select: {
+                id: true,
+                type: true,
+                data: true,
+                gridX: true,
+                gridY: true,
+                width: true,
+                height: true,
+                title: true,
+                order: true,
+              },
+            },
+          },
+        },
         _count: {
           select: {
             works: true,
@@ -107,7 +135,23 @@ export async function GET(request: Request, props: RouteParams) {
           sections: w._count.sections,
         },
       })),
-      profile: null,
+      profile: author?.creatorProfile
+        ? {
+            bio: author.creatorProfile.bio,
+            profileImage: author.creatorProfile.profileImage,
+            coverImage: author.creatorProfile.coverImage,
+            featuredType: author.creatorProfile.featuredType,
+            featuredWorkId: author.creatorProfile.featuredWorkId,
+            accentColor: author.creatorProfile.accentColor,
+            fontStyle: author.creatorProfile.fontStyle,
+            backgroundStyle: author.creatorProfile.backgroundStyle,
+            isPublished: author.creatorProfile.isPublished,
+            blocks: author.creatorProfile.blocks.map(b => ({
+              ...b,
+              data: (() => { try { return JSON.parse(b.data) } catch { return {} } })(),
+            })),
+          }
+        : null,
     })
   } catch (error) {
     console.error('Error fetching profile:', error)

@@ -1,14 +1,33 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import AppLayout from '@/components/AppLayout'
 import InfiniteFeed from '@/components/InfiniteFeed'
 import BetaWelcome from '@/components/BetaWelcome'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import TasteProfileSurvey from '@/components/onboarding/TasteProfileSurvey'
 import { useUser } from '@/hooks/useUser'
 import { signIn } from 'next-auth/react'
 
 function ReaderHomePage() {
   const { isAuthenticated, userName, isLoading } = useUser()
+  const [showSurvey, setShowSurvey] = useState(false)
+  const [feedKey, setFeedKey] = useState(0)
+
+  // Check if logged-in user needs onboarding once auth settles
+  useEffect(() => {
+    if (!isAuthenticated || isLoading) return
+    fetch('/api/user/taste-profile')
+      .then(r => r.json())
+      .then(data => { if (data.needsOnboarding) setShowSurvey(true) })
+      .catch(() => { /* non-critical */ })
+  }, [isAuthenticated, isLoading])
+
+  const handleSurveyComplete = () => {
+    setShowSurvey(false)
+    // Reload feed so it uses the freshly stored preferences
+    setFeedKey(k => k + 1)
+  }
 
   if (isLoading) {
     return (
@@ -28,6 +47,9 @@ function ReaderHomePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Taste profile onboarding — shown once to users with no preferences set */}
+      {showSurvey && <TasteProfileSurvey onComplete={handleSurveyComplete} />}
+
       {/* Beta Welcome sidebar for logged-in users */}
       {isAuthenticated && <BetaWelcome isLoggedIn={true} />}
 
@@ -37,15 +59,15 @@ function ReaderHomePage() {
           {isAuthenticated ? `Welcome back, ${userName}!` : 'Discover Stories'}
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          {isAuthenticated 
-            ? 'Continue your reading journey or discover something new.' 
+          {isAuthenticated
+            ? 'Continue your reading journey or discover something new.'
             : 'Explore webnovels, poetry, and articles from independent creators.'}
         </p>
       </div>
 
       {/* Infinite Feed - visible to everyone */}
       <ErrorBoundary name="Feed">
-        <InfiniteFeed hubMode="reader" />
+        <InfiniteFeed key={feedKey} hubMode="reader" />
       </ErrorBoundary>
     </div>
   )
