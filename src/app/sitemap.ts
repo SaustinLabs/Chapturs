@@ -21,7 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         take: 5000,
       }),
       prisma.user.findMany({
-        where: { username: { not: null } },
+        where: { NOT: { username: null } },
         select: { username: true, updatedAt: true },
         orderBy: { updatedAt: 'desc' },
         take: 5000,
