@@ -171,7 +171,6 @@ export default function FeaturesPage() {
             icon={<PencilSquareIcon className="w-5 h-5" />}
             title="The Block-based Editor"
             description="Every chapter is built from blocks: prose paragraphs, headings, scene dividers, images, and more. Blocks support text alignment, font sizing, and pacing animations (fade-in, slide-up, typewriter) that readers see as they scroll. Chapters autosave as drafts and can be published immediately or scheduled. A pre-publish checklist and AI quality assessment run before anything goes live."
-            badge="AI"
           />
           <FeatureCard
             icon={<AdjustmentsHorizontalIcon className="w-5 h-5" />}
@@ -192,7 +191,6 @@ export default function FeaturesPage() {
             icon={<SparklesIcon className="w-5 h-5" />}
             title="AI Quality Assessment"
             description="Every chapter you publish is scored across six dimensions — writing quality, storytelling, characterization, world-building, engagement, and originality — and given a quality tier. Strong and exceptional chapters receive a visibility boost in the discovery system. You also get an AI-generated reader-facing hook for your story page, written to help first-time visitors decide if it's for them."
-            badge="AI"
           />
           <FeatureCard
             icon={<StarIcon className="w-5 h-5" />}
