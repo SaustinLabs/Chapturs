@@ -33,16 +33,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
   
   // Determine current hub based on URL
   const currentHub: 'reader' | 'creator' = pathname.startsWith('/creator') ? 'creator' : 'reader'
-  
-  const setCurrentHub = (hub: 'reader' | 'creator') => {
-    // Navigation is handled by the sidebar buttons now
-    // This is just for compatibility with existing code
-  }
+  const [isCollapsed, setIsCollapsed] = useState(false)
 
-  const handleHubChange = (hub: 'reader' | 'creator') => {
-    // Navigation is handled by the sidebar buttons now
-    // This just updates any hub-aware components
-  }
+  const setCurrentHub = (hub: 'reader' | 'creator') => {}
+
+  const handleHubChange = (hub: 'reader' | 'creator') => {}
 
   return (
     <HubContext.Provider value={{ currentHub, setCurrentHub }}>
@@ -50,10 +45,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <Sidebar
           currentHub={currentHub}
           onHubChange={handleHubChange}
+          isCollapsed={isCollapsed}
+          onToggleCollapsed={() => setIsCollapsed(c => !c)}
         />
         
         {/* Main Content */}
-        <div className="ml-64 min-h-screen flex flex-col">
+        <div className={`${isCollapsed ? 'md:ml-16' : 'md:ml-64'} transition-[margin] duration-300 ease-in-out min-h-screen flex flex-col`}>
           <main className={`flex-1 ${pathname.includes('/editor') ? '' : 'p-6'}`}>
             {children}
           </main>

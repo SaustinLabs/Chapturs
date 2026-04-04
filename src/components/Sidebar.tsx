@@ -22,10 +22,11 @@ import NotificationBell from './NotificationBell'
 interface SidebarProps {
   currentHub: 'reader' | 'creator'
   onHubChange: (hub: 'reader' | 'creator') => void
+  isCollapsed: boolean
+  onToggleCollapsed: () => void
 }
 
-export default function Sidebar({ currentHub, onHubChange }: SidebarProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggleCollapsed }: SidebarProps) {
   const [username, setUsername] = useState<string | null>(null)
   const { data: session, status } = useSession()
 
@@ -71,8 +72,8 @@ export default function Sidebar({ currentHub, onHubChange }: SidebarProps) {
   return (
     <>
     <div className={`
-      fixed left-0 top-0 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 
-      transition-all duration-300 ease-in-out z-50
+      fixed left-0 top-0 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700
+      transition-[width] duration-300 ease-in-out z-50 overflow-hidden
       hidden md:block
       ${isCollapsed ? 'w-16' : 'w-64'}
     `}>
@@ -84,7 +85,7 @@ export default function Sidebar({ currentHub, onHubChange }: SidebarProps) {
               <img src="/logo-transparent.png" alt="Chapturs" className="w-8 h-8 rounded" />
             </a>
             <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
+              onClick={onToggleCollapsed}
               className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500"
               aria-label="Expand sidebar"
             >
@@ -100,7 +101,7 @@ export default function Sidebar({ currentHub, onHubChange }: SidebarProps) {
               </h1>
             </a>
             <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
+              onClick={onToggleCollapsed}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
               aria-label="Collapse sidebar"
             >
@@ -204,22 +205,21 @@ export default function Sidebar({ currentHub, onHubChange }: SidebarProps) {
                 }}
                 className={`
                   flex items-center rounded-lg text-sm font-medium
-                  ${isCollapsed ? 'justify-center p-2' : 'px-3 py-2'}
+                  ${isCollapsed ? 'justify-center px-2 py-2' : 'px-3 py-2'}
                   ${requiresAuth 
                     ? 'text-gray-400 dark:text-gray-600 cursor-pointer hover:text-gray-500 dark:hover:text-gray-500' 
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                   }
                   transition-colors
                 `}
-                title={isCollapsed 
-                  ? (requiresAuth ? `${item.label} (Sign in required)` : item.label)
-                  : (requiresAuth ? 'Sign in required' : undefined)
-                }
+                title={requiresAuth ? `${item.label} (Sign in required)` : item.label}
               >
-                <IconComponent className={`w-5 h-5 ${isCollapsed ? '' : 'mr-3'}`} />
-                {!isCollapsed && (
-                  <span className="flex-1">{item.label}</span>
-                )}
+                <IconComponent className="w-5 h-5 flex-shrink-0" />
+                <span className={`flex-1 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out ${
+                  isCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[180px] opacity-100 ml-3'
+                }`}>
+                  {item.label}
+                </span>
                 {!isCollapsed && requiresAuth && (
                   <span className="text-xs">🔒</span>
                 )}
@@ -286,8 +286,10 @@ export default function Sidebar({ currentHub, onHubChange }: SidebarProps) {
                 title={isCollapsed ? 'Sign Out' : undefined}
                 aria-label="Sign out of your account"
               >
-                <ArrowRightOnRectangleIcon className={`w-5 h-5 ${isCollapsed ? '' : 'mr-3'}`} />
-                {!isCollapsed && 'Sign Out'}
+                <ArrowRightOnRectangleIcon className="w-5 h-5 flex-shrink-0" />
+                <span className={`overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out ${
+                  isCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[100px] opacity-100 ml-3'
+                }`}>Sign Out</span>
               </button>
             </div>
           ) : (
@@ -302,8 +304,10 @@ export default function Sidebar({ currentHub, onHubChange }: SidebarProps) {
               title={isCollapsed ? 'Sign In' : undefined}
               aria-label="Sign in with Google"
             >
-              <ArrowLeftOnRectangleIcon className={`w-5 h-5 ${isCollapsed ? '' : 'mr-3'}`} />
-              {!isCollapsed && 'Sign In'}
+              <ArrowLeftOnRectangleIcon className="w-5 h-5 flex-shrink-0" />
+              <span className={`overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out ${
+                isCollapsed ? 'max-w-0 opacity-0 ml-0' : 'max-w-[100px] opacity-100 ml-3'
+              }`}>Sign In</span>
             </button>
           )}
         </div>
