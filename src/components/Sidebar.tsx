@@ -72,6 +72,9 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
   ]
 
   const currentItems = currentHub === 'reader' ? readerItems : creatorItems
+  const isReaderChapterRoute = /^\/story\/[^/]+\/chapter\/[^/]+/.test(pathname)
+  const isCreatorEditorRoute = pathname.startsWith('/creator/editor')
+  const shouldShowMobileNav = !isReaderChapterRoute && !isCreatorEditorRoute
 
   return (
     <>
@@ -325,6 +328,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
     </div>
     
     {/* Mobile Bottom Navigation */}
+    {shouldShowMobileNav && (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50 flex justify-around items-center p-2 pb-safe">
       {currentItems.slice(0, 5).map((item) => {
         const IconComponent = item.icon
@@ -355,6 +359,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
         )
       })}
     </div>
+    )}
     </>
   )
 }
