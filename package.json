@@ -10,6 +10,9 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:mobile": "playwright test tests/mobile-smoke.spec.ts",
     "db:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate"
   },
@@ -67,6 +70,7 @@
     "zod": "^4.1.11"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
     "@tailwindcss/line-clamp": "^0.4.4",
     "@types/jest": "^30.0.0",
     "@types/node": "^20",
