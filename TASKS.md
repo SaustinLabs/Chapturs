@@ -193,6 +193,39 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 
 ---
 
+## 🌍 Translation System
+
+Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `TranslationVote`, `FanTranslation`) are in place. Chapter reader has a language-selector UI. The content API route (`/api/chapter/[workId]/[chapterId]/content`) is wired and calls real LLM via `translateBatch`.
+
+### Phase 1 — MVP (in progress)
+
+| # | Task | Status | Notes |
+|---|---|---|---|
+| 83 | Real LLM translation in chapter content route | ✅ | `translateBatch` from `src/lib/translation.ts` wired into content route; uses `meta-llama/llama-3.1-8b-instruct` via OpenRouter |
+| 84 | Fix `translation.ts` — remove broken `DescriptionTranslation` ref, correct model, batch API | ✅ | Rewrote: `translateOnDemand` + `translateBatch`, correct model, no broken Prisma calls |
+| 85 | Add `preferredLanguage` field to User model + migrate | ⬜ | Needed for auto-detect from user profile; currently falls back to `Accept-Language` header |
+| 86 | Pass `Accept-Language` / user preference as default `targetLanguage` in chapter page | ⬜ | Currently always defaults to `'en'`; should auto-set based on browser locale or user profile |
+| 87 | "Translated from X • Show original" banner in chapter reader | ⬜ | Show when `targetLanguage !== originalLanguage`; allow one-tap to revert. Design: subtle bar below ChapterTopBar |
+
+### Phase 2 — Quality & Cost Controls
+
+| # | Task | Status | Notes |
+|---|---|---|---|
+| 88 | Persist AI translations to DB (`FanTranslation` model, `TIER_1_OFFICIAL`) to avoid re-translating | ⬜ | Content route already scaffolds this but has a bug with `translatorId: 'system-ai'` (not a real User FK) — fix or make nullable |
+| 89 | Rate-limit translation requests per user/IP (e.g. 20 chapters/day for anon) | ⬜ | Prevent abuse; use Redis or DB counter |
+| 90 | Chunk large chapters into ≤50 block batches before sending to LLM | ⬜ | Prevents context-limit errors on very long chapters |
+
+### Phase 3 — Community Translations (future)
+
+| # | Task | Status | Notes |
+|---|---|---|---|
+| 91 | `TranslationSuggestion` submission UI — bilingual readers can propose better translations | ⬜ | API route exists at `/api/translations/submit` |
+| 92 | Voting UI for translation suggestions | ⬜ | API route exists at `/api/translations/vote` |
+| 93 | Auto-promote community translation to canonical when votes > threshold | ⬜ | Promotion logic in `/api/translations/[id]` |
+| 94 | `TranslatorProfile` hub — track translator reputation and language badges | ⬜ | Schema exists; needs UI in Creator Hub |
+
+---
+
 ## ✅ Done (this session)
 
 | Task |

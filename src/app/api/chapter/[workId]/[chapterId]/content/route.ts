@@ -2,26 +2,32 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
+import { translateOnDemand, translateBatch } from '@/lib/translation'
 
-// Simple in-memory cache for AI translations (key: `${workId}:${chapterId}:${lang}`)
+// Short-lived in-memory cache keyed by `${workId}:${chapterId}:${lang}`
 const aiCache = new Map<string, { content: any[]; translatedTitle: string }>()
 
-// Fake AI translation function – replace with real LLM call later
 async function generateAITranslation(
   originalTitle: string,
   originalContent: any[],
   lang: string
 ): Promise<{ translatedTitle: string; translatedContent: any[] }> {
-  // Simulate delay
-  await new Promise((r) => setTimeout(r, 100))
-  // For now, just pass through with a note
-  return {
-    translatedTitle: `[${lang}] ${originalTitle}`,
-    translatedContent: originalContent.map((block) => ({
-      ...block,
-      content: `[${lang}] ${block.content || block.text || ''}`,
-    })),
-  }
+  // Translate title
+  const translatedTitle = await translateOnDemand(originalTitle, lang)
+
+  // Extract text from each block; skip non-text blocks (images, embeds, etc.)
+  const texts = originalContent.map((block) => block.content ?? block.text ?? '')
+
+  // Translate all text blocks in a single batched LLM call
+  const translatedTexts = await translateBatch(texts, lang)
+
+  const translatedContent = originalContent.map((block, i) => ({
+    ...block,
+    ...(block.content !== undefined ? { content: translatedTexts[i] } : {}),
+    ...(block.text !== undefined && block.content === undefined ? { text: translatedTexts[i] } : {}),
+  }))
+
+  return { translatedTitle, translatedContent }
 }
 
 export async function GET(
