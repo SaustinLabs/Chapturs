@@ -17,30 +17,31 @@ export default function Error({
   }, [error])
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 dark:bg-gray-900">
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-12 px-8 shadow sm:rounded-lg dark:bg-gray-800 text-center">
-          <AlertOctagon className="mx-auto h-16 w-16 text-red-500 mb-4" />
-          <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">
-            Something went wrong
-          </h2>
-          <p className="text-md text-gray-600 dark:text-gray-300 mb-6">
-            An unexpected error occurred while loading this page. Our team has been notified.
-          </p>
-          <div className="flex flex-col space-y-4">
-            <button
-              onClick={() => reset()}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              Try again
-            </button>
-            <Link
-              href="/"
-              className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
-            >
-              Return Home
-            </Link>
-          </div>
+    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-4">
+      <div className="max-w-md w-full bg-gray-900 rounded-2xl border border-gray-800 p-8 text-center shadow-2xl">
+        <AlertOctagon className="mx-auto h-14 w-14 text-red-500 mb-4" />
+        <h2 className="text-2xl font-bold text-white mb-2">
+          Something went wrong
+        </h2>
+        <p className="text-sm text-gray-400 mb-6">
+          An unexpected error occurred. This is usually temporary — try reloading the page.
+        </p>
+        {error?.digest && (
+          <p className="text-xs text-gray-600 mb-6 font-mono">ref: {error.digest}</p>
+        )}
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={() => reset()}
+            className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
+          >
+            Try again
+          </button>
+          <Link
+            href="/"
+            className="w-full py-2.5 px-4 rounded-xl border border-gray-700 text-gray-300 hover:bg-gray-800 text-sm font-medium transition-colors block"
+          >
+            Return Home
+          </Link>
         </div>
       </div>
     </div>
