@@ -76,7 +76,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
   return (
     <>
     <div className={`
-      fixed left-0 top-0 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700
+      fixed left-0 top-0 h-full bg-gray-900 border-r border-gray-800/60
       transition-[width] duration-300 ease-in-out z-50 overflow-hidden
       hidden md:block
       ${isCollapsed ? 'w-16' : 'w-64'}
@@ -84,29 +84,29 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
       <div className="flex flex-col h-full">
         {/* Logo and Collapse Button */}
         {isCollapsed ? (
-          <div className="flex flex-col items-center py-3 gap-1 border-b border-gray-200 dark:border-gray-700">
-            <a href="/" className="p-1 bg-white rounded-lg shadow-sm border border-gray-100">
+          <div className="flex flex-col items-center py-3 gap-1 border-b border-gray-800/60">
+            <a href="/" className="p-1">
               <img src="/logo-transparent.png" alt="Chapturs" className="w-8 h-8 rounded" />
             </a>
             <button
               onClick={onToggleCollapsed}
-              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500"
+              className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-500 hover:text-gray-300"
               aria-label="Expand sidebar"
             >
               <div className="w-4 h-4 flex items-center justify-center text-xs">→</div>
             </button>
           </div>
         ) : (
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-            <a href="/" className="flex items-center gap-2 px-2 py-1 bg-white rounded-lg shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between p-4 border-b border-gray-800/60">
+            <a href="/" className="flex items-center gap-2 px-2 py-1">
               <img src="/logo-transparent.png" alt="Chapturs" className="w-6 h-6 rounded" />
-              <h1 className="text-base font-bold text-indigo-600 tracking-wide">
+              <h1 className="text-base font-bold text-blue-400 tracking-wide">
                 Chapturs
               </h1>
             </a>
             <button
               onClick={onToggleCollapsed}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="p-2 rounded-lg hover:bg-gray-800 text-gray-500 hover:text-gray-300"
               aria-label="Collapse sidebar"
             >
               <div className="w-4 h-4 flex items-center justify-center">←</div>
@@ -115,9 +115,9 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
         )}
 
         {/* Hub Toggle */}
-        <div className={`${isCollapsed ? 'px-1 py-3' : 'p-4'} border-b border-gray-200 dark:border-gray-700`}>
+        <div className={`${isCollapsed ? 'px-1 py-3' : 'p-4'} border-b border-gray-800/60`}>
           {!isCollapsed ? (
-            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+            <div className="flex bg-gray-800/50 rounded-lg p-1 gap-0.5">
               <button
                 onClick={() => {
                   onHubChange('reader')
@@ -128,8 +128,8 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
                 }}
                 className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   currentHub === 'reader'
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    ? 'bg-gray-700 text-white shadow-sm'
+                    : 'text-gray-400 hover:text-gray-200'
                 }`}
                 aria-pressed={currentHub === 'reader'}
                 aria-label="Switch to Reader Hub"
@@ -150,8 +150,8 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
                 }}
                 className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   currentHub === 'creator'
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    ? 'bg-gray-700 text-white shadow-sm'
+                    : 'text-gray-400 hover:text-gray-200'
                 } ${!session ? 'opacity-50' : ''}`}
                 title={!session ? 'Sign in to access Creator Hub' : undefined}
                 aria-pressed={currentHub === 'creator'}
@@ -177,14 +177,14 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
                   window.location.href = '/creator/dashboard'
                 }
               }}
-              className="w-full p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="w-full p-2 rounded-lg hover:bg-gray-800 text-gray-500 hover:text-gray-300"
               title={`Switch to ${currentHub === 'reader' ? 'Creator' : 'Reader'} Hub`}
               aria-label={`Switch to ${currentHub === 'reader' ? 'Creator' : 'Reader'} Hub`}
             >
               {currentHub === 'reader' ? (
-                <BookOpenIcon className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                <BookOpenIcon className="w-6 h-6 text-gray-500" />
               ) : (
-                <PencilIcon className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                <PencilIcon className="w-6 h-6 text-gray-500" />
               )}
             </button>
           )}
@@ -214,10 +214,10 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
                   flex items-center rounded-lg text-sm font-medium
                   ${isCollapsed ? 'justify-center px-2 py-2' : 'px-3 py-2'}
                   ${requiresAuth 
-                    ? 'text-gray-400 dark:text-gray-600 cursor-pointer hover:text-gray-500 dark:hover:text-gray-500' 
+                    ? 'text-gray-600 cursor-pointer hover:text-gray-500' 
                     : isActive
-                      ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+                      ? 'bg-blue-500/10 text-blue-300 border-l-2 border-blue-500'
+                      : 'text-gray-400 hover:bg-gray-800 hover:text-white border-l-2 border-transparent'
                   }
                   transition-colors
                 `}
@@ -239,7 +239,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
         </nav>
 
         {/* Authentication Section */}
-        <div className={`${isCollapsed ? 'px-1 py-4' : 'p-4'} border-t border-gray-200 dark:border-gray-700`}>
+        <div className={`${isCollapsed ? 'px-1 py-4' : 'p-4'} border-t border-gray-800/60`}>
           {status === 'loading' ? (
             <div className="flex items-center justify-center py-2">
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
@@ -251,7 +251,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
                 href={currentHub === 'creator' ? '/creator/profile/edit' : `/profile/${username || session.user?.id}`}
                 className={`
                   flex items-center w-full rounded-lg
-                  hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
+                  hover:bg-gray-800 transition-colors
                   ${isCollapsed ? 'justify-center p-2' : 'px-3 py-2'}
                 `}
                 title={isCollapsed ? 'View Profile' : undefined}
@@ -289,7 +289,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
                 onClick={handleSignOut}
                 className={`
                   flex items-center w-full rounded-lg text-sm font-medium
-                  text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20
+                  text-red-400 hover:bg-red-900/20
                   transition-colors
                   ${isCollapsed ? 'justify-center p-2' : 'px-3 py-2'}
                 `}
@@ -307,7 +307,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
               onClick={handleSignIn}
               className={`
                 flex items-center w-full rounded-lg text-sm font-medium
-                text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20
+                text-blue-400 hover:bg-blue-900/20
                 transition-colors
                 ${isCollapsed ? 'justify-center p-2' : 'px-3 py-2'}
               `}

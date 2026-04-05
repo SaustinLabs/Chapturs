@@ -35,7 +35,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <HubContext.Provider value={{ currentHub, setCurrentHub }}>
-      <div className="min-h-screen bg-gray-900">
+      <div className="min-h-screen bg-gray-950">
         <Sidebar
           currentHub={currentHub}
           onHubChange={() => {}}
@@ -50,7 +50,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           </main>
           
           {/* Footer */}
-          <footer className="border-t border-gray-700 bg-gray-800 py-4 px-6">
+          <footer className="border-t border-gray-800/60 bg-gray-900/80 py-4 px-6">
             <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-gray-400">
               <div className="flex items-center gap-3">
                 <span className="font-semibold text-gray-200">Chapturs</span>

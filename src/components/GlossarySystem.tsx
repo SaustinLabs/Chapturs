@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useRef } from 'react'
 import { GlossaryTerm } from '@/types'
-import { measureTextHeight } from '@/hooks/usePretext'
 
 interface GlossaryTooltipProps {
   term: string
@@ -11,65 +10,36 @@ interface GlossaryTooltipProps {
 }
 
 export function GlossaryTooltip({ term, definition, children }: GlossaryTooltipProps) {
-  const [isVisible, setIsVisible] = useState(false)
-  const [position, setPosition] = useState({ x: 0, y: 0 })
-  const [isTouchDevice, setIsTouchDevice] = useState(false)
-  const tooltipText = useMemo(() => `${term}\n${definition}`, [term, definition])
-  const tooltipHeight = useMemo(() => {
-    const measurement = measureTextHeight(tooltipText, '14px Inter', 320, 20, { whiteSpace: 'pre-wrap' })
-    return Math.max(56, measurement.height + 24)
-  }, [tooltipText])
-  const tooltipWidth = useMemo(() => {
-    const longestSegment = Math.max(term.length, ...definition.split(/\s+/).map(w => w.length))
-    return Math.min(320, Math.max(180, longestSegment * 8 + 48))
-  }, [term, definition])
+  const [visible, setVisible] = useState(false)
+  const [pos, setPos] = useState({ x: 0, y: 0 })
+  const [pinchDistance, setPinchDistance] = useState<number | null>(null)
+  const triggerRef = useRef<HTMLSpanElement>(null)
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    setIsTouchDevice(window.matchMedia('(pointer: coarse)').matches)
-  }, [])
+  const TOOLTIP_W = 288 // matches w-72
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isVisible) {
-        const viewportWidth = window.innerWidth
-        const viewportHeight = window.innerHeight
-        
-        let x = e.clientX + 10
-        let y = e.clientY - 10
-        
-        // Adjust if tooltip would go off screen
-        if (x + tooltipWidth > viewportWidth) {
-          x = e.clientX - tooltipWidth - 10
-        }
-        if (y - tooltipHeight < 0) {
-          y = e.clientY + 20
-        }
-        if (y + 20 > viewportHeight) {
-          y = viewportHeight - 20
-        }
-        
-        setPosition({ x, y })
-      }
+  const show = () => {
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect()
+      const vw = typeof window !== 'undefined' ? window.innerWidth : 1440
+      // Center tooltip over the term, clamped so it never bleeds off either edge
+      const cx = Math.max(
+        TOOLTIP_W / 2 + 8,
+        Math.min(vw - TOOLTIP_W / 2 - 8, rect.left + rect.width / 2)
+      )
+      setPos({ x: cx, y: rect.top })
     }
-
-    document.addEventListener('mousemove', handleMouseMove)
-    return () => document.removeEventListener('mousemove', handleMouseMove)
-  }, [isVisible])
+    setVisible(true)
+  }
+  const hide = () => setVisible(false)
 
   const openMobileGlossary = () => {
     if (typeof window === 'undefined') return
     window.dispatchEvent(
       new CustomEvent('reader-open-mobile-glossary', {
-        detail: {
-          type: 'term',
-          term,
-        },
+        detail: { type: 'term', term },
       })
     )
   }
-
-  const [pinchDistance, setPinchDistance] = useState<number | null>(null)
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
@@ -88,42 +58,36 @@ export function GlossaryTooltip({ term, definition, children }: GlossaryTooltipP
     }
   }
 
-  const handleTouchEnd = () => {
-    setPinchDistance(null)
-  }
+  const handleTouchEnd = () => setPinchDistance(null)
 
   return (
-    <span className="relative">
+    <span className="relative inline">
       <span
-        onMouseEnter={() => setIsVisible(true)}
-        onMouseLeave={() => setIsVisible(false)}
-        onClick={() => {
-          if (isTouchDevice) {
-            openMobileGlossary()
-          }
-        }}
+        ref={triggerRef}
+        onMouseEnter={show}
+        onMouseLeave={hide}
+        onClick={openMobileGlossary}
         onDoubleClick={openMobileGlossary}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className="cursor-help border-b border-dotted border-blue-500 text-blue-600 dark:text-blue-400 hover:border-solid transition-all"
+        className="cursor-help border-b border-dotted border-blue-500/60 text-blue-400 hover:text-blue-300 hover:border-blue-400/80 transition-colors"
       >
         {children}
       </span>
-      
-      {isVisible && !isTouchDevice && (
-        <div
-          className="fixed z-50 max-w-sm p-3 bg-gray-900 text-white text-sm rounded-lg shadow-lg pointer-events-none"
-          style={{ 
-            left: position.x, 
-            top: position.y,
-            width: `${tooltipWidth}px`,
-            transform: 'translateY(-100%)'
-          }}
+
+      {visible && (
+        <span
+          className="fixed z-50 pointer-events-none"
+          style={{ left: pos.x, top: pos.y, transform: 'translate(-50%, calc(-100% - 12px))' }}
         >
-          <div className="font-semibold mb-1">{term}</div>
-          <div className="text-gray-200">{definition}</div>
-        </div>
+          <span className="block w-72 p-3 rounded-xl text-sm leading-relaxed bg-gray-900/95 backdrop-blur-md border border-gray-700/60 shadow-2xl shadow-black/50">
+            <span className="font-semibold text-gray-100 block mb-1">{term}</span>
+            <span className="text-gray-300">{definition}</span>
+            {/* Downward caret pointing at the term */}
+            <span className="absolute left-1/2 -translate-x-1/2 top-full -mt-px border-[6px] border-transparent border-t-gray-800" />
+          </span>
+        </span>
       )}
     </span>
   )

@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import AppLayout from '@/components/AppLayout'
+import fs from 'fs'
+import path from 'path'
 import {
   SparklesIcon,
   GlobeAltIcon,
@@ -73,7 +75,65 @@ function Section({ id, eyebrow, heading, subheading, children, accent = 'text-bl
   )
 }
 
+interface ShowcaseItem {
+  file: string
+  label: string
+  caption: string
+}
+
+const SHOWCASE_ITEMS: ShowcaseItem[] = [
+  { file: 'reader.png',           label: 'Reading Experience',    caption: 'Clean, distraction-free chapter view with adaptive typography and inline glossary tooltips.' },
+  { file: 'glossary.png',         label: 'Adaptive Glossary',     caption: 'Hover any highlighted term to see its definition. Spoiler-locked entries reveal only when the reader is far enough in the story.' },
+  { file: 'featured-comments.png',label: 'Featured Comments',     caption: 'Authors pin standout reader reactions to the story page. Readers who get featured earn a visible badge.' },
+  { file: 'creator-profile.png',  label: 'Creator Profile',       caption: 'A customisable three-panel creator canvas with draggable blocks, embedded media, and community links.' },
+  { file: 'analytics.png',        label: 'Analytics Dashboard',   caption: 'Chapter completion rates, subscriber growth, and reaction breakdowns — all in one view.' },
+  { file: 'rating.png',           label: 'Multi-dimension Rating', caption: 'Readers rate across writing, plot, characters, world-building, and pacing for nuanced story feedback.' },
+]
+
+function ShowcaseSection({ availableFiles }: { availableFiles: Set<string> }) {
+  const visibleItems = SHOWCASE_ITEMS.filter(item => availableFiles.has(item.file))
+  if (visibleItems.length === 0) return null
+
+  return (
+    <section className="py-16 border-b border-gray-700">
+      <div className="mb-8">
+        <p className="text-sm font-semibold uppercase tracking-widest mb-2 text-blue-400">See It In Action</p>
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-100 mb-3">Platform screenshots</h2>
+        <p className="text-gray-400 max-w-2xl">A quick look at the features in practice.</p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {visibleItems.map(item => (
+          <div key={item.file} className="group rounded-xl overflow-hidden border border-gray-700 bg-gray-800 hover:border-gray-500 transition-colors">
+            <div className="aspect-[16/10] bg-gray-900 overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/screenshots/${item.file}`}
+                alt={item.label}
+                className="w-full h-full object-cover object-top group-hover:scale-[1.02] transition-transform duration-300"
+              />
+            </div>
+            <div className="p-4">
+              <p className="font-semibold text-gray-100 text-sm mb-1">{item.label}</p>
+              <p className="text-xs text-gray-400 leading-relaxed">{item.caption}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 export default function FeaturesPage() {
+  // Detect which screenshots are present at build/request time
+  const screenshotsDir = path.join(process.cwd(), 'public', 'screenshots')
+  let availableFiles = new Set<string>()
+  try {
+    const files = fs.readdirSync(screenshotsDir)
+    availableFiles = new Set(files)
+  } catch {
+    // Directory doesn't exist yet — that's fine, showcase section won't render
+  }
+
   return (
     <AppLayout>
       <div className="max-w-5xl mx-auto px-4 py-12">
@@ -106,6 +166,9 @@ export default function FeaturesPage() {
             ))}
           </div>
         </div>
+
+        {/* ── SCREENSHOTS (only renders when files are present) ─────── */}
+        <ShowcaseSection availableFiles={availableFiles} />
 
         {/* ── READERS ───────────────────────────────────────────── */}
         <Section
