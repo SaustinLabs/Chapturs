@@ -59,7 +59,7 @@ export default function ContentPolicy() {
 
       <h2>Appeals</h2>
       <p>
-        If you believe your content was removed in error, you may appeal by contacting <strong>support@chapturs.com</strong> with the subject line &quot;Content Appeal.&quot;
+        If you believe your content was removed in error, you may appeal via our <a href="/contact">contact page</a> (Support) with the subject line &quot;Content Appeal.&quot;
       </p>
     </div>
   )

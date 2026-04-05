@@ -18,10 +18,11 @@ interface Setting {
 }
 
 const GROUP_META: Record<string, { label: string; color: string }> = {
-  general:      { label: 'General',      color: 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800' },
-  content:      { label: 'Content',      color: 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800' },
-  features:     { label: 'Features',     color: 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800' },
-  monetization: { label: 'Monetization', color: 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800' },
+  general:      { label: 'General',        color: 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800' },
+  content:      { label: 'Content',        color: 'bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800' },
+  features:     { label: 'Features',       color: 'bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800' },
+  monetization: { label: 'Monetization',   color: 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800' },
+  email:        { label: 'Email Addresses', color: 'bg-cyan-50 border-cyan-200 dark:bg-cyan-900/20 dark:border-cyan-800' },
 }
 
 export default function AdminSettingsPage() {

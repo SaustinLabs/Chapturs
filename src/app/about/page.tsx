@@ -35,7 +35,7 @@ export default function About() {
 
       <h2>Contact</h2>
       <p>
-        Questions? Reach us at <a href="mailto:hello@chapturs.com">hello@chapturs.com</a> or visit our <a href="/contact">contact page</a>.
+        Questions? Visit our <a href="/contact">contact page</a> to reach the right team.
       </p>
     </div>
   )

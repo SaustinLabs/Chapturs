@@ -106,12 +106,8 @@ export default function TermsOfService() {
 
       <h2>14. Contact</h2>
       <p>
-        For questions about these Terms, contact us at:
+        For questions about these Terms, contact us via our <a href="/contact">contact page</a> (Legal &amp; Privacy).
       </p>
-      <ul>
-        <li>Email: legal@chapturs.com</li>
-        <li>Website: <a href="https://chapturs.com/contact">chapturs.com/contact</a></li>
-      </ul>
     </div>
   )
 }

@@ -24,6 +24,15 @@ const DEFAULT_SETTINGS = [
   { key: 'premium_enabled',       value: 'false',  type: 'boolean', label: 'Premium Subscriptions',      description: 'Enable the premium subscription tier for readers.', group: 'monetization' },
   { key: 'ads_enabled',           value: 'true',   type: 'boolean', label: 'Show Advertisements',        description: 'Display AdSense ad units across the site.', group: 'monetization' },
   { key: 'creator_payouts',       value: 'false',  type: 'boolean', label: 'Creator Payouts',            description: 'Enable the revenue payout system for creators.', group: 'monetization' },
+  // Email Addresses
+  { key: 'email_hello',    value: 'hello@chapturs.com',    type: 'string', label: 'General Inquiries',    description: 'Main contact address shown on the contact page.',                        group: 'email' },
+  { key: 'email_support',  value: 'support@chapturs.com',  type: 'string', label: 'Support',              description: 'Reader and creator support requests.',                                 group: 'email' },
+  { key: 'email_dmca',     value: 'dmca@chapturs.com',     type: 'string', label: 'DMCA / Copyright',     description: 'Copyright takedown and DMCA requests.',                                group: 'email' },
+  { key: 'email_legal',    value: 'legal@chapturs.com',    type: 'string', label: 'Legal & Privacy',      description: 'Legal inquiries, privacy requests, and law enforcement.',                group: 'email' },
+  { key: 'email_creators', value: 'creators@chapturs.com', type: 'string', label: 'Creator Partnerships', description: 'Partnership and creator onboarding enquiries.',                          group: 'email' },
+  { key: 'email_feedback', value: 'feedback@chapturs.com', type: 'string', label: 'Feedback',             description: 'Product feedback and feature requests.',                                group: 'email' },
+  { key: 'email_report',   value: 'report@chapturs.com',   type: 'string', label: 'Report Content',       description: 'Content violation reports (shown on the contact page).',                group: 'email' },
+  { key: 'email_admin',    value: 'admin@chapturs.com',    type: 'string', label: 'Admin (internal)',      description: 'Internal admin address. Not shown publicly.',                           group: 'email' },
 ]
 
 function isAdmin(session: any) {
