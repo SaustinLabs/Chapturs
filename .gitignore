@@ -4,6 +4,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Test / dev materials (local only)
+Test Materials/
+
 # Next.js
 .next/
 out/
