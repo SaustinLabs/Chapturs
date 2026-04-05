@@ -105,6 +105,91 @@ export async function notifyNewSubscriber({
   })
 }
 
+export async function sendWelcomeEmail({
+  to,
+  displayName,
+}: {
+  to: string
+  displayName: string
+}) {
+  await sendEmail({
+    to,
+    subject: `Welcome to Chapturs, ${displayName}!`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:24px;color:#111">
+        <h2 style="margin:0 0 8px">Welcome to Chapturs 📖</h2>
+        <p style="color:#555;margin:0 0 16px">
+          Hey ${displayName}, you're in. Chapturs is where stories live — whether you're here to read or to write.
+        </p>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+          <tr>
+            <td style="padding:4px 0;color:#555">📚</td>
+            <td style="padding:4px 8px;color:#555">Browse the feed and discover new works</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 0;color:#555">🔖</td>
+            <td style="padding:4px 8px;color:#555">Bookmark stories to follow their updates</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 0;color:#555">✍️</td>
+            <td style="padding:4px 8px;color:#555">Publish your own work in the Creator Hub</td>
+          </tr>
+        </table>
+        <a href="${APP_URL}" style="display:inline-block;padding:10px 20px;background:#3b82f6;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;margin-right:8px">
+          Start Reading
+        </a>
+        <a href="${APP_URL}/creator/dashboard" style="display:inline-block;padding:10px 20px;background:#f3f4f6;color:#111;text-decoration:none;border-radius:6px;font-weight:600">
+          Start Writing
+        </a>
+        <p style="margin-top:24px;font-size:12px;color:#999">
+          Have a question? Reply to this email or visit <a href="${APP_URL}/contact" style="color:#999">chapturs.com/contact</a>.
+        </p>
+      </div>
+    `,
+  })
+}
+
+export async function notifyChapterRejected({
+  authorEmail,
+  authorName,
+  workTitle,
+  sectionTitle,
+  reason,
+}: {
+  authorEmail: string
+  authorName: string
+  workTitle: string
+  sectionTitle: string
+  reason?: string | null
+}) {
+  await sendEmail({
+    to: authorEmail,
+    subject: `Your chapter "${sectionTitle}" needs attention`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:24px;color:#111">
+        <h2 style="margin:0 0 8px">Chapter returned for revision</h2>
+        <p style="color:#555;margin:0 0 4px">
+          Hi ${authorName}, a chapter of <strong>${workTitle}</strong> was returned by our review team:
+        </p>
+        <p style="font-size:16px;font-weight:600;margin:0 0 16px">${sectionTitle}</p>
+        ${reason ? `
+        <div style="border-left:3px solid #f59e0b;padding:8px 12px;margin:0 0 20px;background:#fffbeb;border-radius:4px;color:#333">
+          <strong>Reason:</strong> ${reason}
+        </div>` : ''}
+        <p style="color:#555;margin:0 0 20px">
+          The chapter has been moved back to draft. You can revise it and resubmit from your dashboard.
+        </p>
+        <a href="${APP_URL}/creator/dashboard" style="display:inline-block;padding:10px 20px;background:#3b82f6;color:#fff;text-decoration:none;border-radius:6px;font-weight:600">
+          Go to Dashboard
+        </a>
+        <p style="margin-top:24px;font-size:12px;color:#999">
+          Questions? Contact us at <a href="mailto:support@chapturs.com" style="color:#999">support@chapturs.com</a>.
+        </p>
+      </div>
+    `,
+  })
+}
+
 export async function notifyNewChapter({
   subscriberEmail,
   subscriberName,

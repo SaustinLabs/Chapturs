@@ -287,6 +287,28 @@ export async function PATCH(request: NextRequest, props: RouteParams) {
           data: { status: 'draft' }
         })
       }
+
+      // Notify the author
+      if (updatedItem.work?.authorId) {
+        try {
+          const author = await prisma.user.findUnique({
+            where: { id: updatedItem.work.authorId },
+            select: { email: true, displayName: true },
+          })
+          if (author?.email) {
+            const { notifyChapterRejected } = await import('@/lib/email')
+            notifyChapterRejected({
+              authorEmail: author.email,
+              authorName: author.displayName || 'Creator',
+              workTitle: updatedItem.work.title,
+              sectionTitle: updatedItem.section?.title || 'Untitled chapter',
+              reason: notes || null,
+            }).catch(() => {/* non-critical */})
+          }
+        } catch {
+          // email is non-critical — don't fail the request
+        }
+      }
     }
 
     return NextResponse.json({

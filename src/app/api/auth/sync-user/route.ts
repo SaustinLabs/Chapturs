@@ -78,6 +78,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Send welcome email to new users
+    if (res.status === 201 && email) {
+      try {
+        const { sendWelcomeEmail } = await import('@/lib/email')
+        sendWelcomeEmail({
+          to: email,
+          displayName: name?.split(' ')[0] || email.split('@')[0],
+        }).catch(() => {/* non-critical */})
+      } catch {
+        // email is non-critical — don't fail the request
+      }
+    }
+
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error('User sync error:', error)
