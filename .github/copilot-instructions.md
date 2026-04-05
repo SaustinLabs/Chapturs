@@ -11,6 +11,17 @@ Chapturs is a modern webnovel platform inspired by TikTok (infinite scroll disco
 - When a task is partially done, use 🔶 and add a short note.
 - Always commit `TASKS.md` changes in the same commit as the work.
 
+## Proactive Codebase Auditing
+**While reading any file during a task, watch for incomplete work and add it to `TASKS.md` immediately.**
+- Literal `// TODO`, `// FIXME`, `// HACK` comments → add to the Known Code TODOs table
+- Feature flags that are hardcoded off (e.g. `premium_enabled: false`, `isBot: false`) → add to relevant phase table
+- Any schema model that exists but has no UI/API yet → add to the appropriate phase
+- Half-wired flows (cookie set but not read, DB field written but never queried, email template defined but never called) → add with a short description of what's missing
+- Dead code or `// not implemented yet` stubs → add as a cleanup task
+- Do not add duplicates — check the existing table rows first
+- New TASKS.md entries go in the most appropriate category (🔴/🟠/🟡/🔵/🟣 by priority)
+- This is passive — don't stop the current task to investigate; just note what you see as you pass through
+
 ## Architecture & Data Flow
 - **Frontend:** Next.js App Router (15.x), React 18, TypeScript, Tailwind CSS. Uses server and client components.
 - **Backend:** Next.js API routes (in `src/app/api/`), Prisma ORM with Supabase PostgreSQL.

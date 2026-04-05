@@ -87,6 +87,7 @@ These are literal `// TODO` comments in the codebase:
 | 32 | `src/lib/ContentValidationService.ts:463` | Integrate image safety API (currently no-op) | ⬜ |
 | 33 | `src/lib/analytics/view-counter.ts:187` | Add `viewCount` field to Section model in Prisma schema | ⬜ |
 | 34 | `src/app/api/works/publish/route.ts:226` | Wire content validation checks into publish flow | ⬜ |
+| 80 | `src/app/api/user/taste-profile/route.ts` | `workCount < 12` gate suppresses onboarding survey on sparse platform — lower threshold or remove it once seeded content is in place | ⬜ |
 
 ---
 
@@ -172,7 +173,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 |---|---|---|
 | 70 | `/features` page — update screenshots/copy to reflect current state | ⬜ |
 | 71 | Landing page (`/`) — review copy for current feature set | ⬜ |
-| 72 | Empty states: new user sees an onboarding prompt instead of a blank feed | ✅ | All-feed empty state now shows genre quick-pick buttons (Fantasy, Romance, Sci-Fi, etc.) linking directly to browse |
+| 72 | Empty states: new user sees an onboarding prompt instead of a blank feed | ✅ | Authenticated empty feed now launches TasteProfileSurvey modal; guests get genre quick-pick buttons |
 | 73 | Mobile layout audit across all main flows (feed, reader, editor) | ⬜ |
 | 74 | Error boundary messaging — make user-facing errors friendlier | ⬜ |
 | 75 | Loading skeleton coverage — any page missing a skeleton while data loads | ⬜ |

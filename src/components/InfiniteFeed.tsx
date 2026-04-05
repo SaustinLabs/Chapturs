@@ -9,6 +9,7 @@ import FeedCardSkeleton from './ui/FeedCardSkeleton'
 import DataService from '@/lib/api/DataService'
 import { useUser } from '@/hooks/useUser'
 import { SignalType } from '@/lib/recommendations/SignalTracker'
+import TasteProfileSurvey from './onboarding/TasteProfileSurvey'
 
 interface InfiniteFeedProps {
   hubMode: 'reader' | 'creator'
@@ -29,6 +30,7 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
   const [hasMore, setHasMore] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [feedFilter, setFeedFilter] = useState<'all' | 'following'>('all')
+  const [showOnboarding, setShowOnboarding] = useState(false)
   const sentinelRef = useRef<HTMLDivElement>(null)
   const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map())
   const feedObserverRef = useRef<IntersectionObserver | null>(null)
@@ -297,16 +299,53 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
     // Enhanced empty state for the "all" reader feed — most likely a brand new user
     if (hubMode === 'reader' && feedFilter === 'all') {
       const QUICK_GENRES = ['Fantasy', 'Romance', 'Sci-Fi', 'Thriller', 'Horror', 'Mystery', 'Drama', 'Adventure']
+
+      // Authenticated users get the full onboarding taste-picker survey
+      if (isAuthenticated) {
+        return (
+          <>
+            {showOnboarding && (
+              <TasteProfileSurvey
+                onComplete={() => {
+                  setShowOnboarding(false)
+                  loadInitialItems()
+                }}
+              />
+            )}
+            <div className="flex flex-col items-center justify-center min-h-96 text-center px-4">
+              <div className="text-gray-300 dark:text-gray-600 text-6xl mb-4">{BOOKS_EMOJI}</div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Your feed is getting ready
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md text-sm">
+                Tell us what you like and we&apos;ll tune your feed to match.
+              </p>
+              <button
+                onClick={() => setShowOnboarding(true)}
+                className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white text-sm font-semibold rounded-xl transition-all shadow-md hover:shadow-lg mb-4"
+              >
+                Personalize my feed
+              </button>
+              <button
+                onClick={() => router.push(emptyState.href)}
+                className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+              >
+                Browse all stories instead
+              </button>
+            </div>
+          </>
+        )
+      }
+
+      // Guest users get genre quick-pick links
       return (
         <div className="flex flex-col items-center justify-center min-h-96 text-center px-4">
           <div className="text-gray-300 dark:text-gray-600 text-6xl mb-4">{BOOKS_EMOJI}</div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            {isAuthenticated ? 'Your feed is getting ready' : 'Welcome to Chapturs'}
+            Welcome to Chapturs
           </h3>
           <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md text-sm">
-            {isAuthenticated
-              ? 'Follow some authors or browse the catalog to personalize your feed.'
-              : 'Discover stories across every genre, from independent writers worldwide.'}
+            Discover stories across every genre, from independent writers worldwide.
           </p>
           <div className="flex flex-wrap gap-2 justify-center mb-6 max-w-sm">
             {QUICK_GENRES.map(genre => (
