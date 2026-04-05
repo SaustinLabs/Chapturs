@@ -49,7 +49,9 @@ function ReaderHomePage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Mobile brand header — scrolls with page content, hidden on desktop */}
       <div className="md:hidden flex items-center gap-2 mb-5 pt-1">
-        <img src="/logo-transparent.png" alt="Chapturs" className="w-8 h-8 rounded" />
+        <span className="bg-white rounded-xl px-1.5 py-1 flex items-center justify-center">
+          <img src="/logo-transparent.png" alt="Chapturs" className="w-7 h-7" />
+        </span>
         <span className="text-base font-bold text-blue-400 tracking-wide">Chapturs</span>
       </div>
 

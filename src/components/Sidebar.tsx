@@ -352,13 +352,14 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
             <span>Following</span>
           </a>
 
-          {/* Centre — prominent logo / Home — lifted above the bar */}
-          <a href="/" className="flex flex-col items-center -translate-y-4 flex-shrink-0">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl transition-all ${
-              pathname === '/' ? 'bg-blue-900/40 ring-2 ring-blue-400/60' : 'bg-gray-800 border border-gray-700'
-            }`}>
-              <img src="/logo-transparent.png" alt="Home" className="w-10 h-10 rounded-xl" />
-            </div>
+          {/* Centre — logo Home button, lifted above the bar */}
+          <a href="/" className={`flex flex-col items-center gap-1 -translate-y-3 flex-shrink-0 text-xs font-bold transition-colors ${
+            pathname === '/' ? 'text-blue-400' : 'text-gray-400'
+          }`}>
+            <span className="bg-white rounded-2xl p-1.5 shadow-lg flex items-center justify-center">
+              <img src="/logo-transparent.png" alt="Home" className="w-9 h-9" />
+            </span>
+            <span>Home</span>
           </a>
 
           <a
