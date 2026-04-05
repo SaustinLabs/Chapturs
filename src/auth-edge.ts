@@ -30,6 +30,8 @@ const { auth, handlers, signIn, signOut } = NextAuth({
     session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub as string
+        // Propagate role so middleware can gate /admin routes without a DB call
+        ;(session.user as any).role = (token as any).role ?? 'user'
       }
       return session
     },
