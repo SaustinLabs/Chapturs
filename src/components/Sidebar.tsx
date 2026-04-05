@@ -329,35 +329,88 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
     
     {/* Mobile Bottom Navigation */}
     {shouldShowMobileNav && (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50 flex justify-around items-center p-2 pb-safe">
-      {currentItems.slice(0, 5).map((item) => {
-        const IconComponent = item.icon
-        const isCreatorItem = currentHub === 'creator'
-        const requiresAuth = isCreatorItem && !session
-        
-        return (
+    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-50 overflow-visible pb-safe">
+      {currentHub === 'reader' ? (
+        /* Reader hub: Library | Subscriptions | [Logo Home] | Search | Settings */
+        <div className="flex items-center justify-around px-1 h-14 overflow-visible">
           <a
-            key={item.href}
-            href={requiresAuth ? '#' : item.href}
-            onClick={(e) => {
-              if (requiresAuth) {
-                e.preventDefault()
-                handleSignIn()
-              }
-            }}
-            className={`
-              flex flex-col items-center justify-center p-2 rounded-lg text-xs font-medium
-              ${requiresAuth 
-                ? 'text-gray-400 dark:text-gray-600' 
-                : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400'
-              }
-            `}
+            href="/library"
+            className={`flex flex-col items-center gap-0.5 px-3 py-1 text-xs font-medium transition-colors ${
+              pathname.startsWith('/library') ? 'text-blue-400' : 'text-gray-500'
+            }`}
           >
-            <IconComponent className="w-6 h-6 mb-1" />
-            <span className="truncate w-16 text-center">{item.label}</span>
+            <BookmarkIcon className="w-5 h-5" />
+            <span>Library</span>
           </a>
-        )
-      })}
+          <a
+            href="/subscriptions"
+            className={`flex flex-col items-center gap-0.5 px-3 py-1 text-xs font-medium transition-colors ${
+              pathname.startsWith('/subscriptions') ? 'text-blue-400' : 'text-gray-500'
+            }`}
+          >
+            <BookOpenIcon className="w-5 h-5" />
+            <span>Following</span>
+          </a>
+
+          {/* Centre — prominent logo / Home — lifted above the bar */}
+          <a href="/" className="flex flex-col items-center -translate-y-4 flex-shrink-0">
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl transition-all ${
+              pathname === '/' ? 'bg-blue-900/40 ring-2 ring-blue-400/60' : 'bg-gray-800 border border-gray-700'
+            }`}>
+              <img src="/logo-transparent.png" alt="Home" className="w-10 h-10 rounded-xl" />
+            </div>
+          </a>
+
+          <a
+            href="/search"
+            className={`flex flex-col items-center gap-0.5 px-3 py-1 text-xs font-medium transition-colors ${
+              pathname.startsWith('/search') ? 'text-blue-400' : 'text-gray-500'
+            }`}
+          >
+            <MagnifyingGlassIcon className="w-5 h-5" />
+            <span>Search</span>
+          </a>
+          <a
+            href="/reader/settings"
+            className={`flex flex-col items-center gap-0.5 px-3 py-1 text-xs font-medium transition-colors ${
+              pathname.startsWith('/reader/settings') ? 'text-blue-400' : 'text-gray-500'
+            }`}
+          >
+            <CogIcon className="w-5 h-5" />
+            <span>Settings</span>
+          </a>
+        </div>
+      ) : (
+        /* Creator hub: first 5 creator items, unchanged */
+        <div className="flex justify-around items-center px-2 py-2">
+          {currentItems.slice(0, 5).map((item) => {
+            const IconComponent = item.icon
+            const requiresAuth = !session
+            return (
+              <a
+                key={item.href}
+                href={requiresAuth ? '#' : item.href}
+                onClick={(e) => {
+                  if (requiresAuth) {
+                    e.preventDefault()
+                    handleSignIn()
+                  }
+                }}
+                className={`flex flex-col items-center justify-center p-2 rounded-lg text-xs font-medium transition-colors ${
+                  requiresAuth
+                    ? 'text-gray-600'
+                    : pathname.startsWith(item.href)
+                    ? 'text-blue-400'
+                    : 'text-gray-400'
+                }`}
+              >
+                <IconComponent className="w-6 h-6 mb-1" />
+                <span className="truncate w-14 text-center">{item.label}</span>
+              </a>
+            )
+          })}
+        </div>
+      )}
     </div>
     )}
     </>

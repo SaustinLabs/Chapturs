@@ -47,6 +47,12 @@ function ReaderHomePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Mobile brand header — scrolls with page content, hidden on desktop */}
+      <div className="md:hidden flex items-center gap-2 mb-5 pt-1">
+        <img src="/logo-transparent.png" alt="Chapturs" className="w-8 h-8 rounded" />
+        <span className="text-base font-bold text-blue-400 tracking-wide">Chapturs</span>
+      </div>
+
       {/* Taste profile onboarding — shown once to users with no preferences set */}
       {showSurvey && <TasteProfileSurvey onComplete={handleSurveyComplete} />}
 
