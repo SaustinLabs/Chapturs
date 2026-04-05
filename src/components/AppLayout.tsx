@@ -45,7 +45,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         
         {/* Main Content */}
         <div className="md:ml-64 min-h-screen flex flex-col">
-          <main className={`flex-1 pb-20 md:pb-0 ${pathname.includes('/editor') ? '' : 'p-3 sm:p-4 md:p-6'}`}>
+          <main className={`flex-1 ${pathname.includes('/editor') ? '' : 'p-3 pb-24 sm:p-4 sm:pb-24 md:p-6 md:pb-6'}`}>
             {children}
           </main>
           
