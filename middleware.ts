@@ -11,7 +11,11 @@ export default auth(function middleware(req) {
     if (!req.auth) {
       return NextResponse.redirect(new URL('/auth/signin', req.url))
     }
-    return NextResponse.next()
+    // Forward pathname so the admin layout can exempt this route
+    const res = NextResponse.next({
+      request: { headers: new Headers({ ...Object.fromEntries(req.headers), 'x-pathname': pathname }) },
+    })
+    return res
   }
 
   // All other /admin/* routes are strictly admin-only.
@@ -26,7 +30,10 @@ export default auth(function middleware(req) {
     }
   }
 
-  return NextResponse.next()
+  // Forward pathname for all passing requests so layouts can read it
+  return NextResponse.next({
+    request: { headers: new Headers({ ...Object.fromEntries(req.headers), 'x-pathname': pathname }) },
+  })
 })
 
 export const config = {
