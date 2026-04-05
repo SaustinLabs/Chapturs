@@ -1859,3 +1859,25 @@ model ChapterReaction {
   @@index([userId])
   @@map("chapter_reactions")
 }
+
+// ============================================================================
+// COMMUNITY REFERRAL LINKS
+// ============================================================================
+
+// Named referral links for community seeding campaigns.
+// Visiting /join/<slug> sets a cookie that pre-weights the reader feed
+// toward the linked genres. Click count tracks link performance.
+model CommunityLink {
+  id          String   @id @default(cuid())
+  slug        String   @unique // URL-safe label: "royalroad-litrpg"
+  label       String   // Human name: "Royal Road – LitRPG"
+  description String?  // Admin notes (not shown publicly)
+  genres      String?  // JSON: ["LitRPG","Progression Fantasy"]
+  clickCount  Int      @default(0)
+  active      Boolean  @default(true)
+  createdBy   String?  // userId of admin who created it
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("community_links")
+}

@@ -9,7 +9,8 @@ import {
   TrophyIcon, 
   ExclamationTriangleIcon,
   ShieldCheckIcon,
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  LinkIcon
 } from '@heroicons/react/24/outline'
 
 interface Stats {
@@ -56,6 +57,7 @@ export default function AdminHubPage() {
     { title: 'Moderation Queue', desc: 'Review reported content.', link: '/admin/reports', icon: ShieldCheckIcon },
     { title: 'Contest Control', desc: 'Create and end contests.', link: '/admin/contests', icon: TrophyIcon },
     { title: 'Validation Rules', desc: 'AI safety & quality rules.', link: '/admin/validation-rules', icon: Cog6ToothIcon },
+    { title: 'Community Links', desc: 'Generate named invite links for Discord, Reddit & more.', link: '/admin/community-links', icon: LinkIcon },
     { title: 'Site Settings', desc: 'Feature flags, announcements, content limits.', link: '/admin/settings', icon: Cog6ToothIcon },
   ]
 
