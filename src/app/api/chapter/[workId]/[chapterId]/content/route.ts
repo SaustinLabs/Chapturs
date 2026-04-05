@@ -2,7 +2,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
-import { translateOnDemand, translateBatch } from '@/lib/translation'
+import { translateOnDemand, translateBatchChunked } from '@/lib/translation'
 
 // Short-lived in-memory cache keyed by `${workId}:${chapterId}:${lang}`
 const aiCache = new Map<string, { content: any[]; translatedTitle: string }>()
@@ -50,8 +50,8 @@ async function generateAITranslation(
   // Extract text from each block; skip non-text blocks (images, embeds, etc.)
   const texts = originalContent.map((block) => block.content ?? block.text ?? '')
 
-  // Translate all text blocks in a single batched LLM call
-  const translatedTexts = await translateBatch(texts, lang)
+  // Translate all text blocks, chunked automatically if the chapter is long
+  const translatedTexts = await translateBatchChunked(texts, lang)
 
   const translatedContent = originalContent.map((block, i) => ({
     ...block,

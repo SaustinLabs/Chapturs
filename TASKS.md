@@ -87,7 +87,7 @@ These are literal `// TODO` comments in the codebase:
 | 32 | `src/lib/ContentValidationService.ts:463` | Integrate image safety API (currently no-op) | ⬜ |
 | 33 | `src/lib/analytics/view-counter.ts:187` | Add `viewCount` field to Section model in Prisma schema | ⬜ |
 | 34 | `src/app/api/works/publish/route.ts:226` | Wire content validation checks into publish flow | ⬜ |
-| 80 | `src/app/api/user/taste-profile/route.ts` | `workCount < 12` gate suppresses onboarding survey on sparse platform — lower threshold or remove it once seeded content is in place | ⬜ |
+| 80 | `src/app/api/user/taste-profile/route.ts` | `workCount < 12` gate suppresses onboarding survey on sparse platform — lower threshold or remove it once seeded content is in place | ✅ | Lowered to `workCount < 3` — survey now fires with minimal seeded content |
 
 ---
 
@@ -213,7 +213,7 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 |---|---|---|---|
 | 88 | Persist AI translations to DB (`FanTranslation` model, `TIER_1_OFFICIAL`) to avoid re-translating | ✅ | Fixed FK bug (`translatorId: null`); switched `create` → `upsert` on `(chapterId, languageCode, tier)` unique key; fire-and-forget `.catch()` so persist never blocks the response |
 | 89 | Rate-limit translation requests per user/IP (e.g. 20 chapters/day for anon) | ✅ | In-memory sliding-window limiter (20 req/hr per IP) added to content route; purges stale entries every hour; sufficient until Redis is available |
-| 90 | Chunk large chapters into ≤50 block batches before sending to LLM | ⬜ | Prevents context-limit errors on very long chapters |
+| 90 | Chunk large chapters into ≤50 block batches before sending to LLM | ✅ | Added `translateBatchChunked` to `translation.ts`; auto-splits arrays >50 entries into sequential chunk calls; content route now uses this |
 
 ### Phase 3 — Community Translations (future)
 

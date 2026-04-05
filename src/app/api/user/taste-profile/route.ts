@@ -32,12 +32,12 @@ export async function GET(_request: NextRequest) {
     return NextResponse.json({ needsOnboarding: false })
   }
 
-  // Don't trigger the survey until there are enough published works for the
-  // content picker to offer meaningful genre variety.
+  // Don't trigger the survey until there are at least a few published works for
+  // the content picker to offer meaningful genre variety.
   const workCount = await prisma.work.count({
     where: { status: { in: ['published', 'ongoing', 'completed'] } },
   })
-  if (workCount < 12) {
+  if (workCount < 3) {
     return NextResponse.json({ needsOnboarding: false })
   }
 

@@ -116,3 +116,27 @@ export async function translateBatch(texts: string[], targetLang: string): Promi
 
   return result
 }
+
+const CHUNK_SIZE = 50
+
+/**
+ * Translate a large array of text strings, automatically splitting into
+ * chunks of up to CHUNK_SIZE blocks per LLM call to stay within context limits.
+ * Chunks are processed sequentially (not parallel) to avoid hammering the API.
+ * Returns an array of the same length as the input.
+ */
+export async function translateBatchChunked(texts: string[], targetLang: string): Promise<string[]> {
+  if (targetLang === 'en' || !texts.length) return texts
+
+  if (texts.length <= CHUNK_SIZE) {
+    return translateBatch(texts, targetLang)
+  }
+
+  const result: string[] = []
+  for (let i = 0; i < texts.length; i += CHUNK_SIZE) {
+    const chunk = texts.slice(i, i + CHUNK_SIZE)
+    const translated = await translateBatch(chunk, targetLang)
+    result.push(...translated)
+  }
+  return result
+}
