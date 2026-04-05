@@ -1,11 +1,224 @@
-# Chapturs Feature Roadmap & Enhancement Plan
+# Chapturs — Feature Roadmap
+### Last updated: April 2026  ·  Status: Public beta approaching
 
-## Overview
-This document outlines the next phase of development for Chapturs, focusing on editor enhancements, community features, publishing workflow, and mobile optimization.
+> This document tracks where Chapturs actually is, where it is going, and the order of battle. It mirrors the public /features guide but includes honest completion status and the reasoning behind every priority.
 
 ---
 
-## 🎨 Phase 1: Editor Experience Enhancements
+## Platform Status at a Glance
+
+| Area | Status |
+|---|---|
+| Reading experience | ✅ Ship-ready |
+| Discovery feed (signals) | ✅ Ship-ready |
+| Creator editor + blocks | ✅ Ship-ready |
+| Glossary system | ✅ Ship-ready |
+| Character profiles | ✅ Ship-ready |
+| Comment system | ✅ Ship-ready |
+| Chapter reactions (emoji) | ✅ Ship-ready |
+| Multi-dimension ratings | ✅ Ship-ready |
+| AI quality assessment (Groq) | ✅ Ship-ready |
+| Fan translations (3 tiers) | ✅ Ship-ready |
+| Fan audiobooks | ✅ Ship-ready |
+| Fan art submissions | ✅ Ship-ready |
+| Creator profile (block system) | ✅ Ship-ready |
+| Analytics dashboard | ✅ Ship-ready |
+| Revenue sharing system | ✅ Ship-ready |
+| Admin panel (full suite) | ✅ Ship-ready |
+| Contest system | ✅ Ship-ready |
+| Notifications | ✅ Ship-ready |
+| Community referral links | ✅ Ship-ready |
+| Cover + content image upload (R2) | ✅ Ship-ready |
+| Auth (Google, GitHub, Discord) | ✅ Ship-ready |
+| Bookmarks / Library | ✅ Ship-ready |
+| Subscriptions | ✅ Ship-ready |
+| Collaborative writing (schema) | 🔶 Schema ready, UI partial |
+| Real-time co-editing (WebSocket) | ⚪ Not started |
+| Writers Room / Living World | ⚪ Designed — Phase 5 |
+| AI author bots | ⚪ Designed — Phase 5 |
+| Mobile apps (native) | ⚪ Not planned (responsive web covers it) |
+
+---
+
+## Phase 1 — Foundation ✅ COMPLETE
+
+> *Everything needed for a working platform. All items shipped.*
+
+**Reader experience**
+- Intelligent discovery feed (multi-signal: completion, reactions, subscriptions, genre, format, language, skip signals)
+- Reading controls: font family, size, line height, theme (light / paper / night), brightness
+- Chapter reactions (❤️ 🔥 😂 😭 🤯) feeding back into taste profile
+- Bookmarks and private reading library
+- Subscriptions + notifications
+- Reading history
+
+**Creator tools**
+- Block-based chapter editor with prose, headings, scene dividers, images, simulation blocks (phone screens, chat UIs, branching choices, screenplay dialogue)
+- Cover image upload (Cloudflare R2 with CDN proxy)
+- AI quality assessment (Groq) — scores six dimensions, assigns a tier, generates a story hook
+- Pre-publish checklist with quality gate
+- Two-step publish workflow (work setup → content)
+- Draft autosave
+- Analytics: views, reads, chapter completions, subscriber growth, reactions
+
+**Glossary system**
+- Per-work glossary entries with spoiler-lock by chapter
+- Inline tooltip on any highlighted word
+- Suggestion system for reader-submitted glossary additions
+
+**Character profiles**
+- Creator-side full profile (name, aliases, description, appearance, traits, portrait)
+- Chapter-gated reveal (character hidden until specified chapter)
+- Fan art tagging to characters
+- Public character page linked from story
+
+**Community**
+- Comment system (chapter-level and work-level threads)
+- Threaded replies, likes, reports
+- Creator comment controls (pin, hide, delete, featured)
+- Featured comment system with reader badge
+- Multi-dimension ratings (writing, plot, characters, world-building, pacing)
+
+**Fan content ecosystem**
+- Fan translations: 3-tier (AI instant / community-submitted / contracted professional)
+- Fan audiobooks: chapter narrations, creator-approved, revenue-shared
+- Fan art gallery with artist credit
+
+**Platform infrastructure**
+- Auth: Google, GitHub, Discord OAuth via NextAuth
+- Role system: user / moderator / admin
+- Admin panel: users, moderation queue, contests, settings, validation rules, community referral links
+- Contest system with prize pool, entries, voting
+- Revenue sharing: per-contributor splits, payout system
+- Site settings: runtime feature flags, no-redeploy config
+- Error boundaries, request-level error handling
+
+---
+
+## Phase 2 — Growth Tools 🔶 IN PROGRESS
+
+> *Features for acquiring and retaining the first real user cohorts.*
+
+### Community Referral Links ✅ Complete
+Named invite links (`chapturs.com/join/royalroad-litrpg`) generated from the admin panel. Visitors land on a community-branded welcome page. Clicking through sets a feed-seeding cookie (genres + community tag) that pre-weights their discovery feed toward that community's content. Admin shows near-real-time click counts and signup counts (30-second polling). Attribution is stored on each user record.
+
+### Feed Cookie Integration ⚪ To-Do
+The `community_genres` cookie is being set but the feed algorithm isn't yet reading it as a seed signal on first visit. **Action:** in the feed API, check for `community_genres` cookie and boost matching genres for users with < 20 reading sessions.
+
+### Public Domain Story Import ⚪ To-Do
+Import 3–5 compelling public domain works from Project Gutenberg as fully-formed Chapturs works: proper cover art, AI-generated glossary entries, character profiles. Purpose is a feature demo, not content strategy. Target works: high narrative quality, genre-aligned with initial community targets.
+
+### Founding Creator Programme ⚪ To-Do
+Outreach to 5–10 mid-tier creators (1k–8k followers) on RoyalRoad / Wattpad frustrated with their current platform. Offer: founding badge, 70% ad rev share for 12 months (vs. standard 50%), direct dev access. Pitch is positioning, not money.
+
+---
+
+## Phase 3 — Collaborative Editor 🔶 SCHEMA READY
+
+> *Joint ownership and co-writing capabilities.*
+
+The database schema for `WorkCollaborator` and `CollaborationActivity` already exists. What's missing is the UI and business logic.
+
+### Co-author Invite System
+- Invite by username
+- Role-based permissions (owner / editor / contributor)
+- Revenue share config per collaborator
+- Activity log per work
+
+### Conflict-free Editing ⚪
+- Chapter locking (prevent simultaneous edits on same chapter)
+- Change suggestion mode (propose edits the owner accepts/rejects)
+- Version history with per-author attribution
+
+### Real-time Co-editing ⚪
+- WebSocket infrastructure (likely Pusher or Ably)
+- Live cursor presence
+- Operational transformation or CRDT for conflict resolution
+
+*This is the most complex single feature on the platform — holds off until Phase 3 is otherwise complete.*
+
+---
+
+## Phase 4 — Ecosystem Expansion ⚪ PLANNED
+
+> *Features that reward existing users and deepen the platform loop.*
+
+### Reader Contribution Tools
+- Highlight any passage → suggest typo fix or wording change
+- Creator accept/reject queue
+- Community voting on suggestions (optional, for high-traffic works)
+
+### Enhanced Notifications
+- In-app notification centre (bell icon, unread count) — schema exists
+- Email digest: weekly summary of activity on followed works
+- Push notifications (Web Push API — service worker needed)
+
+### Work Discovery Improvements
+- Browse by genre, tags, completion status, update frequency
+- "New and Promising" tier for AI-scored strong chapters by new creators
+- Reader-to-reader recommendation ("readers who finished X also loved Y")
+- Trending page beyond the feed
+
+### Series and Volumes
+- Group works into a series with a shared cover and description
+- Order works within a series; readers progress automatically to the next
+- Series subscription (one click covers all works in a set)
+
+---
+
+## Phase 5 — The Writers Room ⚪ DESIGNED
+
+> *The highest-differentiation feature on the platform. Build only after 500+ daily readers.*
+
+The Writers Room is a collaborative fiction layer where multiple creators write independent stories that all take place in a single shared **Living World**. Full spec in `WRITERS_ROOM_VISION.md`.
+
+### Key components (in order)
+1. **World definition** — founder writes The Beginning and The End (immutable anchors). Sets canon characters, locations, factions.
+2. **Lore Master AI** — Groq-backed agent that: answers writer queries about the world, scans submissions for contradictions (hard block / soft warning), extracts new lore entries from published chapters.
+3. **Canon graph** — every lore fact cites its source chapter. Spider-web model — expands outward, never contradicts.
+4. **World Council** — small admin group with veto on canon disputes.
+5. **Reader-facing** — World Atlas (browsable map), Lore Index (cross-story character/location cards), Timeline View (all stories plotted on world history).
+
+### Technical requirements
+- `LivingWorld`, `CanonEntry`, `CanonCharacter`, `LoreContradictionFlag`, `WorldCouncilVote` models
+- Vector-indexed lore store for semantic retrieval (Pinecone or pgvector) — needed at scale
+- Groq structured output for contradiction detection
+- Feed badge tagging stories as part of a Living World
+
+---
+
+## Phase 6 — AI Author Bots ⚪ DESIGNED
+
+> *Structural filler for the cold-start problem. Transparently labeled, gracefully degraded as real content arrives.*
+
+Named author personas (e.g., "Vesper Kaine") with generated profile pictures, bios, and genre specialisations. Agents publish chapters on a schedule using Groq. Each bot story is explicitly tagged **AI Author** on the story page and in the feed.
+
+### Implementation plan
+- Bot author record in the DB (flagged `isBot: true`)
+- Generation pipeline: story outline → chapter-by-chapter generation with prior chapter context
+- Scheduling: cron job or queue-based, configurable cadence per bot
+- Feed demotion: as real content accumulates in a genre, bot stories are gradually pushed down (configurable weight decay)
+- Admin controls: create/pause/retire bots, set genre, manage generation schedule
+
+### Risk mitigation
+- Always labeled. No reader should ever not know a story is AI-generated.
+- Quality gate: bot chapters go through the same AI quality assessment and can be blocked if they score below threshold
+- No comments seeding — bots do not post fake engagement
+
+---
+
+## Immediate Action Items (April 2026)
+
+1. **Run `npx prisma db push`** against production DB to apply: `CommunityLink.signupCount`, `User.communityRef`, new `community_links` table
+2. **Feed cookie seeding** — wire `community_genres` cookie into the feed API's cold-start boost logic
+3. **Screenshot the platform** and drop into `public/screenshots/` for the /features showcase
+4. **Identify 2–3 Discord communities** (LitRPG / Progression Fantasy focus) to target with first referral links
+5. **Public domain import script** — import 2–3 Gutenberg works with AI glossary
+6. **Founding creator outreach** — identify 5 candidates on RoyalRoad/Wattpad
+
+---
+
+*Roadmap reflects actual code state. Items marked ✅ are in production or will be on next deploy. Items marked ⚪ are designed but not yet coded.*
 
 ### 1.1 Twitch/YouTube Stream-Style UI Simulation
 **Priority:** High  

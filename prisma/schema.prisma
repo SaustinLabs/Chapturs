@@ -88,6 +88,9 @@ model User {
   // Chapter reactions
   chapterReactions ChapterReaction[]
 
+  // Community referral attribution (which /join/<slug> link brought this user)
+  communityRef String?
+
   @@map("users")
 }
 
@@ -1874,6 +1877,7 @@ model CommunityLink {
   description String?  // Admin notes (not shown publicly)
   genres      String?  // JSON: ["LitRPG","Progression Fantasy"]
   clickCount  Int      @default(0)
+  signupCount Int      @default(0) // users who registered while holding this referral cookie
   active      Boolean  @default(true)
   createdBy   String?  // userId of admin who created it
   createdAt   DateTime @default(now())

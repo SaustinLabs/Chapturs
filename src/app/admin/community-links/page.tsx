@@ -20,6 +20,7 @@ interface CommunityLink {
   description: string | null
   genres: string | null
   clickCount: number
+  signupCount: number
   active: boolean
   createdAt: string
 }
@@ -46,8 +47,8 @@ export default function CommunityLinksPage() {
   const [description, setDescription] = useState('')
   const [selectedGenres, setSelectedGenres] = useState<string[]>([])
 
-  const fetchLinks = useCallback(async () => {
-    setLoading(true)
+  const fetchLinks = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true)
     try {
       const res = await fetch('/api/admin/community-links')
       if (res.ok) {
@@ -55,13 +56,18 @@ export default function CommunityLinksPage() {
         setLinks(data.data.links)
       }
     } catch {
-      toast.error('Failed to load community links.')
+      if (!silent) toast.error('Failed to load community links.')
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }, [toast])
 
-  useEffect(() => { fetchLinks() }, [fetchLinks])
+  // Initial load + 30-second polling for near-real-time click/signup counts
+  useEffect(() => {
+    fetchLinks()
+    const interval = setInterval(() => fetchLinks(true), 30_000)
+    return () => clearInterval(interval)
+  }, [fetchLinks])
 
   // Auto-generate slug from label unless user has manually overridden it
   useEffect(() => {
@@ -284,10 +290,16 @@ export default function CommunityLinksPage() {
                     </div>
 
                     {/* Stats */}
-                    <div className="text-right flex-shrink-0">
-                      <p className="text-2xl font-black text-gray-900 dark:text-white leading-none">{link.clickCount}</p>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">clicks</p>
-                      <p className="text-[10px] text-gray-400 mt-1">{new Date(link.createdAt).toLocaleDateString()}</p>
+                    <div className="text-right flex-shrink-0 space-y-2">
+                      <div>
+                        <p className="text-2xl font-black text-gray-900 dark:text-white leading-none">{link.clickCount.toLocaleString()}</p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">clicks</p>
+                      </div>
+                      <div>
+                        <p className="text-xl font-black text-green-500 leading-none">{link.signupCount.toLocaleString()}</p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">signups</p>
+                      </div>
+                      <p className="text-[10px] text-gray-400">{new Date(link.createdAt).toLocaleDateString()}</p>
                     </div>
 
                     {/* Actions */}
