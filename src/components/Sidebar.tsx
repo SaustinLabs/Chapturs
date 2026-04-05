@@ -76,10 +76,10 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
   return (
     <>
     <div className={`
-      fixed left-0 top-0 h-full bg-gray-900 border-r border-gray-800/60
-      transition-[width] duration-300 ease-in-out z-50 overflow-hidden
+      fixed left-0 top-0 h-full w-64 bg-gray-900 border-r border-gray-800/60
+      transition-transform duration-300 ease-in-out z-50 overflow-hidden
       hidden md:block
-      ${isCollapsed ? 'w-16' : 'w-64'}
+      ${isCollapsed ? '-translate-x-48' : 'translate-x-0'}
     `}>
       <div className="flex flex-col h-full">
         {/* Logo and Collapse Button */}

@@ -174,9 +174,10 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | 70 | `/features` page — update screenshots/copy to reflect current state | ⬜ |
 | 71 | Landing page (`/`) — review copy for current feature set | ⬜ |
 | 72 | Empty states: new user sees an onboarding prompt instead of a blank feed | ✅ | Authenticated empty feed now launches TasteProfileSurvey modal; guests get genre quick-pick buttons |
-| 73 | Mobile layout audit across all main flows (feed, reader, editor) | ⬜ |
+| 73 | Mobile layout audit across all main flows (feed, reader, editor) | 🔶 | Reader flow smoke-tested (dev server + lint/type checks); full cross-flow manual device QA still pending |
 | 74 | Error boundary messaging — make user-facing errors friendlier | ⬜ |
 | 75 | Loading skeleton coverage — any page missing a skeleton while data loads | ⬜ |
+| 81 | Sidebar expand should overlay (no content reflow); verify reader alignment on desktop + mobile | ✅ | Implemented fixed content lane + sliding sidebar (no main-content reflow when expanding) |
 
 ---
 
@@ -203,6 +204,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | community_genres cookie wired into feed cold-start (task 17) |
 | New user empty state with genre quick-picks (task 72) |
 | AdSense false-positive adblock detection fixed (task 69) |
+| Sidebar expansion now overlays without reflow; reader content no longer shifts when opening sidebar (task 81) |
 | Contact page reads live from SiteSettings |
 | DMCA contact address added |
 | Welcome email on first sign-up |

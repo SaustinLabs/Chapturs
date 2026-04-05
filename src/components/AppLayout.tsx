@@ -44,7 +44,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         />
         
         {/* Main Content */}
-        <div className={`${isCollapsed ? 'md:ml-16' : 'md:ml-64'} transition-[margin] duration-300 ease-in-out min-h-screen flex flex-col`}>
+        <div className="md:ml-64 min-h-screen flex flex-col">
           <main className={`flex-1 pb-20 md:pb-0 ${pathname.includes('/editor') ? '' : 'p-6'}`}>
             {children}
           </main>
