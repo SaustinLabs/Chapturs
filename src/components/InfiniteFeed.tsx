@@ -294,6 +294,41 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
   if (!loading && filteredItems.length === 0) {
     const emptyState = getEmptyStateMessage()
 
+    // Enhanced empty state for the "all" reader feed — most likely a brand new user
+    if (hubMode === 'reader' && feedFilter === 'all') {
+      const QUICK_GENRES = ['Fantasy', 'Romance', 'Sci-Fi', 'Thriller', 'Horror', 'Mystery', 'Drama', 'Adventure']
+      return (
+        <div className="flex flex-col items-center justify-center min-h-96 text-center px-4">
+          <div className="text-gray-300 dark:text-gray-600 text-6xl mb-4">{BOOKS_EMOJI}</div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            {isAuthenticated ? 'Your feed is getting ready' : 'Welcome to Chapturs'}
+          </h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md text-sm">
+            {isAuthenticated
+              ? 'Follow some authors or browse the catalog to personalize your feed.'
+              : 'Discover stories across every genre, from independent writers worldwide.'}
+          </p>
+          <div className="flex flex-wrap gap-2 justify-center mb-6 max-w-sm">
+            {QUICK_GENRES.map(genre => (
+              <button
+                key={genre}
+                onClick={() => router.push(`/browse?genre=${encodeURIComponent(genre)}`)}
+                className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-full border border-gray-200 dark:border-gray-700 transition-colors"
+              >
+                {genre}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => router.push(emptyState.href)}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
+          >
+            {emptyState.action}
+          </button>
+        </div>
+      )
+    }
+
     return (
       <div className="flex flex-col items-center justify-center min-h-96 text-center">
         <div className="text-gray-300 dark:text-gray-600 text-6xl mb-4">

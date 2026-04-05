@@ -38,7 +38,7 @@ export async function generateMetadata({
     const title = `${chapterLabel} — ${work.title} by ${authorName} | Chapturs`
     const description = `Read ${chapterLabel} of "${work.title}" by ${authorName} on Chapturs.`
 
-    const coverImage = work.coverImage ? resolveCoverSrc(work.coverImage) : null
+    const coverImage = work.coverImage ? resolveCoverSrc(id, work.coverImage) : null
     const imageUrl = coverImage?.startsWith('http') ? coverImage : coverImage ? `${BASE_URL}${coverImage}` : null
 
     return {

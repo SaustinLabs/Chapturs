@@ -59,6 +59,13 @@ export async function GET(request: NextRequest) {
       // Ignore auth errors for public feed
     }
 
+    // Read community_genres cookie for cold-start personalization
+    // Set by /api/join/[slug] when a user arrives via a community referral link
+    const communityGenresCookie = request.cookies.get('community_genres')?.value
+    const communityGenres: string[] = communityGenresCookie
+      ? communityGenresCookie.split(',').map(g => g.trim()).filter(Boolean)
+      : []
+
     let feedItems
 
     // Following feed: only show works from subscribed authors
@@ -87,8 +94,8 @@ export async function GET(request: NextRequest) {
         feedItems = await getFallbackFeed(limit, offset, session?.user?.id)
       }
     } else {
-      // Guest user - show popular/trending content
-      feedItems = await getFallbackFeed(limit, offset)
+      // Guest user - show popular/trending content, boosted by community genre cookie if present
+      feedItems = await getFallbackFeed(limit, offset, undefined, communityGenres.length > 0 ? communityGenres : undefined)
     }
 
     // If we didn't get enough items, supplement with generic content
@@ -154,10 +161,10 @@ export async function GET(request: NextRequest) {
 // on every anonymous page load.
 const FALLBACK_FEED_TTL = 30 // seconds
 
-async function getFallbackFeed(limit: number, offset: number, userId?: string) {
-  // For anonymous requests (no userId) serve from Redis cache when available.
-  // Personalised results (userId present) are never cached.
-  if (!userId) {
+async function getFallbackFeed(limit: number, offset: number, userId?: string, preferredGenres?: string[]) {
+  // For anonymous requests (no userId, no genre preference) serve from Redis cache when available.
+  // Community-genre-boosted and personalised results are never cached.
+  if (!userId && (!preferredGenres || preferredGenres.length === 0)) {
     const redis = getRedis()
     const cacheKey = `feed:fallback:${limit}:${offset}`
     if (redis) {
@@ -175,10 +182,10 @@ async function getFallbackFeed(limit: number, offset: number, userId?: string) {
     return result
   }
 
-  return buildFallbackFeed(limit, offset, userId)
+  return buildFallbackFeed(limit, offset, userId, preferredGenres)
 }
 
-async function buildFallbackFeed(limit: number, offset: number, userId: string | undefined) {
+async function buildFallbackFeed(limit: number, offset: number, userId: string | undefined, preferredGenres?: string[]) {
   let subscribedAuthorIds: string[] = []
   if (userId) {
     try {
@@ -226,7 +233,7 @@ async function buildFallbackFeed(limit: number, offset: number, userId: string |
     try { return str ? JSON.parse(str) : fallback } catch { return fallback }
   }
 
-  return works
+  const items = works
     .filter((work: any) => work.author && work.author.user)
     .map((work: any) => ({
       id: `${work.id}-feed`,
@@ -273,7 +280,23 @@ async function buildFallbackFeed(limit: number, offset: number, userId: string |
       bookmark: false,
       liked: false
     }))
+
+  // If the caller supplied preferred genres (e.g. from a community referral link cookie),
+  // float matching works to the top without changing the relative order of non-matches.
+  if (preferredGenres && preferredGenres.length > 0) {
+    const prefSet = new Set(preferredGenres.map(g => g.toLowerCase()))
+    items.sort((a, b) => {
+      const aMatch = a.work.genres.some((g: string) => prefSet.has(g.toLowerCase()))
+      const bMatch = b.work.genres.some((g: string) => prefSet.has(g.toLowerCase()))
+      if (aMatch && !bMatch) return -1
+      if (!aMatch && bMatch) return 1
+      return 0
+    })
+  }
+
+  return items
 }
+
 
 // Following feed — shows the latest chapters from authors the user subscribes to
 async function getFollowingFeed(userId: string, limit: number, offset: number) {

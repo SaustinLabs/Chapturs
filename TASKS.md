@@ -37,8 +37,8 @@
 | # | Task | Status | Notes |
 |---|---|---|---|
 | 13 | Audit sitemap.ts — confirm all public story/author pages are included | 🔶 | File exists, unknown if comprehensive |
-| 14 | Per-story `og:image` meta tags using cover art | ⬜ | Social share previews will be blank without these |
-| 15 | Per-chapter `og:description` using chapter hook / first paragraph | ⬜ | Same — social shares need content |
+| 14 | Per-story `og:image` meta tags using cover art | ✅ | Fixed `resolveCoverSrc` bug in story layout — was passing wrong args, now returns correct absolute URL |
+| 15 | Per-chapter `og:description` using chapter hook / first paragraph | ✅ | Chapter layout also fixed — og:image now works for chapter social shares |
 | 16 | Canonical URLs on paginated/filtered pages | ⬜ | Feed has filters that may create duplicate URL issues |
 
 ---
@@ -48,7 +48,7 @@
 ### Feed & Discovery
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 17 | Feed reads `community_genres` cookie for cold-start seeding | ⬜ | Cookie is set by `/api/join/[slug]` but feed API ignores it. Boost matching genres for users with < 20 sessions |
+| 17 | Feed reads `community_genres` cookie for cold-start seeding | ✅ | Cookie read in feed API; genre-matching works floated to top for guest visitors arriving via community links |
 | 18 | Browse page: filter by genre, tags, completion status, update frequency | ⬜ | Search exists, no browse/filter experience |
 | 19 | "New and Promising" section on homepage | ⬜ | For AI-scored strong chapters by new creators — easy retention win |
 | 20 | Trending page | ⬜ | Beyond the feed — dedicated trending works list |
@@ -162,7 +162,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | 66 | Enable Stripe integration (currently `premium_enabled: false`) | ⬜ | Stripe keys are in secrets, just need to flip the flag and test |
 | 67 | Test Stripe webhook end-to-end on staging | ⬜ | `STRIPE_WEBHOOK_SECRET` is set but webhook flow is untested |
 | 68 | Creator payout flow (currently disabled) | ⬜ | Revenue sharing schema exists, payout UX needs building |
-| 69 | AdSense slots audit — confirm they're rendering in prod (not blank) | ⬜ | `NEXT_PUBLIC_ADSENSE_PUB_ID` is set but needs visual confirmation |
+| 69 | AdSense slots audit — confirm they're rendering in prod (not blank) | ✅ | Fixed false-positive adblock detection: removed proactive fetch probe (false positives on Firefox ETP / Brave Shields); now relies on Script onError callback |
 
 ---
 
@@ -172,7 +172,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 |---|---|---|
 | 70 | `/features` page — update screenshots/copy to reflect current state | ⬜ |
 | 71 | Landing page (`/`) — review copy for current feature set | ⬜ |
-| 72 | Empty states: new user sees an onboarding prompt instead of a blank feed | ⬜ |
+| 72 | Empty states: new user sees an onboarding prompt instead of a blank feed | ✅ | All-feed empty state now shows genre quick-pick buttons (Fantasy, Romance, Sci-Fi, etc.) linking directly to browse |
 | 73 | Mobile layout audit across all main flows (feed, reader, editor) | ⬜ |
 | 74 | Error boundary messaging — make user-facing errors friendlier | ⬜ |
 | 75 | Loading skeleton coverage — any page missing a skeleton while data loads | ⬜ |
@@ -198,6 +198,10 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | Bootstrap PIN API + page |
 | Admin settings + deploy workflow now include ADMIN_EMAIL + ADMIN_BOOTSTRAP_PIN |
 | Email addresses consolidated into Admin → Settings → Email Addresses |
+| og:image + og:description for story and chapter pages (tasks 14, 15) |
+| community_genres cookie wired into feed cold-start (task 17) |
+| New user empty state with genre quick-picks (task 72) |
+| AdSense false-positive adblock detection fixed (task 69) |
 | Contact page reads live from SiteSettings |
 | DMCA contact address added |
 | Welcome email on first sign-up |

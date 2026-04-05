@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         : work.description
       : `Read ${work.title} on Chapturs — a modern webnovel platform.`
 
-    const coverImage = work.coverImage ? resolveCoverSrc(work.coverImage) : null
+    const coverImage = work.coverImage ? resolveCoverSrc(id, work.coverImage) : null
     const imageUrl = coverImage?.startsWith('http') ? coverImage : coverImage ? `${BASE_URL}${coverImage}` : null
 
     return {

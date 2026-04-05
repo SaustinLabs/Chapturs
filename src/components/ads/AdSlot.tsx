@@ -12,28 +12,6 @@ interface AdSlotProps {
   children?: React.ReactNode
 }
 
-function useAdBlockDetected(): boolean {
-  const [blocked, setBlocked] = useState(false)
-
-  useEffect(() => {
-    const controller = new AbortController()
-    // Try a HEAD request to Google's ad server.
-    // Ad blockers block the domain at the network level, causing a fetch rejection.
-    // mode: 'no-cors' means a successful request resolves with an opaque response;
-    // a blocked request rejects with a TypeError (network error).
-    fetch(
-      'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?paused=1',
-      { method: 'HEAD', mode: 'no-cors', signal: controller.signal }
-    )
-      .catch(() => {
-        if (!controller.signal.aborted) setBlocked(true)
-      })
-    return () => controller.abort()
-  }, [])
-
-  return blocked
-}
-
 function AdSkeleton({
   placement,
   className,
@@ -80,8 +58,7 @@ function AdSlotInner({
   children,
 }: AdSlotProps) {
   const [loaded, setLoaded] = useState(false)
-  const [error, setError] = useState(false)
-  const adBlocked = useAdBlockDetected()
+  const [adBlocked, setAdBlocked] = useState(false)
 
   const pubId = process.env.NEXT_PUBLIC_ADSENSE_PUB_ID
   const slotId = adSlotId || process.env.NEXT_PUBLIC_ADSENSE_SLOT_ID
@@ -92,7 +69,8 @@ function AdSlotInner({
       // @ts-ignore - adsbygoogle is injected by Google script
       ;(window.adsbygoogle = window.adsbygoogle || []).push({})
     } catch {
-      setError(true)
+      // push() threw — adsbygoogle object is present but ads are suppressed
+      setAdBlocked(true)
     }
   }, [loaded, pubId])
 
@@ -108,10 +86,6 @@ function AdSlotInner({
     return children ? <>{children}</> : null
   }
 
-  if (error) {
-    return <>{children}</> || null
-  }
-
   return (
     <div className={`ad-slot ad-slot--${placement} ${className || ''}`}>
       <Script
@@ -120,7 +94,7 @@ function AdSlotInner({
         crossOrigin="anonymous"
         strategy="lazyOnload"
         onLoad={() => setLoaded(true)}
-        onError={() => setError(true)}
+        onError={() => setAdBlocked(true)}
       />
       {loaded ? (
         <ins
