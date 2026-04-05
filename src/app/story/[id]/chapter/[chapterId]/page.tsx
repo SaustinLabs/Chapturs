@@ -1123,6 +1123,11 @@ export default function ChapterPage() {
         targetLanguage={targetLanguage}
         onTargetLanguageChange={setTargetLanguage}
         onOpenSettings={() => setShowReaderSettingsDrawer(true)}
+        onOpenGlossary={() => {
+          setMobileGlossaryTab('characters')
+          setShowMobileGlossary(true)
+          triggerHaptic(10)
+        }}
       />
 
       {/* Sticky Audio Scrubber (shown when audio is enabled) */}

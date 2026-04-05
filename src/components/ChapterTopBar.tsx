@@ -7,6 +7,7 @@ import {
   HeartIcon as HeartOutline,
   BookmarkIcon as BookmarkOutline,
   EllipsisHorizontalIcon,
+  BookOpenIcon,
 } from '@heroicons/react/24/outline'
 import {
   HeartIcon as HeartSolid,
@@ -33,6 +34,7 @@ interface ChapterTopBarProps {
   targetLanguage: string
   onTargetLanguageChange: (lang: string) => void
   onOpenSettings?: () => void
+  onOpenGlossary?: () => void
 }
 
 export default function ChapterTopBar({
@@ -49,6 +51,7 @@ export default function ChapterTopBar({
   targetLanguage,
   onTargetLanguageChange,
   onOpenSettings,
+  onOpenGlossary,
 }: ChapterTopBarProps) {
   const [showLanguageMenu, setShowLanguageMenu] = useState(false)
   const [showAudiobookMenu, setShowAudiobookMenu] = useState(false)
@@ -137,6 +140,25 @@ export default function ChapterTopBar({
               )}
             </div>
           </div>
+
+          {/* Glossary / Characters index — desktop only (mobile uses bottom bar) */}
+          {onOpenGlossary && (
+            <Tooltip content="Browse the story glossary and character index" side="bottom">
+              <button
+                onClick={() => {
+                  setShowLanguageMenu(false)
+                  setShowAudiobookMenu(false)
+                  setShowMoreMenu(false)
+                  onOpenGlossary()
+                }}
+                className="hidden md:flex items-center gap-1.5 px-2 py-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                title="Glossary & Characters"
+              >
+                <BookOpenIcon className="w-5 h-5" />
+                <span className="text-[11px] font-semibold tracking-wide">Index</span>
+              </button>
+            </Tooltip>
+          )}
 
           {/* Right section: Subscribe, Bookmark, Like, More */}
           <div className="flex items-center space-x-2">
