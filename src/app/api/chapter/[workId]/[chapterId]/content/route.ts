@@ -7,6 +7,38 @@ import { translateOnDemand, translateBatch } from '@/lib/translation'
 // Short-lived in-memory cache keyed by `${workId}:${chapterId}:${lang}`
 const aiCache = new Map<string, { content: any[]; translatedTitle: string }>()
 
+// ---------------------------------------------------------------------------
+// Rate limiter — max 20 translation calls per IP per hour
+// Uses a simple sliding-window counter stored in process memory.
+// Good enough without Redis; resets on server restart.
+// ---------------------------------------------------------------------------
+const RATE_LIMIT = 20
+const RATE_WINDOW_MS = 60 * 60 * 1000 // 1 hour
+
+interface RateEntry { count: number; windowStart: number }
+const rateLimitMap = new Map<string, RateEntry>()
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(ip)
+  if (!entry || now - entry.windowStart > RATE_WINDOW_MS) {
+    rateLimitMap.set(ip, { count: 1, windowStart: now })
+    return false
+  }
+  if (entry.count >= RATE_LIMIT) return true
+  entry.count++
+  return false
+}
+
+// Periodically purge stale entries to prevent unbounded growth
+setInterval(() => {
+  const now = Date.now()
+  for (const [key, entry] of rateLimitMap) {
+    if (now - entry.windowStart > RATE_WINDOW_MS) rateLimitMap.delete(key)
+  }
+}, RATE_WINDOW_MS)
+// ---------------------------------------------------------------------------
+
 async function generateAITranslation(
   originalTitle: string,
   originalContent: any[],
@@ -39,6 +71,24 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const lang = searchParams.get('lang') || 'en'
 
+    // If English, return early — caller should use the normal section endpoint
+    if (lang === 'en') {
+      return NextResponse.json({ language: 'en', title: null, content: null, source: 'original' })
+    }
+
+    // --- Rate limit check (applied before any LLM work) ---
+    const ip =
+      request.headers.get('x-forwarded-for')?.split(',')[0].trim() ??
+      request.headers.get('x-real-ip') ??
+      'unknown'
+
+    if (isRateLimited(ip)) {
+      return NextResponse.json(
+        { error: 'Too many translation requests. Please wait before translating more chapters.' },
+        { status: 429 }
+      )
+    }
+
     // Fetch chapter/section data
     const section = await prisma.section.findUnique({
       where: { id: chapterId },
@@ -64,14 +114,9 @@ export async function GET(
     }
 
     if (defaultTransId) {
-      // Fetch the translation
       const translation = await prisma.fanTranslation.findUnique({
         where: { id: defaultTransId },
-        select: {
-          translatedTitle: true,
-          translatedContent: true,
-          tier: true,
-        },
+        select: { translatedTitle: true, translatedContent: true, tier: true },
       })
       if (translation) {
         return NextResponse.json({
@@ -83,7 +128,7 @@ export async function GET(
       }
     }
 
-    // No translation yet – generate or fetch AI version
+    // Check process-level cache (avoids duplicate LLM calls within same deploy)
     const cacheKey = `${workId}:${chapterId}:${lang}`
     const cached = aiCache.get(cacheKey)
     if (cached) {
@@ -95,7 +140,7 @@ export async function GET(
       })
     }
 
-    // Generate AI translation (placeholder)
+    // Generate AI translation
     const originalTitle = section.title
     const originalContent = section.content as any[]
     const { translatedTitle, translatedContent } = await generateAITranslation(
@@ -104,31 +149,33 @@ export async function GET(
       lang
     )
 
-    // Cache in memory
+    // Store in process cache
     aiCache.set(cacheKey, { translatedTitle, translatedContent })
 
-    // Optionally persist as a FanTranslation with tier TIER_1_OFFICIAL for caching
-    try {
-      await prisma.fanTranslation.create({
-        data: {
-          id: `ai-${workId}-${chapterId}-${lang}-${Date.now()}`,
-          workId,
-          chapterId,
-          languageCode: lang,
-          status: 'active',
-          tier: 'TIER_1_OFFICIAL',
-          translatedTitle,
-          translatedContent: JSON.stringify(translatedContent),
-          qualityOverall: 4.5,
-          ratingCount: 0,
-          editCount: 0,
-          translatorId: 'system-ai',
-        },
-      })
-    } catch (e) {
-      // ignore duplicate or DB errors
-      console.error('Failed to persist AI translation:', e)
-    }
+    // Persist to DB so future requests skip the LLM entirely.
+    // Uses upsert to handle the unique(chapterId, languageCode, tier) constraint.
+    // translatorId is null — AI translations have no user FK.
+    prisma.fanTranslation.upsert({
+      where: { chapterId_languageCode_tier: { chapterId, languageCode: lang, tier: 'TIER_1_OFFICIAL' } },
+      create: {
+        workId,
+        chapterId,
+        languageCode: lang,
+        status: 'active',
+        tier: 'TIER_1_OFFICIAL',
+        translatorId: null,
+        translatedTitle,
+        translatedContent: JSON.stringify(translatedContent),
+        qualityOverall: 0,
+        ratingCount: 0,
+        editCount: 0,
+      },
+      update: {
+        translatedTitle,
+        translatedContent: JSON.stringify(translatedContent),
+        updatedAt: new Date(),
+      },
+    }).catch((e) => console.error('Failed to persist AI translation:', e))
 
     return NextResponse.json({
       language: lang,
@@ -144,3 +191,4 @@ export async function GET(
     )
   }
 }
+

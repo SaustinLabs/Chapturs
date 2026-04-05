@@ -211,8 +211,8 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 88 | Persist AI translations to DB (`FanTranslation` model, `TIER_1_OFFICIAL`) to avoid re-translating | ⬜ | Content route already scaffolds this but has a bug with `translatorId: 'system-ai'` (not a real User FK) — fix or make nullable |
-| 89 | Rate-limit translation requests per user/IP (e.g. 20 chapters/day for anon) | ⬜ | Prevent abuse; use Redis or DB counter |
+| 88 | Persist AI translations to DB (`FanTranslation` model, `TIER_1_OFFICIAL`) to avoid re-translating | ✅ | Fixed FK bug (`translatorId: null`); switched `create` → `upsert` on `(chapterId, languageCode, tier)` unique key; fire-and-forget `.catch()` so persist never blocks the response |
+| 89 | Rate-limit translation requests per user/IP (e.g. 20 chapters/day for anon) | ✅ | In-memory sliding-window limiter (20 req/hr per IP) added to content route; purges stale entries every hour; sufficient until Redis is available |
 | 90 | Chunk large chapters into ≤50 block batches before sending to LLM | ⬜ | Prevents context-limit errors on very long chapters |
 
 ### Phase 3 — Community Translations (future)
