@@ -91,6 +91,9 @@ model User {
   // Community referral attribution (which /join/<slug> link brought this user)
   communityRef String?
 
+  // Reading language preference (ISO 639-1, e.g. 'en', 'es', 'ja')
+  preferredLanguage String? @default("en")
+
   @@map("users")
 }
 

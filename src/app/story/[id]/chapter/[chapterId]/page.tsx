@@ -101,6 +101,7 @@ export default function ChapterPage() {
   const [showChapterList, setShowChapterList] = useState(false)
   const [readingSettings, setReadingSettings] = useState<ReaderSettings>(DEFAULT_READER_SETTINGS)
   const [targetLanguage, setTargetLanguage] = useState('en')
+  const [detectedLanguage, setDetectedLanguage] = useState('en') // what we detected on load
   const [baseSection, setBaseSection] = useState<Section | null>(null)
   const [loading, setLoading] = useState(true)
   const [characters, setCharacters] = useState<ReaderCharacter[]>([])
@@ -347,17 +348,42 @@ export default function ChapterPage() {
     }
   }, [readingSettings])
 
+  // Detect user's preferred reading language once on mount.
+  // Priority: user profile preference → browser locale → 'en'
+  useEffect(() => {
+    const SUPPORTED = ['es', 'fr', 'de', 'ja', 'zh', 'pt', 'ko', 'it', 'ru', 'ar']
+
+    const applyLang = (lang: string) => {
+      const base = lang.split('-')[0].toLowerCase() // 'zh-TW' → 'zh'
+      if (SUPPORTED.includes(base)) {
+        setTargetLanguage(base)
+        setDetectedLanguage(base)
+      }
+    }
+
+    // Try to read user profile preference first (fire-and-forget)
+    fetch('/api/user/profile')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.preferredLanguage && data.preferredLanguage !== 'en') {
+          applyLang(data.preferredLanguage)
+        } else {
+          // Fall back to browser locale
+          const browserLang = navigator.language || ''
+          applyLang(browserLang)
+        }
+      })
+      .catch(() => {
+        // Not signed in or network error — fall back to browser locale
+        const browserLang = navigator.language || ''
+        applyLang(browserLang)
+      })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // run once on mount
+
   // Fetch translated content when targetLanguage changes
   useEffect(() => {
     if (!baseSection || !storyId || !chapterId) return
-
-    if (targetLanguage === 'en') {
-      setSection(baseSection)
-      return
-    }
-
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 5000)
 
     const fetchTranslation = async () => {
       try {
@@ -1235,6 +1261,29 @@ export default function ChapterPage() {
               Chapter {section.chapterNumber}: {section.title}
             </h2>
           </div>
+
+          {/* Translation banner — shown when a translation is active */}
+          {targetLanguage !== 'en' && (
+            <div className="mt-4 flex items-center justify-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+              <span>
+                🌐 Translated from{' '}
+                <span className="font-medium text-gray-700 dark:text-gray-300">English</span>
+                {' '}to{' '}
+                <span className="font-medium text-gray-700 dark:text-gray-300">
+                  {new Intl.DisplayNames(['en'], { type: 'language' }).of(targetLanguage) ?? targetLanguage.toUpperCase()}
+                </span>
+              </span>
+              <button
+                onClick={() => {
+                  setTargetLanguage('en')
+                  setDetectedLanguage('en')
+                }}
+                className="underline underline-offset-2 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                Show original
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Chapter List Dropdown */}
