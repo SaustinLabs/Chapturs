@@ -190,7 +190,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | # | Task | Status |
 |---|---|---|
 | 70 | `/features` page — update screenshots/copy to reflect current state | 🔶 | Copy/status sync pass started; continue tightening claims as features go live |
-| 109 | Keep `/features` + roadmap status synced with `TASKS.md` on every shipped/started feature | 🔶 | Workflow now enforced in agent instructions; continue updating copy/status in same commit as feature work |
+| 109 | Keep `/about/roadmap` + `/features` synced with `TASKS.md` on every shipped/started feature | 🔶 | Workflow now enforced in agent instructions; continue updating copy/status in same commit as feature work |
 | 71 | Landing page (`/`) — review copy for current feature set | ⬜ |
 | 72 | Empty states: new user sees an onboarding prompt instead of a blank feed | ✅ | Authenticated empty feed now launches TasteProfileSurvey modal; guests get genre quick-pick buttons |
 | 73 | Mobile layout audit across all main flows (feed, reader, editor) | 🔶 | Fixed major blockers and added Playwright mobile smoke suite; remaining work is deeper manual QA for authenticated reader chapters on real device datasets |

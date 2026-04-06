@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { CheckCircle2, Circle, Clock, Rocket, DollarSign, Trophy, Users, Sparkles, Globe, Smartphone } from 'lucide-react'
+import { CheckCircle2, Circle, Clock, Rocket, DollarSign, Trophy, Sparkles } from 'lucide-react'
 
 export default function RoadmapPage() {
   return (
@@ -8,20 +8,23 @@ export default function RoadmapPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Chapturs Roadmap</h1>
           <p className="text-xl text-gray-600">
-            Our journey to build the best creator-first webnovel platform
+            Transparent status of what is live, what is in progress, and what is next.
           </p>
-          <div className="mt-4 inline-block px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full font-semibold">
-            🚧 Currently in Beta - Last updated: April 2026
+          <div className="mt-4 inline-block px-4 py-2 bg-blue-100 text-blue-800 rounded-full font-semibold">
+            Public Beta - Last updated: April 2026
           </div>
+          <p className="mt-3 text-sm text-gray-500">
+            This page is synced with TASKS tracking and the public features guide.
+          </p>
         </div>
 
-        {/* Phase 1: Foundation (Completed) */}
+        {/* Phase 1: Foundation */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
           <div className="flex items-center gap-3 mb-6">
             <CheckCircle2 className="w-8 h-8 text-green-600" />
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Phase 1: Foundation</h2>
-              <p className="text-sm text-green-600 font-semibold">COMPLETED ✓</p>
+              <p className="text-sm text-green-600 font-semibold">COMPLETED</p>
             </div>
           </div>
 
@@ -30,47 +33,47 @@ export default function RoadmapPage() {
               <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="font-semibold text-gray-900">Core Reading Experience</h3>
-                <p className="text-sm text-gray-600">Infinite scroll feed, chapter reading, bookmarks</p>
+                <p className="text-sm text-gray-600">Discovery feed, reading controls, library/bookmarks, subscriptions.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="font-semibold text-gray-900">Creator Tools</h3>
-                <p className="text-sm text-gray-600">Advanced editor with dynamic glossary system, bulk upload</p>
+                <p className="text-sm text-gray-600">Block editor, glossary, character profiles, analytics, moderation controls.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-900">Translation System</h3>
-                <p className="text-sm text-gray-600">Community translation collaboration with voting and approval</p>
+                <h3 className="font-semibold text-gray-900">Community & Fan Content</h3>
+                <p className="text-sm text-gray-600">Comments, ratings, fan translations, fan audiobooks, and fan art workflows.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="font-semibold text-gray-900">Quality Assessment</h3>
-                <p className="text-sm text-gray-600">AI-powered quality checks (grammar, coherence, formatting)</p>
+                <p className="text-sm text-gray-600">AI quality checks and story hooks through OpenRouter-integrated models.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="font-semibold text-gray-900">Authentication & Database</h3>
-                <p className="text-sm text-gray-600">OAuth login (Google, GitHub, Discord), PostgreSQL + Redis optimization</p>
+                <p className="text-sm text-gray-600">OAuth login (Google, GitHub, Discord), role-gated admin tools, production DB workflows.</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Phase 2: Polish & Testing (Current) */}
+        {/* Phase 2: Growth Tools */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8 border-2 border-blue-400">
           <div className="flex items-center gap-3 mb-6">
             <Clock className="w-8 h-8 text-blue-600" />
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Phase 2: Polish & Testing</h2>
-              <p className="text-sm text-blue-600 font-semibold">IN PROGRESS 🔄</p>
+              <h2 className="text-2xl font-bold text-gray-900">Phase 2: Growth Tools</h2>
+              <p className="text-sm text-blue-600 font-semibold">IN PROGRESS</p>
             </div>
           </div>
 
@@ -78,41 +81,41 @@ export default function RoadmapPage() {
             <div className="flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-900">Legal Documentation</h3>
-                <p className="text-sm text-gray-600">Privacy Policy, Terms of Service, Creator Agreement</p>
+                <h3 className="font-semibold text-gray-900">Community Referral Links + Feed Seeding</h3>
+                <p className="text-sm text-gray-600">Referral links are live and cold-start feed seeding is integrated.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-900">End-to-End Testing</h3>
-                <p className="text-sm text-gray-600">Translation workflow, comments, editing, moderation</p>
+                <h3 className="font-semibold text-gray-900">Founding Creator Program</h3>
+                <p className="text-sm text-gray-600">Cohort/badges design and points framework are in active planning.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-900">UI/UX Improvements</h3>
-                <p className="text-sm text-gray-600">Mobile responsiveness, accessibility, performance</p>
+                <h3 className="font-semibold text-gray-900">Public Domain Seed Content</h3>
+                <p className="text-sm text-gray-600">Import Gutenberg works with glossary and character profile enrichment.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-900">Content Moderation</h3>
-                <p className="text-sm text-gray-600">Reporting system, moderator tools, appeals process</p>
+                <h3 className="font-semibold text-gray-900">Notifications Expansion</h3>
+                <p className="text-sm text-gray-600">In-app center is partially wired; digest and push are upcoming.</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Phase 3: Monetization */}
+        {/* Phase 3: Collaborative Editor */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
           <div className="flex items-center gap-3 mb-6">
-            <DollarSign className="w-8 h-8 text-green-600" />
+            <Clock className="w-8 h-8 text-indigo-600" />
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Phase 3: Monetization</h2>
-              <p className="text-sm text-gray-500 font-semibold">PLANNED - Q1 2026</p>
+              <h2 className="text-2xl font-bold text-gray-900">Phase 3: Collaborative Editor</h2>
+              <p className="text-sm text-gray-500 font-semibold">SCHEMA READY - UI PLANNED</p>
             </div>
           </div>
 
@@ -120,48 +123,34 @@ export default function RoadmapPage() {
             <div className="flex items-start gap-3">
               <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-900">Tips & Donations</h3>
-                <p className="text-sm text-gray-600">One-time payments, 95/5 split, PayPal/Stripe integration</p>
+                <h3 className="font-semibold text-gray-900">Co-author Invites + Roles</h3>
+                <p className="text-sm text-gray-600">Invite by username, role permissions, collaborator activity logs.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-900">Individual Subscriptions</h3>
-                <p className="text-sm text-gray-600">Direct creator support, supporter badges, bonus content access</p>
+                <h3 className="font-semibold text-gray-900">Versioning + Locking</h3>
+                <p className="text-sm text-gray-600">Change suggestions, chapter locking, and author-attributed history.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-900">Ad System</h3>
-                <p className="text-sm text-gray-600">70/30 revenue split, customizable ad density, featured placement programs</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold text-gray-900">Platform Premium (Beta)</h3>
-                <p className="text-sm text-gray-600">YouTube Premium-style subscription, ad-free reading, revenue pool distribution</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold text-gray-900">Creator Dashboard</h3>
-                <p className="text-sm text-gray-600">Earnings tracking, analytics, payout management</p>
+                <h3 className="font-semibold text-gray-900">Real-time Co-editing</h3>
+                <p className="text-sm text-gray-600">Live cursors and conflict-safe merges after foundations land.</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Phase 4: Community Features */}
+        {/* Phase 4: Ecosystem Expansion */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
           <div className="flex items-center gap-3 mb-6">
             <Trophy className="w-8 h-8 text-yellow-600" />
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Phase 4: Community Features</h2>
-              <p className="text-sm text-gray-500 font-semibold">PLANNED - Q2 2026</p>
+              <h2 className="text-2xl font-bold text-gray-900">Phase 4: Ecosystem Expansion</h2>
+              <p className="text-sm text-gray-500 font-semibold">PLANNED</p>
             </div>
           </div>
 
@@ -169,41 +158,41 @@ export default function RoadmapPage() {
             <div className="flex items-start gap-3">
               <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-900">Writing Contests</h3>
-                <p className="text-sm text-gray-600">Pooled ad revenue prizes, platform-hosted contests, community contests</p>
+                <h3 className="font-semibold text-gray-900">Reader Contribution Tools</h3>
+                <p className="text-sm text-gray-600">Reader highlight suggestions and creator accept/reject queues.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-900">Creator Collaborations</h3>
-                <p className="text-sm text-gray-600">Co-authoring tools, shared universes, crossover events</p>
+                <h3 className="font-semibold text-gray-900">Series and Volumes</h3>
+                <p className="text-sm text-gray-600">Grouped works, automatic progression, series-level subscriptions.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-900">Community Forums</h3>
-                <p className="text-sm text-gray-600">Creator discussions, reader feedback, feature requests</p>
+                <h3 className="font-semibold text-gray-900">Discovery Extensions</h3>
+                <p className="text-sm text-gray-600">Dedicated trending page and stronger recommendation surfaces.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-900">Advanced Analytics</h3>
-                <p className="text-sm text-gray-600">Reader demographics, engagement heatmaps, retention metrics</p>
+                <h3 className="font-semibold text-gray-900">Notification Center</h3>
+                <p className="text-sm text-gray-600">Complete bell center UX plus digest and push coverage.</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Phase 5: Scale & Expansion */}
+        {/* Phase 5: Future Expansion */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
           <div className="flex items-center gap-3 mb-6">
             <Rocket className="w-8 h-8 text-purple-600" />
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Phase 5: Scale & Expansion</h2>
-              <p className="text-sm text-gray-500 font-semibold">PLANNED - 2026+</p>
+              <h2 className="text-2xl font-bold text-gray-900">Phase 5: Future Expansion</h2>
+              <p className="text-sm text-gray-500 font-semibold">PLANNED AFTER SCALE</p>
             </div>
           </div>
 
@@ -211,29 +200,22 @@ export default function RoadmapPage() {
             <div className="flex items-start gap-3">
               <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-900">Mobile Apps</h3>
-                <p className="text-sm text-gray-600">iOS and Android native apps, offline reading</p>
+                <h3 className="font-semibold text-gray-900">Writers Room / Living World</h3>
+                <p className="text-sm text-gray-600">Shared universe canon systems with lore tooling and council workflows.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-900">International Expansion</h3>
-                <p className="text-sm text-gray-600">Multi-language UI, regional payment methods, localized content</p>
+                <h3 className="font-semibold text-gray-900">AI Author Bots</h3>
+                <p className="text-sm text-gray-600">Transparent, clearly-labeled cold-start support content systems.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-900">Publishing Partnerships</h3>
-                <p className="text-sm text-gray-600">Traditional publisher connections, print-on-demand, media adaptation deals</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold text-gray-900">Enhanced Media Integration</h3>
-                <p className="text-sm text-gray-600">Advanced multimedia features, creator-produced supplementary content</p>
+                <h3 className="font-semibold text-gray-900">Monetization Hardening</h3>
+                <p className="text-sm text-gray-600">Stripe enablement, webhook verification, payout UX, and safeguards.</p>
               </div>
             </div>
           </div>
@@ -257,7 +239,7 @@ export default function RoadmapPage() {
               <span className="text-2xl">🚫</span>
               <div>
                 <h3 className="font-semibold text-gray-900">No Paywalls</h3>
-                <p className="text-sm text-gray-700">All main content free to read, forever</p>
+                <p className="text-sm text-gray-700">Core reading remains accessible while monetization is creator-first and transparent.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -288,7 +270,7 @@ export default function RoadmapPage() {
         <div className="bg-white rounded-lg shadow-lg p-8 text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Help Shape Chapturs</h2>
           <p className="text-gray-700 mb-6">
-            We're building this platform <em>with</em> creators and readers, not just <em>for</em> them. 
+            We are building this platform <em>with</em> creators and readers, not just <em>for</em> them.
             Your feedback directly influences our roadmap.
           </p>
           <div className="flex flex-wrap justify-center gap-4">

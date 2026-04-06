@@ -153,7 +153,7 @@ export default function FeaturesPage() {
             tour of every feature, from reading controls to the community content ecosystem.
           </p>
           <p className="text-sm text-gray-500 mt-3 max-w-2xl">
-            Status on this page is kept in sync with the public roadmap and active TASKS tracking so planned/in-progress features are labeled honestly.
+            Status on this page is kept in sync with /about/roadmap and active TASKS tracking so planned/in-progress features are labeled honestly.
           </p>
 
           {/* Jump links */}
