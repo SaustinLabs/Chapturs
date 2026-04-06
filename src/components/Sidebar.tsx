@@ -102,7 +102,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
         ) : (
           <div className="flex items-center justify-between p-4 border-b border-gray-800/60">
             <a href="/" className="flex items-center px-1 py-1">
-              <img src="/TransparentChaptursPill.png" alt="Chapturs" className="h-8 w-auto" />
+              <img src="/TransparentChaptursPill.png" alt="Chapturs" className="h-10 w-auto" />
             </a>
             <button
               onClick={onToggleCollapsed}

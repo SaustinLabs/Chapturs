@@ -53,7 +53,7 @@ function ReaderHomePage() {
       {/* Mobile brand header — scrolls with page content, hidden on desktop */}
       <div className="md:hidden flex items-center mb-5 pt-1">
         <a href="/">
-          <img src="/TransparentChaptursPill.png" alt="Chapturs" className="h-9 w-auto" />
+          <img src="/TransparentChaptursPill.png" alt="Chapturs" className="h-10 w-auto" />
         </a>
       </div>
 
