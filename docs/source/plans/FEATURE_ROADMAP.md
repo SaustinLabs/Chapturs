@@ -2,6 +2,7 @@
 ### Last updated: April 2026  ·  Status: Public beta approaching
 
 > This document tracks where Chapturs actually is, where it is going, and the order of battle. It mirrors the public /features guide but includes honest completion status and the reasoning behind every priority.
+> Sync policy: status changes in TASKS.md must also update this roadmap and /features in the same commit.
 
 ---
 
@@ -17,7 +18,7 @@
 | Comment system | ✅ Ship-ready |
 | Chapter reactions (emoji) | ✅ Ship-ready |
 | Multi-dimension ratings | ✅ Ship-ready |
-| AI quality assessment (Groq) | ✅ Ship-ready |
+| AI quality assessment (OpenRouter) | ✅ Ship-ready |
 | Fan translations (3 tiers) | ✅ Ship-ready |
 | Fan audiobooks | ✅ Ship-ready |
 | Fan art submissions | ✅ Ship-ready |
@@ -26,7 +27,7 @@
 | Revenue sharing system | ✅ Ship-ready |
 | Admin panel (full suite) | ✅ Ship-ready |
 | Contest system | ✅ Ship-ready |
-| Notifications | ✅ Ship-ready |
+| Notifications | 🔶 In progress (schema/features split) |
 | Community referral links | ✅ Ship-ready |
 | Cover + content image upload (R2) | ✅ Ship-ready |
 | Auth (Google, GitHub, Discord) | ✅ Ship-ready |
@@ -102,8 +103,8 @@
 ### Community Referral Links ✅ Complete
 Named invite links (`chapturs.com/join/royalroad-litrpg`) generated from the admin panel. Visitors land on a community-branded welcome page. Clicking through sets a feed-seeding cookie (genres + community tag) that pre-weights their discovery feed toward that community's content. Admin shows near-real-time click counts and signup counts (30-second polling). Attribution is stored on each user record.
 
-### Feed Cookie Integration ⚪ To-Do
-The `community_genres` cookie is being set but the feed algorithm isn't yet reading it as a seed signal on first visit. **Action:** in the feed API, check for `community_genres` cookie and boost matching genres for users with < 20 reading sessions.
+### Feed Cookie Integration ✅ Complete
+The feed API reads `community_genres` as a cold-start signal and boosts matching genres for early/new sessions.
 
 ### Public Domain Story Import ⚪ To-Do
 Import 3–5 compelling public domain works from Project Gutenberg as fully-formed Chapturs works: proper cover art, AI-generated glossary entries, character profiles. Purpose is a feature demo, not content strategy. Target works: high narrative quality, genre-aligned with initial community targets.

@@ -11,6 +11,13 @@ Chapturs is a modern webnovel platform inspired by TikTok (infinite scroll disco
 - When a task is partially done, use 🔶 and add a short note.
 - Always commit `TASKS.md` changes in the same commit as the work.
 
+## Public Surface Sync (Required)
+When task status or feature scope changes, keep user-facing pages in sync in the same PR/commit so public messaging matches reality.
+- If a shipped feature changes status in `TASKS.md`, update `docs/source/plans/FEATURE_ROADMAP.md` in the same commit.
+- If copy on the public feature guide is affected, update `src/app/features/page.tsx` in the same commit.
+- Never claim a feature is live on public pages unless the code path is actually live.
+- If work is designed or partially built, label it as planned/in progress instead of complete.
+
 ## Proactive Codebase Auditing
 **While reading any file during a task, watch for incomplete work and add it to `TASKS.md` immediately.**
 - Literal `// TODO`, `// FIXME`, `// HACK` comments → add to the Known Code TODOs table
@@ -87,6 +94,8 @@ Chapturs is a modern webnovel platform inspired by TikTok (infinite scroll disco
 - **Auth (Node.js):** `auth.ts`
 - **Deployment:** `.github/workflows/deploy-vps.yml`
 - **Task list:** `TASKS.md`
+- **Public roadmap:** `docs/source/plans/FEATURE_ROADMAP.md`
+- **Public features page:** `src/app/features/page.tsx`
 
 ## Special Notes
 - **Do not commit secrets.** Always add new env files to `.gitignore`.

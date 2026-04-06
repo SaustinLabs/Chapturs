@@ -67,6 +67,22 @@
 | 25 | Draft the founding creator pitch email | ⬜ | 70% rev share for 12 months + founding badge + direct dev access |
 | 26 | Generate community referral links for target communities (RoyalRoad LitRPG, Wattpad Romance etc.) | ⬜ | Use admin community links panel |
 
+### Founding Creators Program (Beta)
+| # | Task | Status | Notes |
+|---|---|---|---|
+| 96 | Achievements MVP schema + points ledger (`Achievement`, `UserAchievement`, `PointsLedger`, `LevelTier`) | ⬜ | Keep values configurable for fast tuning during beta |
+| 97 | Points event pipeline (`POINTS_EVENT_TYPE`) for reader/author/contributor triggers | ⬜ | Idempotent writes; include anti-abuse guards and per-event caps |
+| 98 | Profile "Achievements / Level" block with user visibility toggle | ⬜ | Add to profile block system with hide/show support |
+| 99 | Pin featured achievements in profile block | ⬜ | User selects featured badges; cap pinned items for clean layout |
+| 100 | Founding Creator cohort badge (first 100 publishing authors) | ⬜ | Trigger on first chapter that goes live (not draft/save); store award timestamp + chapterId |
+| 101 | "First!" reader window + anti-farm qualification | ⬜ | Chapter goes live -> 5 minute award window. Reader must qualify (>=60s dwell + basic scroll/progress signal) before award; all qualified readers in window receive badge/points |
+| 102 | Author glossary achievement milestones (entry count + evolving definitions) | ⬜ | Count distinct glossary entries/instances over story progression |
+| 103 | Author character index achievement milestones | ⬜ | Milestones like 25/50/100 character entries |
+| 104 | High-impact contribution points: translations, audiobooks, fan-art, featured placements | ⬜ | Launch with existing contribution types; feature bonus rules can be phased |
+| 105 | Publishing flow options in editor: upload document / paste document / continue writing | ⬜ | Low-friction ingest for beta author onboarding |
+| 106 | Define release cadence UX (scheduled vs metadata-only) for beta publishing | ⬜ | Decide strict scheduling later if needed |
+| 107 | Founder program policy doc for exact point values + award rules | ⬜ | Source-of-truth + public docs; values must be admin-editable in runtime settings to rebalance meta shifts |
+
 ### Notifications
 | # | Task | Status | Notes |
 |---|---|---|---|
@@ -173,7 +189,8 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 
 | # | Task | Status |
 |---|---|---|
-| 70 | `/features` page — update screenshots/copy to reflect current state | ⬜ |
+| 70 | `/features` page — update screenshots/copy to reflect current state | 🔶 | Copy/status sync pass started; continue tightening claims as features go live |
+| 109 | Keep `/features` + roadmap status synced with `TASKS.md` on every shipped/started feature | 🔶 | Workflow now enforced in agent instructions; continue updating copy/status in same commit as feature work |
 | 71 | Landing page (`/`) — review copy for current feature set | ⬜ |
 | 72 | Empty states: new user sees an onboarding prompt instead of a blank feed | ✅ | Authenticated empty feed now launches TasteProfileSurvey modal; guests get genre quick-pick buttons |
 | 73 | Mobile layout audit across all main flows (feed, reader, editor) | 🔶 | Fixed major blockers and added Playwright mobile smoke suite; remaining work is deeper manual QA for authenticated reader chapters on real device datasets |
@@ -182,6 +199,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | 95 | Feed back-navigation: instant restore via module-level snapshot cache | ✅ | `src/lib/feedCache.ts` stores items+page+scroll on unmount; InfiniteFeed restores on mount (after auth settles); `staleTimes.dynamic: 30` added to next.config.js for router-level caching; taste-profile onboarding clears the cache so the fresh personalised feed always loads |
 | 82 | Add Playwright mobile smoke tests (feed/reader/editor) for regression checks | ✅ | Added `playwright.config.ts`, mobile smoke suite, and npm scripts (`test:e2e`, `test:e2e:mobile`) |
 | 81 | Sidebar expand should overlay (no content reflow); verify reader alignment on desktop + mobile | ✅ | Implemented fixed content lane + sliding sidebar (no main-content reflow when expanding) |
+| 108 | Rich text font-family support in editor toolbar (TipTap `FontFamily`) | ⬜ | Add curated families, persist in block content, keep default serif fallback |
 
 ---
 

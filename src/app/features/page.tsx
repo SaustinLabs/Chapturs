@@ -152,6 +152,9 @@ export default function FeaturesPage() {
             essays, and everything in between — built for both readers and creators. Here&apos;s a full
             tour of every feature, from reading controls to the community content ecosystem.
           </p>
+          <p className="text-sm text-gray-500 mt-3 max-w-2xl">
+            Status on this page is kept in sync with the public roadmap and active TASKS tracking so planned/in-progress features are labeled honestly.
+          </p>
 
           {/* Jump links */}
           <div className="flex flex-wrap gap-3 mt-6">
@@ -196,7 +199,7 @@ export default function FeaturesPage() {
           <FeatureCard
             icon={<GlobeAltIcon className="w-5 h-5" />}
             title="Multi-language Support"
-            description="Switch any chapter to a community translation from the reading bar at the top. Fan translators submit language versions that authors approve — so you get human-quality translations, not just machine output."
+            description="Switch any chapter language from the reading bar. The system supports instant AI translation and community improvements, with quality controls to keep results readable and useful."
           />
           <FeatureCard
             icon={<SpeakerWaveIcon className="w-5 h-5" />}
@@ -216,7 +219,7 @@ export default function FeaturesPage() {
           <FeatureCard
             icon={<ChatBubbleLeftRightIcon className="w-5 h-5" />}
             title="Comments & Threads"
-            description="Leave comments on chapters or reply to threads. Highlight any passage of text while reading and tap 'Comment' to leave an inline note anchored to that exact moment in the story — or 'Suggest Edit' to propose a correction the author can accept or dismiss."
+            description="Leave comments on chapters and reply in threads. Creators can moderate, pin, and feature comments, and readers can build visible reputation through meaningful community participation."
           />
         </Section>
 
@@ -233,7 +236,7 @@ export default function FeaturesPage() {
           <FeatureCard
             icon={<PencilSquareIcon className="w-5 h-5" />}
             title="The Block-based Editor"
-            description="Every chapter is built from blocks: prose paragraphs, headings, scene dividers, images, and more. Blocks support text alignment, font sizing, and pacing animations (fade-in, slide-up, typewriter) that readers see as they scroll. Chapters autosave as drafts and can be published immediately or scheduled. A pre-publish checklist and AI quality assessment run before anything goes live."
+            description="Every chapter is built from blocks: prose paragraphs, headings, scene dividers, images, and more. Blocks support text alignment, font sizing, and pacing animations (fade-in, slide-up, typewriter) that readers see as they scroll. Chapters autosave as drafts and can be published directly through the quality-gated flow."
           />
           <FeatureCard
             icon={<AdjustmentsHorizontalIcon className="w-5 h-5" />}
