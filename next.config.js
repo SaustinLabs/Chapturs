@@ -11,6 +11,11 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   experimental: {
+    // Cache dynamic page payloads in the client-side router for 30 s.
+    // This makes back-navigation feel instant even without our module-level feed cache.
+    staleTimes: {
+      dynamic: 30,
+    },
     // Reduces bundle size and improves build performance for these icon libraries
     optimizePackageImports: ['@heroicons/react', 'lucide-react'],
   },

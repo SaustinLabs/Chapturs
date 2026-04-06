@@ -8,6 +8,7 @@ import ErrorBoundary from '@/components/ErrorBoundary'
 import TasteProfileSurvey from '@/components/onboarding/TasteProfileSurvey'
 import { useUser } from '@/hooks/useUser'
 import { signIn } from 'next-auth/react'
+import { clearFeedSnapshot } from '@/lib/feedCache'
 
 function ReaderHomePage() {
   const { isAuthenticated, userName, isLoading } = useUser()
@@ -25,7 +26,8 @@ function ReaderHomePage() {
 
   const handleSurveyComplete = () => {
     setShowSurvey(false)
-    // Reload feed so it uses the freshly stored preferences
+    // Discard stale feed snapshot so the remounted feed fetches fresh personalised content
+    clearFeedSnapshot('reader')
     setFeedKey(k => k + 1)
   }
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { saveFeedSnapshot, getFeedSnapshot } from '@/lib/feedCache'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { FeedItem } from '@/types'
@@ -37,6 +38,14 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
   const impressionTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
   const firedImpressionsRef = useRef<Set<string>>(new Set())
   const signalSessionIdRef = useRef(`feed_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`)
+  // Feed state cache — back-navigation restoration
+  const scrollYRef = useRef(0)
+  const cacheCheckedRef = useRef(false)
+  const restoredFromCacheRef = useRef(false)
+  const snapshotStateRef = useRef<{
+    items: FeedItem[]; page: number; hasMore: boolean
+    feedFilter: 'all' | 'following'; userId: string | null
+  }>({ items: [], page: 1, hasMore: true, feedFilter: 'all', userId: null })
 
   const loadInitialItems = useCallback(async () => {
     try {
@@ -62,8 +71,65 @@ export default function InfiniteFeed({ hubMode }: InfiniteFeedProps) {
     setHasMore(true)
   }, [feedFilter])
 
+  // ---- Feed state cache for instant back-navigation ----
+
+  // Track scroll position with a passive listener (zero overhead)
+  useEffect(() => {
+    const onScroll = () => { scrollYRef.current = window.scrollY }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // Mirror latest state into a ref so the unmount closure always has current values
+  useEffect(() => {
+    snapshotStateRef.current = { items, page, hasMore, feedFilter, userId: userId ?? null }
+  }, [items, page, hasMore, feedFilter, userId])
+
+  // Save snapshot on true unmount (empty deps = runs cleanup only on unmount)
+  useEffect(() => {
+    return () => {
+      const { items, page, hasMore, feedFilter, userId } = snapshotStateRef.current
+      if (items.length > 0) {
+        saveFeedSnapshot(hubMode, {
+          items, page, hasMore, feedFilter,
+          scrollY: scrollYRef.current,
+          timestamp: Date.now(),
+          userId,
+        })
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Restore from cache as soon as auth settles — runs before the load effect below
+  useEffect(() => {
+    if (authLoading) return
+    if (cacheCheckedRef.current) return
+    cacheCheckedRef.current = true
+
+    const snapshot = getFeedSnapshot(hubMode, userId ?? null)
+    if (!snapshot || snapshot.items.length === 0) return
+
+    setItems(snapshot.items)
+    setPage(snapshot.page)
+    setHasMore(snapshot.hasMore)
+    setFeedFilter(snapshot.feedFilter)
+    restoredFromCacheRef.current = true
+
+    // Restore scroll position once React has committed the items to the DOM
+    const savedY = snapshot.scrollY
+    requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo(0, savedY)))
+  }, [authLoading, hubMode, userId])
+
+  // ---- End feed state cache ----
+
   useEffect(() => {
     if (!authLoading) {
+      if (restoredFromCacheRef.current) {
+        // Skip fresh load — we already restored from cache. Reset for next trigger.
+        restoredFromCacheRef.current = false
+        return
+      }
       loadInitialItems()
     }
   }, [loadInitialItems, authLoading, isAuthenticated, hubMode, userId])
