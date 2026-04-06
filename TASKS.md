@@ -175,7 +175,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | 71 | Landing page (`/`) — review copy for current feature set | ⬜ |
 | 72 | Empty states: new user sees an onboarding prompt instead of a blank feed | ✅ | Authenticated empty feed now launches TasteProfileSurvey modal; guests get genre quick-pick buttons |
 | 73 | Mobile layout audit across all main flows (feed, reader, editor) | 🔶 | Fixed major blockers and added Playwright mobile smoke suite; remaining work is deeper manual QA for authenticated reader chapters on real device datasets |
-| 74 | Error boundary messaging — make user-facing errors friendlier | ⬜ |
+| 74 | Error boundary messaging — make user-facing errors friendlier | ✅ | Global `error.tsx` and `ErrorBoundary` component already had good UI; fixed `StoryPageClient` to use a static friendly message instead of raw `err.message` (prevents "Failed to fetch" showing to readers) |
 | 75 | Loading skeleton coverage — any page missing a skeleton while data loads | ⬜ |
 | 82 | Add Playwright mobile smoke tests (feed/reader/editor) for regression checks | ✅ | Added `playwright.config.ts`, mobile smoke suite, and npm scripts (`test:e2e`, `test:e2e:mobile`) |
 | 81 | Sidebar expand should overlay (no content reflow); verify reader alignment on desktop + mobile | ✅ | Implemented fixed content lane + sliding sidebar (no main-content reflow when expanding) |
@@ -219,9 +219,9 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 91 | `TranslationSuggestion` submission UI — bilingual readers can propose better translations | ⬜ | API route exists at `/api/translations/submit` |
-| 92 | Voting UI for translation suggestions | ⬜ | API route exists at `/api/translations/vote` |
-| 93 | Auto-promote community translation to canonical when votes > threshold | ⬜ | Promotion logic in `/api/translations/[id]` |
+| 91 | `TranslationSuggestion` submission UI — bilingual readers can propose better translations | ✅ | Inline suggestion form in chapter reader translation banner; POSTs to new `/api/fan-translations/[id]/suggest` endpoint |
+| 92 | Voting UI for translation suggestions | ✅ | Star rating widget (1–5) in translation banner; POSTs to new `/api/fan-translations/[id]/rate`; resets on language change |
+| 93 | Auto-promote community translation to canonical when votes > threshold | ✅ | Auto-promote fires in rate endpoint when ratingCount ≥ 5 and avgQuality ≥ 4.0; updates `section.defaultTranslationIdByLanguage` |
 | 94 | `TranslatorProfile` hub — track translator reputation and language badges | ⬜ | Schema exists; needs UI in Creator Hub |
 
 ---

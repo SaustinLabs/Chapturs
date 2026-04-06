@@ -5,7 +5,7 @@ import { prisma } from '@/lib/database/PrismaService'
 import { translateOnDemand, translateBatchChunked } from '@/lib/translation'
 
 // Short-lived in-memory cache keyed by `${workId}:${chapterId}:${lang}`
-const aiCache = new Map<string, { content: any[]; translatedTitle: string }>()
+const aiCache = new Map<string, { content: any[]; translatedTitle: string; translationId?: string }>()
 
 // ---------------------------------------------------------------------------
 // Rate limiter — max 20 translation calls per IP per hour
@@ -124,6 +124,7 @@ export async function GET(
           title: translation.translatedTitle,
           content: JSON.parse(translation.translatedContent),
           source: translation.tier,
+          translationId: defaultTransId,
         })
       }
     }
@@ -137,6 +138,7 @@ export async function GET(
         title: cached.translatedTitle,
         content: cached.translatedContent,
         source: 'TIER_1_OFFICIAL',
+        translationId: cached.translationId ?? null,
       })
     }
 
@@ -149,39 +151,48 @@ export async function GET(
       lang
     )
 
-    // Store in process cache
-    aiCache.set(cacheKey, { translatedTitle, translatedContent })
-
     // Persist to DB so future requests skip the LLM entirely.
     // Uses upsert to handle the unique(chapterId, languageCode, tier) constraint.
     // translatorId is null — AI translations have no user FK.
-    prisma.fanTranslation.upsert({
-      where: { chapterId_languageCode_tier: { chapterId, languageCode: lang, tier: 'TIER_1_OFFICIAL' } },
-      create: {
-        workId,
-        chapterId,
-        languageCode: lang,
-        status: 'active',
-        tier: 'TIER_1_OFFICIAL',
-        translatorId: null,
-        translatedTitle,
-        translatedContent: JSON.stringify(translatedContent),
-        qualityOverall: 0,
-        ratingCount: 0,
-        editCount: 0,
-      },
-      update: {
-        translatedTitle,
-        translatedContent: JSON.stringify(translatedContent),
-        updatedAt: new Date(),
-      },
-    }).catch((e) => console.error('Failed to persist AI translation:', e))
+    // Awaited so we can capture the DB id for the rating/suggestion UI.
+    let dbTranslationId: string | null = null
+    try {
+      const saved = await prisma.fanTranslation.upsert({
+        where: { chapterId_languageCode_tier: { chapterId, languageCode: lang, tier: 'TIER_1_OFFICIAL' } },
+        create: {
+          workId,
+          chapterId,
+          languageCode: lang,
+          status: 'active',
+          tier: 'TIER_1_OFFICIAL',
+          translatorId: null,
+          translatedTitle,
+          translatedContent: JSON.stringify(translatedContent),
+          qualityOverall: 0,
+          ratingCount: 0,
+          editCount: 0,
+        },
+        update: {
+          translatedTitle,
+          translatedContent: JSON.stringify(translatedContent),
+          updatedAt: new Date(),
+        },
+        select: { id: true },
+      })
+      dbTranslationId = saved.id
+    } catch (e) {
+      console.error('Failed to persist AI translation:', e)
+    }
+
+    // Store in process cache (with id for subsequent cached responses)
+    aiCache.set(cacheKey, { translatedTitle, translatedContent, translationId: dbTranslationId ?? undefined })
 
     return NextResponse.json({
       language: lang,
       title: translatedTitle,
       content: translatedContent,
       source: 'TIER_1_OFFICIAL',
+      translationId: dbTranslationId,
     })
   } catch (error) {
     console.error('Translation content fetch failed:', error)

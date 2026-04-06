@@ -110,7 +110,7 @@ export default function StoryPageClient({ initialWork, aiReview, featuredComment
       } catch (err) {
         console.error('Error fetching story data:', err)
         if (!initialWork) {
-          setError(err instanceof Error ? err.message : 'Failed to load story')
+          setError('This story couldn\'t be loaded right now. Please try refreshing the page.')
         }
       } finally {
         setLoading(false)

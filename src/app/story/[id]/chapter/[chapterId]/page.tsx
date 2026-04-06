@@ -102,6 +102,11 @@ export default function ChapterPage() {
   const [readingSettings, setReadingSettings] = useState<ReaderSettings>(DEFAULT_READER_SETTINGS)
   const [targetLanguage, setTargetLanguage] = useState('en')
   const [detectedLanguage, setDetectedLanguage] = useState('en') // what we detected on load
+  const [translationId, setTranslationId] = useState<string | null>(null)
+  const [translationRating, setTranslationRating] = useState<number | null>(null)
+  const [showSuggestForm, setShowSuggestForm] = useState(false)
+  const [suggestText, setSuggestText] = useState('')
+  const [suggestError, setSuggestError] = useState('')
   const [baseSection, setBaseSection] = useState<Section | null>(null)
   const [loading, setLoading] = useState(true)
   const [characters, setCharacters] = useState<ReaderCharacter[]>([])
@@ -385,6 +390,13 @@ export default function ChapterPage() {
   useEffect(() => {
     if (!baseSection || !storyId || !chapterId) return
 
+    // Reset community feedback state when language changes
+    setTranslationId(null)
+    setTranslationRating(null)
+    setShowSuggestForm(false)
+    setSuggestText('')
+    setSuggestError('')
+
     const fetchTranslation = async () => {
       try {
         const res = await fetch(`/api/chapter/${storyId}/${chapterId}/content?lang=${targetLanguage}`, {
@@ -398,6 +410,7 @@ export default function ChapterPage() {
               title: data.title,
               content: data.content
             }))
+            setTranslationId(data.translationId ?? null)
           } else {
             console.log('No translation content available')
           }
@@ -1264,24 +1277,117 @@ export default function ChapterPage() {
 
           {/* Translation banner — shown when a translation is active */}
           {targetLanguage !== 'en' && (
-            <div className="mt-4 flex items-center justify-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-              <span>
-                🌐 Translated from{' '}
-                <span className="font-medium text-gray-700 dark:text-gray-300">English</span>
-                {' '}to{' '}
-                <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {new Intl.DisplayNames(['en'], { type: 'language' }).of(targetLanguage) ?? targetLanguage.toUpperCase()}
+            <div className="mt-4 space-y-2">
+              {/* Row 1: info + show original */}
+              <div className="flex items-center justify-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                <span>
+                  🌐 Translated from{' '}
+                  <span className="font-medium text-gray-700 dark:text-gray-300">English</span>
+                  {' '}to{' '}
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {new Intl.DisplayNames(['en'], { type: 'language' }).of(targetLanguage) ?? targetLanguage.toUpperCase()}
+                  </span>
                 </span>
-              </span>
-              <button
-                onClick={() => {
-                  setTargetLanguage('en')
-                  setDetectedLanguage('en')
-                }}
-                className="underline underline-offset-2 hover:text-gray-900 dark:hover:text-white transition-colors"
-              >
-                Show original
-              </button>
+                <button
+                  onClick={() => {
+                    setTargetLanguage('en')
+                    setDetectedLanguage('en')
+                    setTranslationId(null)
+                    setTranslationRating(null)
+                  }}
+                  className="underline underline-offset-2 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  Show original
+                </button>
+              </div>
+
+              {/* Row 2: star rating + suggest (only when we have a persisted translation ID) */}
+              {translationId && session?.user?.id && !showSuggestForm && (
+                <div className="flex items-center justify-center gap-4 text-xs text-gray-400 dark:text-gray-500">
+                  <div className="flex items-center gap-0.5">
+                    <span className="mr-1">Rate:</span>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => {
+                          setTranslationRating(star)
+                          fetch(`/api/fan-translations/${translationId}/rate`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ rating: star }),
+                          }).catch(() => {})
+                        }}
+                        className={`text-base leading-none transition-colors ${
+                          (translationRating ?? 0) >= star
+                            ? 'text-yellow-400'
+                            : 'text-gray-300 dark:text-gray-600 hover:text-yellow-300'
+                        }`}
+                        aria-label={`Rate ${star} stars`}
+                      >
+                        ★
+                      </button>
+                    ))}
+                    {translationRating !== null && (
+                      <span className="ml-1">✔️</span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setShowSuggestForm(true)}
+                    className="underline underline-offset-2 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                  >
+                    ✏️ Suggest improvement
+                  </button>
+                </div>
+              )}
+
+              {/* Inline suggestion form */}
+              {translationId && showSuggestForm && (
+                <div className="mx-auto max-w-sm space-y-2">
+                  <textarea
+                    value={suggestText}
+                    onChange={(e) => setSuggestText(e.target.value)}
+                    placeholder="Paste a better translation for any passage you found awkward…"
+                    rows={3}
+                    className="w-full rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-xs text-gray-700 dark:text-gray-300 p-2 resize-none focus:outline-none focus:ring-1 focus:ring-blue-400"
+                  />
+                  {suggestError && (
+                    <p className="text-xs text-red-500">{suggestError}</p>
+                  )}
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() => { setShowSuggestForm(false); setSuggestText(''); setSuggestError('') }}
+                      className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (!suggestText.trim()) return
+                        setSuggestError('')
+                        try {
+                          const res = await fetch(`/api/fan-translations/${translationId}/suggest`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ suggestedText: suggestText }),
+                          })
+                          if (res.ok) {
+                            setShowSuggestForm(false)
+                            setSuggestText('')
+                          } else {
+                            const d = await res.json()
+                            setSuggestError(d.error || 'Failed to submit. Try again.')
+                          }
+                        } catch {
+                          setSuggestError('Failed to submit. Try again.')
+                        }
+                      }}
+                      className="rounded bg-blue-500 px-3 py-1 text-xs text-white hover:bg-blue-600 transition-colors"
+                    >
+                      Submit
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
