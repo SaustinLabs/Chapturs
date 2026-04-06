@@ -116,12 +116,24 @@ export interface AssessmentPromptContext {
 export interface LLMAssessmentResponse {
   scores: QualityScores
   discoveryTags: string[]
+  semanticProfile?: WorkSemanticProfileData  // structured profile for content-based matching
   qualityTier: QualityTier
   feedbackMessage: string
   readerBlurb?: string         // Reader-facing 1-2 sentence description (stored as earlyReview)
   confidence: number           // 0-1 confidence in assessment
   processingTime: number
   tokenCount: number
+}
+
+// Structured semantic descriptors extracted by the LLM alongside quality assessment.
+// Used for content-based similarity matching via Jaccard distance.
+export interface WorkSemanticProfileData {
+  tone: string[]        // e.g. ["dark", "hopeful", "bittersweet"]
+  themes: string[]      // e.g. ["redemption", "found-family", "political-intrigue"]
+  tropes: string[]      // e.g. ["enemies-to-lovers", "chosen-one", "mentor-death"]
+  pacing: string        // "slow-burn" | "action-packed" | "measured" | "episodic"
+  perspective: string   // "first-person" | "third-limited" | "third-omniscient" | "second-person"
+  audience: string      // "young-adult" | "new-adult" | "adult" | "all-ages"
 }
 
 export interface QueueItem {

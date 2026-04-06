@@ -21,6 +21,7 @@ import {
   estimateCost,
   DEFAULT_ASSESSMENT_CONFIG,
 } from './llm-service'
+import { saveSemanticProfile } from '@/lib/recommendations/similarity'
 
 const prisma = new PrismaClient()
 
@@ -285,6 +286,18 @@ export async function processNextInQueue(): Promise<QualityAssessmentResult | nu
         success: true,
       },
     })
+
+    // Fire-and-forget: persist semantic profile + compute similarity against other works.
+    // This is non-blocking — a failure here never fails the QA assessment itself.
+    if (llmResponse.semanticProfile) {
+      saveSemanticProfile(
+        queueItem.workId,
+        llmResponse.semanticProfile,
+        llmResponse.discoveryTags
+      ).catch((err) =>
+        console.error('[Similarity] Failed to save semantic profile for', queueItem.workId, err)
+      )
+    }
 
     // Mark queue item as completed
     await prisma.qualityAssessmentQueue.update({

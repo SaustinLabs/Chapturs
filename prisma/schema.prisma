@@ -240,6 +240,9 @@ model Work {
   recommendationFeedback RecommendationFeedback[]
   similarityWork1        ContentSimilarity[]      @relation("SimilarityWork1")
   similarityWork2        ContentSimilarity[]      @relation("SimilarityWork2")
+  semanticProfile        WorkSemanticProfile?
+  authorRecommendations  AuthorRecommendation[]   @relation("WorkAuthorRecs")
+  authorRecommendedBy    AuthorRecommendation[]   @relation("WorkAuthorRecsTarget")
 
   // Monetization relations
   adPlacements          AdPlacement[]
@@ -718,6 +721,41 @@ model TrendingMetric {
   @@index([trendingScore(sort: Desc)])
   @@index([velocity24h(sort: Desc)])
   @@map("trending_metrics")
+}
+
+// LLM-extracted semantic profile for content-based similarity matching.
+// Populated as a side-effect of quality assessment — zero extra LLM cost.
+model WorkSemanticProfile {
+  workId      String   @id
+  tone        String   // JSON: string[] e.g. ["dark","hopeful"]
+  themes      String   // JSON: string[] e.g. ["redemption","found-family"]
+  tropes      String   // JSON: string[] e.g. ["enemies-to-lovers"]
+  pacing      String   // "slow-burn"|"action-packed"|"measured"|"episodic"
+  perspective String   // "first-person"|"third-limited"|"third-omniscient"|"second-person"
+  audience    String   // "young-adult"|"new-adult"|"adult"|"all-ages"
+  allTags     String   // JSON: merged flat tag set used for Jaccard scoring
+  computedAt  DateTime @default(now())
+
+  work Work @relation(fields: [workId], references: [id], onDelete: Cascade)
+
+  @@map("work_semantic_profiles")
+}
+
+// Author curated companion works — shown first in "Readers Also Enjoyed".
+// Authors can pin up to 4 works they believe readers of their story would enjoy.
+model AuthorRecommendation {
+  id                String   @id @default(cuid())
+  workId            String   // The work whose sidebar this appears on
+  recommendedWorkId String   // The companion work being surfaced
+  sortOrder         Int      @default(0) // 0–3 for up to 4 picks
+  createdAt         DateTime @default(now())
+
+  work            Work @relation("WorkAuthorRecs", fields: [workId], references: [id], onDelete: Cascade)
+  recommendedWork Work @relation("WorkAuthorRecsTarget", fields: [recommendedWorkId], references: [id], onDelete: Cascade)
+
+  @@unique([workId, recommendedWorkId])
+  @@index([workId, sortOrder])
+  @@map("author_recommendations")
 }
 
 // Search Analytics - Track search behavior for recommendation improvement

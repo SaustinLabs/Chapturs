@@ -42,6 +42,7 @@ interface RelatedWork {
   author: { username: string; displayName: string | null }
   genres: string[]
   status: string
+  signalSource?: 'author' | 'collaborative' | 'semantic' | 'trending' | 'popular'
 }
 
 interface FeaturedComment {

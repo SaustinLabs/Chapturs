@@ -118,7 +118,9 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | 46 | Series and Volumes grouping | ⬜ |
 | 47 | Series subscription (one click covers all works in a set) | ⬜ |
 | 48 | Reader-to-reader recommendation ("finished X → also loved Y") | ⬜ |
-| 49 | "Readers Also Enjoyed" block on story pages | ✅ | Server-side Prisma query in story `page.tsx`, rendered as a 2×4 cover grid under chapter list |
+| 49 | "Readers Also Enjoyed" block on story pages | ✅ | Smart cascade: author picks → collaborative signals → semantic LLM Jaccard → trending → popular. `WorkSemanticProfile` + `AuthorRecommendation` schema, `similarity.ts` service, `/api/works/[id]/related`. |
+| 49a | Author-curated "Readers Also Enjoyed" picks — Creator Hub UI | ⬜ | API exists (`PUT /api/works/[id]/author-recommendations`, max 4). Need a work-search autocomplete + list UI in Story Management settings. |
+| 49b | Collaborative signal cron/trigger — periodically call `computeCollaborativeSignals` | ⬜ | Hook exists; needs a scheduled API route or admin trigger to run it for works with sufficient readership. |
 
 ---
 
@@ -248,4 +250,5 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 | Community referral links system |
 | Signup tracking with 30s polling |
 | FEATURE_ROADMAP.md refreshed |
-| Cloudflare Email Routing (done by you) |
+| "Readers Also Enjoyed" — smart similarity cascade: author picks → collaborative signals → semantic LLM tags → trending → popular fallback. WorkSemanticProfile + AuthorRecommendation schema, similarity service, `/api/works/[id]/related`, `/api/works/[id]/author-recommendations`. LLM now emits structured `semanticProfile` alongside QA assessment (zero extra cost). `ContentSimilarity` table auto-populated after every QA run. Author UI pending — see TASKS below. |
+| Author-curated companion works API — `PUT /api/works/[id]/author-recommendations` (max 4, auth-gated to work owner) |

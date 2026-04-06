@@ -181,6 +181,15 @@ If overall score < 70: Provide ONE constructive tip (gentle, specific, actionabl
 READER BLURB:
 Write 1-2 sentences a potential reader would see on the story page to decide if they want to read this. Write like a book reviewer — compelling, specific, not generic. Example: "A slow-burn rivals-to-lovers romance set in a morally grey magical academy. Fans of enemies-to-lovers and political intrigue will find it hard to put down."
 
+SEMANTIC PROFILE (for content-based similarity matching):
+Analyse the writing style and produce a structured profile used to match this story with others readers might enjoy:
+- tone: 2-4 adjectives for emotional atmosphere (e.g. ["dark","hopeful","tense"])
+- themes: 2-5 core themes (e.g. ["redemption","found-family","power-corruption"])
+- tropes: 1-4 story tropes present (e.g. ["enemies-to-lovers","chosen-one","mentor-death"])
+- pacing: exactly one of "slow-burn", "action-packed", "measured", "episodic"
+- perspective: exactly one of "first-person", "third-limited", "third-omniscient", "second-person"
+- audience: exactly one of "young-adult", "new-adult", "adult", "all-ages"
+
 GUIDELINES:
 - "Exceptional" (85+): Rare, standout work
 - "Strong" (70-84): Good publication potential
@@ -201,6 +210,14 @@ Respond ONLY with valid JSON:
     "originality": number
   },
   "discoveryTags": [array of 5-15 string tags],
+  "semanticProfile": {
+    "tone": ["string", "string"],
+    "themes": ["string"],
+    "tropes": ["string"],
+    "pacing": "slow-burn | action-packed | measured | episodic",
+    "perspective": "first-person | third-limited | third-omniscient | second-person",
+    "audience": "young-adult | new-adult | adult | all-ages"
+  },
   "qualityTier": "exceptional" | "strong" | "developing" | "needs_work",
   "feedbackMessage": "one sentence for author",
   "readerBlurb": "1-2 sentence reader-facing description",
@@ -287,6 +304,7 @@ export async function assessContentQuality(
     return {
       scores: { ...scores, overallScore },
       discoveryTags: parsed.discoveryTags || [],
+      semanticProfile: parsed.semanticProfile ?? undefined,
       qualityTier: parsed.qualityTier,
       feedbackMessage: parsed.feedbackMessage,
       readerBlurb: parsed.readerBlurb,

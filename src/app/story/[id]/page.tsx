@@ -5,6 +5,7 @@ import StoryPageClient from '@/components/story/StoryPageClient'
 import PrismaService from '@/lib/database/PrismaService'
 import { prisma } from '@/lib/database/PrismaService'
 import { resolveCoverSrc } from '@/lib/images'
+import { getRelatedWorks } from '@/lib/recommendations/similarity'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -85,43 +86,8 @@ export default async function StoryPage({ params }: Props) {
     },
   })
 
-  // Fetch "Readers Also Enjoyed" — works sharing the primary genre, sorted by popularity
-  const primaryGenre = genres[0] ?? null
-  const relatedWorksRaw = primaryGenre
-    ? await prisma.work.findMany({
-        where: {
-          id: { not: id },
-          status: { not: 'draft' },
-          genres: { contains: primaryGenre },
-        },
-        select: {
-          id: true,
-          title: true,
-          coverImage: true,
-          status: true,
-          genres: true,
-          author: {
-            select: {
-              user: { select: { username: true, displayName: true } },
-            },
-          },
-        },
-        orderBy: { viewCount: 'desc' },
-        take: 4,
-      })
-    : []
-
-  const relatedWorks = relatedWorksRaw.map((w) => ({
-    id: w.id,
-    title: w.title,
-    coverImage: w.coverImage,
-    status: w.status,
-    genres: (() => { try { return JSON.parse(w.genres) as string[] } catch { return [] } })(),
-    author: {
-      username: w.author.user.username,
-      displayName: w.author.user.displayName,
-    },
-  }))
+  // Fetch "Readers Also Enjoyed" — uses cascade: author picks → collaborative → semantic → trending → popular
+  const relatedWorks = await getRelatedWorks(id, genres, 4)
 
   const jsonLd = {
     '@context': 'https://schema.org',
