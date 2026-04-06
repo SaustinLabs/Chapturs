@@ -1,6 +1,21 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import {
+  useFloating,
+  autoUpdate,
+  offset,
+  flip,
+  shift,
+  arrow,
+  FloatingPortal,
+  useInteractions,
+  useHover,
+  useClick,
+  useDismiss,
+  useRole,
+  FloatingArrow,
+} from '@floating-ui/react'
 import { GlossaryTerm } from '@/types'
 
 interface GlossaryTooltipProps {
@@ -10,14 +25,10 @@ interface GlossaryTooltipProps {
 }
 
 export function GlossaryTooltip({ term, definition, children }: GlossaryTooltipProps) {
-  const [visible, setVisible] = useState(false)
-  const [pos, setPos] = useState({ x: 0, y: 0 })
-  const [pinchDistance, setPinchDistance] = useState<number | null>(null)
+  const [open, setOpen] = useState(false)
   const [isTouchDevice, setIsTouchDevice] = useState(false)
-  const triggerRef = useRef<HTMLSpanElement>(null)
-  const tooltipRef = useRef<HTMLSpanElement>(null)
-
-  const TOOLTIP_W = 288 // matches w-72
+  const arrowRef = useRef(null)
+  const pinchDistanceRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -25,42 +36,29 @@ export function GlossaryTooltip({ term, definition, children }: GlossaryTooltipP
     }
   }, [])
 
-  // Dismiss on tap-outside when tooltip is open on mobile
-  useEffect(() => {
-    if (!visible || !isTouchDevice) return
-    const dismiss = (e: MouseEvent | TouchEvent) => {
-      if (
-        triggerRef.current?.contains(e.target as Node) ||
-        tooltipRef.current?.contains(e.target as Node)
-      ) return
-      setVisible(false)
-    }
-    document.addEventListener('click', dismiss, { capture: true })
-    document.addEventListener('touchend', dismiss, { capture: true })
-    return () => {
-      document.removeEventListener('click', dismiss, { capture: true })
-      document.removeEventListener('touchend', dismiss, { capture: true })
-    }
-  }, [visible, isTouchDevice])
+  const { refs, floatingStyles, context, placement } = useFloating({
+    open,
+    onOpenChange: setOpen,
+    placement: 'top',
+    middleware: [
+      offset(10),
+      flip({ fallbackPlacements: ['bottom', 'top'] }),
+      shift({ padding: 8 }),
+      arrow({ element: arrowRef }),
+    ],
+    whileElementsMounted: autoUpdate,
+  })
 
-  const show = () => {
-    if (triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect()
-      const vw = typeof window !== 'undefined' ? window.innerWidth : 1440
-      // Center tooltip over the term, clamped so it never bleeds off either edge
-      const cx = Math.max(
-        TOOLTIP_W / 2 + 8,
-        Math.min(vw - TOOLTIP_W / 2 - 8, rect.left + rect.width / 2)
-      )
-      setPos({ x: cx, y: rect.top })
-    }
-    setVisible(true)
-  }
-  const hide = () => setVisible(false)
+  const hover = useHover(context, { enabled: !isTouchDevice, delay: { open: 120, close: 80 } })
+  const click = useClick(context, { enabled: isTouchDevice })
+  const dismiss = useDismiss(context)
+  const role = useRole(context, { role: 'tooltip' })
+
+  const { getReferenceProps, getFloatingProps } = useInteractions([hover, click, dismiss, role])
 
   const openMobileGlossary = () => {
     if (typeof window === 'undefined') return
-    setVisible(false)
+    setOpen(false)
     window.dispatchEvent(
       new CustomEvent('reader-open-mobile-glossary', {
         detail: { type: 'term', term },
@@ -68,62 +66,48 @@ export function GlossaryTooltip({ term, definition, children }: GlossaryTooltipP
     )
   }
 
-  const handleClick = (e: React.MouseEvent) => {
-    if (isTouchDevice) {
-      e.preventDefault()
-      if (visible) {
-        hide()
-      } else {
-        show()
-      }
-    } else {
-      openMobileGlossary()
-    }
-  }
-
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
       const [a, b] = [e.touches[0], e.touches[1]]
-      setPinchDistance(Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY))
+      pinchDistanceRef.current = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY)
     }
   }
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length !== 2 || pinchDistance == null) return
+    if (e.touches.length !== 2 || pinchDistanceRef.current == null) return
     const [a, b] = [e.touches[0], e.touches[1]]
     const nextDistance = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY)
-    if (Math.abs(nextDistance - pinchDistance) > 18) {
-      setPinchDistance(null)
+    if (Math.abs(nextDistance - pinchDistanceRef.current) > 18) {
+      pinchDistanceRef.current = null
       openMobileGlossary()
     }
   }
 
-  const handleTouchEnd = () => setPinchDistance(null)
+  const handleTouchEnd = () => { pinchDistanceRef.current = null }
 
   return (
-    <span className="relative inline">
+    <>
       <span
-        ref={triggerRef}
-        onMouseEnter={isTouchDevice ? undefined : show}
-        onMouseLeave={isTouchDevice ? undefined : hide}
-        onClick={handleClick}
-        onDoubleClick={openMobileGlossary}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        ref={refs.setReference}
+        {...getReferenceProps({
+          onTouchStart: handleTouchStart,
+          onTouchMove: handleTouchMove,
+          onTouchEnd: handleTouchEnd,
+          onDoubleClick: openMobileGlossary,
+        })}
         className="cursor-help border-b border-dotted border-blue-500/60 text-blue-400 hover:text-blue-300 hover:border-blue-400/80 transition-colors"
       >
         {children}
       </span>
 
-      {visible && (
-        <span
-          ref={tooltipRef}
-          className={`fixed z-50 ${isTouchDevice ? 'pointer-events-auto' : 'pointer-events-none'}`}
-          style={{ left: pos.x, top: pos.y, transform: 'translate(-50%, calc(-100% - 12px))' }}
-          onClick={(e) => { if (isTouchDevice) e.stopPropagation() }}
-        >
-          <span className="block w-72 p-3 rounded-xl text-sm leading-relaxed bg-gray-900/95 backdrop-blur-md border border-gray-700/60 shadow-2xl shadow-black/50">
+      {open && (
+        <FloatingPortal>
+          <div
+            ref={refs.setFloating}
+            style={floatingStyles}
+            {...getFloatingProps()}
+            className={`z-[9999] w-72 p-3 rounded-xl text-sm leading-relaxed bg-gray-900/95 backdrop-blur-md border border-gray-700/60 shadow-2xl shadow-black/50 ${isTouchDevice ? 'pointer-events-auto' : 'pointer-events-none'}`}
+          >
             <span className="font-semibold text-gray-100 block mb-1">{term}</span>
             <span className="text-gray-300">{definition}</span>
             {isTouchDevice && (
@@ -134,12 +118,15 @@ export function GlossaryTooltip({ term, definition, children }: GlossaryTooltipP
                 See all terms →
               </button>
             )}
-            {/* Downward caret pointing at the term */}
-            <span className="absolute left-1/2 -translate-x-1/2 top-full -mt-px border-[6px] border-transparent border-t-gray-800" />
-          </span>
-        </span>
+            <FloatingArrow
+              ref={arrowRef}
+              context={context}
+              className="fill-gray-900"
+            />
+          </div>
+        </FloatingPortal>
       )}
-    </span>
+    </>
   )
 }
 
