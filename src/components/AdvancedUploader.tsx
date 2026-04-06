@@ -134,10 +134,9 @@ export default function AdvancedUploader({
         sections = await processTextFile(text, formatType)
         preview = text.substring(0, 500) + (text.length > 500 ? '...' : '')
       } 
-      else if (file.name.endsWith('.docx')) {
-        // Simulate DOCX processing (would need actual parser in production)
-        sections = await simulateDocxProcessing(file)
-        preview = 'DOCX document processed successfully'
+      else if (file.name.endsWith('.docx') || file.name.toLowerCase().endsWith('.pdf')) {
+        sections = await parseDocumentFile(file)
+        preview = `${file.name} parsed successfully`
       }
       else if (file.type.startsWith('image/') || file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
         sections = await processImageFile(file)
@@ -232,20 +231,28 @@ export default function AdvancedUploader({
     ]
   }
 
-  // Simulate DOCX processing
-  const simulateDocxProcessing = async (file: File): Promise<ProcessedSection[]> => {
-    // In production, this would use a library like mammoth.js
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    return [
-      {
-        title: `Content from ${file.name}`,
-        content: `Processed content from ${file.name}. This would contain the actual document text in a real implementation.`,
-        order: 1,
-        wordCount: 500,
-        type: formatType === 'novel' ? 'chapter' : 'section'
-      }
-    ]
+  // Parse DOCX or PDF via server-side API, then split into sections
+  const parseDocumentFile = async (file: File): Promise<ProcessedSection[]> => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const res = await fetch('/api/upload/parse-document', {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || `Failed to parse ${file.name}`)
+    }
+
+    const { text } = await res.json()
+    if (!text?.trim()) {
+      throw new Error('No readable text found in this document. It may be a scanned image PDF.')
+    }
+
+    const sections = await processTextFile(text, formatType)
+    return sections
   }
 
   // Process image files
