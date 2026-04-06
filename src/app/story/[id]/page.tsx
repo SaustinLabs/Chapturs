@@ -85,6 +85,44 @@ export default async function StoryPage({ params }: Props) {
     },
   })
 
+  // Fetch "Readers Also Enjoyed" — works sharing the primary genre, sorted by popularity
+  const primaryGenre = genres[0] ?? null
+  const relatedWorksRaw = primaryGenre
+    ? await prisma.work.findMany({
+        where: {
+          id: { not: id },
+          status: { not: 'draft' },
+          genres: { contains: primaryGenre },
+        },
+        select: {
+          id: true,
+          title: true,
+          coverImage: true,
+          status: true,
+          genres: true,
+          author: {
+            select: {
+              user: { select: { username: true, displayName: true } },
+            },
+          },
+        },
+        orderBy: { viewCount: 'desc' },
+        take: 4,
+      })
+    : []
+
+  const relatedWorks = relatedWorksRaw.map((w) => ({
+    id: w.id,
+    title: w.title,
+    coverImage: w.coverImage,
+    status: w.status,
+    genres: (() => { try { return JSON.parse(w.genres) as string[] } catch { return [] } })(),
+    author: {
+      username: w.author.user.username,
+      displayName: w.author.user.displayName,
+    },
+  }))
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Book',
@@ -114,7 +152,7 @@ export default async function StoryPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <StoryPageClient initialWork={work as any} aiReview={aiReview} featuredComments={featuredComments as any} />
+      <StoryPageClient initialWork={work as any} aiReview={aiReview} featuredComments={featuredComments as any} relatedWorks={relatedWorks} />
     </AppLayout>
   )
 }

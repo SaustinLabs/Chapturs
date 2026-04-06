@@ -17,6 +17,7 @@ import {
   HeartIcon as HeartSolid,
   StarIcon as StarSolid
 } from '@heroicons/react/24/solid'
+import Link from 'next/link'
 import Image from 'next/image'
 import { resolveCoverSrc } from '@/lib/images'
 import StoryPageSkeleton from '@/components/ui/StoryPageSkeleton'
@@ -30,6 +31,17 @@ interface StoryPageClientProps {
   aiReview?: string | null
   /** Pre-fetched featured comments for the story page carousel. */
   featuredComments?: FeaturedComment[]
+  /** Works in the same genre(s), pre-fetched server-side, shown as 'Readers Also Enjoyed'. */
+  relatedWorks?: RelatedWork[]
+}
+
+interface RelatedWork {
+  id: string
+  title: string
+  coverImage: string | null
+  author: { username: string; displayName: string | null }
+  genres: string[]
+  status: string
 }
 
 interface FeaturedComment {
@@ -40,7 +52,7 @@ interface FeaturedComment {
   featuredAt: string | null
 }
 
-export default function StoryPageClient({ initialWork, aiReview, featuredComments: initialFeaturedComments = [] }: StoryPageClientProps) {
+export default function StoryPageClient({ initialWork, aiReview, featuredComments: initialFeaturedComments = [], relatedWorks = [] }: StoryPageClientProps) {
   const params = useParams()
   const router = useRouter()
   const storyId = params?.id as string
@@ -573,6 +585,40 @@ export default function StoryPageClient({ initialWork, aiReview, featuredComment
             )}
           </div>
         </div>
+
+        {/* Readers Also Enjoyed */}
+        {relatedWorks.length > 0 && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Readers Also Enjoyed</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {relatedWorks.map((w) => (
+                <Link key={w.id} href={`/story/${w.id}`} className="group">
+                  <div className="aspect-[2/3] relative rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700 mb-2">
+                    {w.coverImage ? (
+                      <Image
+                        src={resolveCoverSrc(w.id, w.coverImage)}
+                        alt={w.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-200"
+                        sizes="(max-width: 640px) 45vw, 20vw"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-600 dark:to-gray-700">
+                        <span className="text-3xl">📖</span>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight">
+                    {w.title}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {w.author.displayName || w.author.username}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {story && (

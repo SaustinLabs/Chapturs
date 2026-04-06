@@ -8,6 +8,7 @@ import ErrorBoundary from '@/components/ErrorBoundary'
 import TasteProfileSurvey from '@/components/onboarding/TasteProfileSurvey'
 import { useUser } from '@/hooks/useUser'
 import { signIn } from 'next-auth/react'
+import NewAndPromisingSection from '@/components/NewAndPromisingSection'
 import { clearFeedSnapshot } from '@/lib/feedCache'
 
 function ReaderHomePage() {
@@ -115,6 +116,9 @@ function ReaderHomePage() {
           </p>
         </div>
       )}
+
+      {/* New & Promising — horizontal scroll strip of recent works */}
+      <NewAndPromisingSection />
 
       {/* Infinite Feed - visible to everyone */}
       <ErrorBoundary name="Feed">

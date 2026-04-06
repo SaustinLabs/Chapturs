@@ -28,7 +28,7 @@
 ### Legal & Content Policy
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 9 | Write a dedicated DMCA policy page (`/dmca`) | ⬜ | `dmca@` address now exists, but there's no formal policy page — legally expected |
+| 9 | Write a dedicated DMCA policy page (`/dmca`) | ✅ | `/app/dmca/page.tsx` — full takedown + counter-notice procedure, links `dmca@chapturs.com` |
 | 10 | Review Terms of Service — ensure it mentions AI-generated content rules | ⬜ | With AI author bots planned, terms should cover this now |
 | 11 | Age verification / parental advisory for mature-rated works | ⬜ | Maturity rating field exists, no reader-side gate |
 | 12 | Privacy policy audit — confirm GDPR/CCPA delete-account flow works | ⬜ | Delete account doesn't appear to be wired up end-to-end |
@@ -49,8 +49,8 @@
 | # | Task | Status | Notes |
 |---|---|---|---|
 | 17 | Feed reads `community_genres` cookie for cold-start seeding | ✅ | Cookie read in feed API; genre-matching works floated to top for guest visitors arriving via community links |
-| 18 | Browse page: filter by genre, tags, completion status, update frequency | ⬜ | Search exists, no browse/filter experience |
-| 19 | "New and Promising" section on homepage | ⬜ | For AI-scored strong chapters by new creators — easy retention win |
+| 18 | Browse page: filter by genre, tags, completion status, update frequency | ✅ | URL-driven `/browse` — genre pills, status/sort pills, cover-image grid, load-more; no search query required |
+| 19 | "New and Promising" section on homepage | ✅ | `NewAndPromisingSection.tsx` — horizontal scroll strip of recent works above InfiniteFeed |
 | 20 | Trending page | ⬜ | Beyond the feed — dedicated trending works list |
 
 ### Content Seeding
@@ -118,7 +118,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | 46 | Series and Volumes grouping | ⬜ |
 | 47 | Series subscription (one click covers all works in a set) | ⬜ |
 | 48 | Reader-to-reader recommendation ("finished X → also loved Y") | ⬜ |
-| 49 | "Readers Also Enjoyed" block on story pages | ⬜ |
+| 49 | "Readers Also Enjoyed" block on story pages | ✅ | Server-side Prisma query in story `page.tsx`, rendered as a 2×4 cover grid under chapter list |
 
 ---
 
@@ -204,9 +204,9 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 |---|---|---|---|
 | 83 | Real LLM translation in chapter content route | ✅ | `translateBatch` from `src/lib/translation.ts` wired into content route; uses `meta-llama/llama-3.1-8b-instruct` via OpenRouter |
 | 84 | Fix `translation.ts` — remove broken `DescriptionTranslation` ref, correct model, batch API | ✅ | Rewrote: `translateOnDemand` + `translateBatch`, correct model, no broken Prisma calls |
-| 85 | Add `preferredLanguage` field to User model + migrate | ⬜ | Needed for auto-detect from user profile; currently falls back to `Accept-Language` header |
-| 86 | Pass `Accept-Language` / user preference as default `targetLanguage` in chapter page | ⬜ | Currently always defaults to `'en'`; should auto-set based on browser locale or user profile |
-| 87 | "Translated from X • Show original" banner in chapter reader | ⬜ | Show when `targetLanguage !== originalLanguage`; allow one-tap to revert. Design: subtle bar below ChapterTopBar |
+| 85 | Add `preferredLanguage` field to User model + migrate | ✅ | Added `preferredLanguage String? @default("en")` to User model; migrated via `prisma db push` in deploy workflow |
+| 86 | Pass `Accept-Language` / user preference as default `targetLanguage` in chapter page | ✅ | On mount: fetches user profile preference first, falls back to `navigator.language`; applies if in SUPPORTED_LANGUAGES |
+| 87 | "Translated from X • Show original" banner in chapter reader | ✅ | Banner renders below chapter title when `targetLanguage !== 'en'`; one-tap revert resets language + detectedLanguage state |
 
 ### Phase 2 — Quality & Cost Controls
 
