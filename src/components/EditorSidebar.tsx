@@ -202,41 +202,29 @@ export default function EditorSidebar({
           </button>
           <button
             onClick={() => setActiveTab('glossary')}
-            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`flex-1 px-2 py-3 text-sm font-medium transition-colors ${
               activeTab === 'glossary'
                 ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 bg-white dark:bg-gray-700'
                 : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
-            <span className="inline-flex items-center gap-1">
-              <BookOpen size={16} className="inline" />
-              Glossary
-              <FeatureHint title="About the Glossary">
-                <p>Define terms, places, and concepts from your world. When you highlight a word in a chapter and link it to a glossary entry, readers can hover over it while reading to see your definition.</p>
-                <p>A powerful way to build immersion without breaking the flow of your story.</p>
-              </FeatureHint>
-            </span>
+            <BookOpen size={16} className="inline mr-1" />
+            Glossary
           </button>
           <button
             onClick={() => setActiveTab('characters')}
-            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`flex-1 px-2 py-3 text-sm font-medium transition-colors ${
               activeTab === 'characters'
                 ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 bg-white dark:bg-gray-700'
                 : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
-            <span className="inline-flex items-center gap-1">
-              <Users size={16} className="inline" />
-              Characters
-              <FeatureHint title="About Characters">
-                <p>Create profile cards for your cast — name, role, appearance, and portrait. Character profiles are visible on your story page so readers always know who's who.</p>
-                <p>You can also tag characters within a chapter, and readers can submit fan art linked to specific characters.</p>
-              </FeatureHint>
-            </span>
+            <Users size={16} className="inline mr-1" />
+            Characters
           </button>
           <button
             onClick={() => setActiveTab('preview')}
-            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`flex-1 px-2 py-3 text-sm font-medium transition-colors ${
               activeTab === 'preview'
                 ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 bg-white dark:bg-gray-700'
                 : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
@@ -304,6 +292,13 @@ export default function EditorSidebar({
               {/* Glossary Tab */}
               {activeTab === 'glossary' && (
                 <div className="space-y-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 leading-snug flex-1">Define world terms — readers hover highlighted words to see your definitions.</p>
+                    <FeatureHint title="About the Glossary" side="left">
+                      <p>Define terms, places, and concepts from your world. When you highlight a word in a chapter and link it to a glossary entry, readers can hover over it while reading to see your definition.</p>
+                      <p>A powerful way to build immersion without breaking the flow of your story.</p>
+                    </FeatureHint>
+                  </div>
                   <button className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center">
                     <Plus size={16} className="mr-2" />
                     Add Term
@@ -351,6 +346,12 @@ export default function EditorSidebar({
                       <Users size={48} className="mx-auto mb-4 opacity-50" />
                       <p>No characters yet</p>
                       <p className="text-sm mt-2">Select a character name in the editor and click &quot;Character&quot; to add a profile</p>
+                      <div className="mt-3 flex justify-center">
+                        <FeatureHint title="About Characters" side="left">
+                          <p>Create profile cards for your cast — name, role, appearance, and portrait. Character profiles are visible on your story page so readers always know who’s who.</p>
+                          <p>You can also tag characters within a chapter, and readers can submit fan art linked to specific characters.</p>
+                        </FeatureHint>
+                      </div>
                     </div>
                   ) : (
                     propCharacters.map((character) => (

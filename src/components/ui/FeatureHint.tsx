@@ -10,6 +10,12 @@ interface FeatureHintProps {
   children: ReactNode
   /** Extra class on the trigger button icon */
   iconClassName?: string
+  /**
+   * Which horizontal side the popup panel opens toward.
+   * 'right' (default) — panel extends rightward from the ? icon (good for left-side usage).
+   * 'left' — panel extends leftward from the ? icon (use when near the right edge of the screen).
+   */
+  side?: 'left' | 'right'
 }
 
 /**
@@ -17,7 +23,7 @@ interface FeatureHintProps {
  * Closes on outside click or pressing the × button.
  * Designed to sit next to section headings, tab labels, or setting labels.
  */
-export function FeatureHint({ title, children, iconClassName }: FeatureHintProps) {
+export function FeatureHint({ title, children, iconClassName, side = 'right' }: FeatureHintProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLSpanElement>(null)
 
@@ -45,7 +51,7 @@ export function FeatureHint({ title, children, iconClassName }: FeatureHintProps
       </button>
 
       {open && (
-        <div className="absolute left-0 top-6 z-50 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl p-4 text-sm">
+        <div className={`absolute top-6 z-50 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl p-4 text-sm ${side === 'left' ? 'right-0' : 'left-0'}`}>
           <div className="flex items-start justify-between mb-2 gap-2">
             <span className="font-semibold text-gray-900 dark:text-gray-100 leading-snug">{title}</span>
             <button

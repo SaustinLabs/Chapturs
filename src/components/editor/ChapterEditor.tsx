@@ -247,13 +247,13 @@ function FloatingInsertMenu({
       onMouseDown={(e) => e.preventDefault()}
     >
       <span className="text-xs text-gray-400 px-1 whitespace-nowrap">Insert:</span>
-      <button onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().toggleHeading({ level: 2 }).run() }} title="Heading" className="p-1 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"><Heading2 size={14} /></button>
-      <button onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().setHorizontalRule().run() }} title="Divider" className="p-1 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"><SplitSquareVertical size={14} /></button>
-      <button onMouseDown={(e) => { e.preventDefault(); onInsert('chat') }} title="Chat block" className="p-1 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"><MessageSquare size={14} /></button>
-      <button onMouseDown={(e) => { e.preventDefault(); onInsert('phone') }} title="Phone UI" className="p-1 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"><Smartphone size={14} /></button>
-      <button onMouseDown={(e) => { e.preventDefault(); onInsert('narration') }} title="Narration" className="p-1 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"><BookOpen size={14} /></button>
-      <button onMouseDown={(e) => { e.preventDefault(); onInsert('dialogue') }} title="Dialogue" className="p-1 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"><Users size={14} /></button>
-      <button onMouseDown={(e) => { e.preventDefault(); onInsert('image') }} title="Image" className="p-1 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"><ImageIcon size={14} /></button>
+      <button onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().toggleHeading({ level: 2 }).run() }} title="Section heading (H2)" className="p-1 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"><Heading2 size={14} /></button>
+      <button onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().setHorizontalRule().run() }} title="Scene break / divider line" className="p-1 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"><SplitSquareVertical size={14} /></button>
+      <button onMouseDown={(e) => { e.preventDefault(); onInsert('chat') }} title="Chat conversation (Discord, WhatsApp, SMS...)" className="p-1 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"><MessageSquare size={14} /></button>
+      <button onMouseDown={(e) => { e.preventDefault(); onInsert('phone') }} title="Phone screen UI (text message thread)" className="p-1 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"><Smartphone size={14} /></button>
+      <button onMouseDown={(e) => { e.preventDefault(); onInsert('narration') }} title="Narration box (author's note, aside, or styled emphasis)" className="p-1 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"><BookOpen size={14} /></button>
+      <button onMouseDown={(e) => { e.preventDefault(); onInsert('dialogue') }} title="Formatted dialogue exchange between characters" className="p-1 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"><Users size={14} /></button>
+      <button onMouseDown={(e) => { e.preventDefault(); onInsert('image') }} title="Insert an image or illustration" className="p-1 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"><ImageIcon size={14} /></button>
     </div>
   )
 }
@@ -358,16 +358,23 @@ export default function ChapterEditor({
       {/* The writing surface */}
       <EditorContent editor={editor} />
 
-      {/* Bottom "add content" button */}
+      {/* Bottom "add paragraph" button */}
       <button
         onMouseDown={(e) => {
           e.preventDefault()
-          editor.chain().focus('end').insertContent('<p></p>').run()
+          const { doc } = editor.state
+          const lastChild = doc.lastChild
+          const alreadyEmpty = lastChild?.type.name === 'paragraph' && lastChild.content.size === 0
+          if (alreadyEmpty) {
+            editor.commands.focus('end')
+          } else {
+            editor.chain().focus('end').insertContent({ type: 'paragraph' }).run()
+          }
         }}
         className="mt-3 flex items-center gap-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm transition-colors"
       >
         <Plus size={16} />
-        Add content
+        Add paragraph
       </button>
     </div>
   )

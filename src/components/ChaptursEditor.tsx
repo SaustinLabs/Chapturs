@@ -599,7 +599,7 @@ export default function ChaptursEditor({
       </button>
 
       {/* Editor Content — sidebar is absolute/overlay so no margin needed */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-900">
         <div className="max-w-4xl mx-auto py-8 px-6 pb-96">
           {isSplitPreview ? (
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">

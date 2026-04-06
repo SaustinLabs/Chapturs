@@ -152,7 +152,7 @@ export function ChatBlockEditor({ block, mode, onUpdate }: ChatBlockEditorProps)
 
   // Edit Mode
   return (
-    <div className="border border-gray-300 rounded-lg p-4 space-y-4">
+    <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 space-y-4 bg-white dark:bg-gray-800">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <MessageCircle size={18} className="text-gray-600" />
@@ -529,7 +529,7 @@ export function PhoneBlockEditor({ block, mode, onUpdate }: PhoneBlockEditorProp
 
   // Edit Mode
   return (
-    <div className="border border-gray-300 rounded-lg p-4 space-y-4">
+    <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 space-y-4 bg-white dark:bg-gray-800">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Phone size={18} className="text-gray-600 dark:text-gray-400" />
