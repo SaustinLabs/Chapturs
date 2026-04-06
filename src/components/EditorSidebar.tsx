@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useState, useEffect } from 'react'
 import { 
@@ -341,25 +341,26 @@ export default function EditorSidebar({
               {/* Characters Tab */}
               {activeTab === 'characters' && (
                 <div className="space-y-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 leading-snug flex-1">Build cast profiles &mdash; readers see each character on your story page.</p>
+                    <FeatureHint title="About Characters" side="left">
+                      <p>Create profile cards for your cast &mdash; name, role, appearance, and portrait. Character profiles are visible on your story page so readers always know who&apos;s who.</p>
+                      <p>You can also tag characters within a chapter, and readers can submit fan art linked to specific characters.</p>
+                    </FeatureHint>
+                  </div>
                   {propCharacters.length === 0 ? (
                     <div className="text-center text-gray-500 py-8">
                       <Users size={48} className="mx-auto mb-4 opacity-50" />
                       <p>No characters yet</p>
                       <p className="text-sm mt-2">Select a character name in the editor and click &quot;Character&quot; to add a profile</p>
-                      <div className="mt-3 flex justify-center">
-                        <FeatureHint title="About Characters" side="right">
-                          <p>Create profile cards for your cast — name, role, appearance, and portrait. Character profiles are visible on your story page so readers always know who’s who.</p>
-                          <p>You can also tag characters within a chapter, and readers can submit fan art linked to specific characters.</p>
-                        </FeatureHint>
-                      </div>
                     </div>
                   ) : (
                     propCharacters.map((character) => (
                       <div key={character.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                         <div className="flex items-start gap-3">
                           {character.imageUrl ? (
-                            <img 
-                              src={character.imageUrl} 
+                            <img
+                              src={character.imageUrl}
                               alt={character.name}
                               className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
                             />
