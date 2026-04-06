@@ -397,6 +397,9 @@ export default function ChapterPage() {
     setSuggestText('')
     setSuggestError('')
 
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 5000)
+
     const fetchTranslation = async () => {
       try {
         const res = await fetch(`/api/chapter/${storyId}/${chapterId}/content?lang=${targetLanguage}`, {

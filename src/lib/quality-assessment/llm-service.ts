@@ -99,7 +99,7 @@ export const DEFAULT_ASSESSMENT_CONFIG: AssessmentConfig = {
   maxContentLength: 50000,  // ~10k words
   minContentLength: 1000,   // ~200 words minimum
   
-  model: 'meta-llama/llama-3.3-70b-instruct',  // Using OpenRouter Llama 3.3 70B for superior quality
+  model: process.env.LLM_QA_MODEL ?? 'meta-llama/llama-3.3-70b-instruct',
   temperature: 0.3,  // Lower temperature for consistent grading
   maxTokens: 800,    // Reduced - just scores and tags
   
@@ -465,7 +465,7 @@ export async function generateCumulativeReview(
 
   const client = getOpenRouterClient()
   const response = await client.chat.completions.create({
-    model: 'meta-llama/llama-3.1-8b-instruct',  // Fast + cheap for short summaries
+    model: process.env.LLM_REVIEW_MODEL ?? 'meta-llama/llama-3.1-8b-instruct',
     temperature: 0.5,
     max_tokens: 200,
     messages: [

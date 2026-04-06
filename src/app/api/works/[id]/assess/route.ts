@@ -108,7 +108,7 @@ ${textToAnalyze}
     } else {
       const completion = await openRouterClient.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
-        model: 'meta-llama/llama-3.1-8b-instruct',
+        model: process.env.LLM_QA_MODEL ?? 'meta-llama/llama-3.1-8b-instruct',
         temperature: 0.3,
         response_format: { type: "json_object" }
       })
@@ -136,7 +136,7 @@ ${textToAnalyze}
         qualityTier: parseResult.qualityTier,
         discoveryTags: JSON.stringify(parseResult.discoveryTags),
         feedbackMessage: parseResult.feedbackMessage,
-        model: 'meta-llama/llama-3.1-8b-instruct',
+        model: process.env.LLM_QA_MODEL ?? 'meta-llama/llama-3.1-8b-instruct',
         version: '1.0'
       },
       create: {
@@ -152,7 +152,7 @@ ${textToAnalyze}
         qualityTier: parseResult.qualityTier,
         discoveryTags: JSON.stringify(parseResult.discoveryTags),
         feedbackMessage: parseResult.feedbackMessage,
-        model: 'meta-llama/llama-3.1-8b-instruct',
+        model: process.env.LLM_QA_MODEL ?? 'meta-llama/llama-3.1-8b-instruct',
         version: '1.0'
       }
     })

@@ -87,7 +87,7 @@ export default async function StoryPage({ params }: Props) {
   })
 
   // Fetch "Readers Also Enjoyed" — uses cascade: author picks → collaborative → semantic → trending → popular
-  const relatedWorks = await getRelatedWorks(id, genres, 4)
+  const relatedWorks = await getRelatedWorks(id, genres, 4).catch(() => [])
 
   const jsonLd = {
     '@context': 'https://schema.org',

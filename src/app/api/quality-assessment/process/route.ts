@@ -10,8 +10,15 @@ import { processNextInQueue, BudgetExceededError } from '@/lib/quality-assessmen
 /**
  * POST /api/quality-assessment/process
  * Manually trigger queue processing (for background workers or admin)
+ * Requires Authorization: Bearer <QA_PROCESSOR_SECRET>
  */
 export async function POST(request: NextRequest) {
+  const secret = process.env.QA_PROCESSOR_SECRET
+  const auth = request.headers.get('authorization')
+  if (!secret || auth !== `Bearer ${secret}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const { count = 1 } = await request.json().catch(() => ({}))
 
