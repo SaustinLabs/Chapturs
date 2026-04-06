@@ -27,36 +27,27 @@ export function CharacterTooltip({
   const triggerRef = useRef<HTMLSpanElement>(null)
   const pinchDistanceRef = useRef<number | null>(null)
 
+  const TOOLTIP_W = 320 // matches w-80
+
   useEffect(() => {
     if (typeof window === 'undefined') return
     setIsTouchDevice(window.matchMedia('(pointer: coarse)').matches)
   }, [])
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isVisible && tooltipRef.current) {
-        const tooltipRect = tooltipRef.current.getBoundingClientRect()
-        const viewportWidth = window.innerWidth
-        const viewportHeight = window.innerHeight
-        
-        let x = e.clientX + 10
-        let y = e.clientY - 10
-        
-        // Adjust if tooltip would go off screen
-        if (x + tooltipRect.width > viewportWidth) {
-          x = e.clientX - tooltipRect.width - 10
-        }
-        if (y - tooltipRect.height < 0) {
-          y = e.clientY + 20
-        }
-        
-        setPosition({ x, y })
-      }
-    }
+  const showTooltip = () => {
+    if (!triggerRef.current) return
+    const rect = triggerRef.current.getBoundingClientRect()
+    const vw = window.innerWidth
+    // Center above the trigger word, clamped to viewport
+    const cx = Math.max(
+      TOOLTIP_W / 2 + 8,
+      Math.min(vw - TOOLTIP_W / 2 - 8, rect.left + rect.width / 2)
+    )
+    setPosition({ x: cx, y: rect.top })
+    setIsVisible(true)
+  }
 
-    document.addEventListener('mousemove', handleMouseMove)
-    return () => document.removeEventListener('mousemove', handleMouseMove)
-  }, [isVisible])
+  const hideTooltip = () => setIsVisible(false)
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -108,8 +99,8 @@ export function CharacterTooltip({
     <span className="relative">
       <span
         ref={triggerRef}
-        onMouseEnter={() => setIsVisible(true)}
-        onMouseLeave={() => setIsVisible(false)}
+        onMouseEnter={showTooltip}
+        onMouseLeave={hideTooltip}
         onClick={handleClick}
         onDoubleClick={emitOpenGlossary}
         onTouchStart={handleTouchStart}
@@ -124,10 +115,10 @@ export function CharacterTooltip({
         <div
           ref={tooltipRef}
           className="fixed z-50 w-80 p-4 bg-gray-900 text-white rounded-lg shadow-xl pointer-events-none"
-          style={{ 
-            left: position.x, 
+          style={{
+            left: position.x,
             top: position.y,
-            transform: 'translateY(-100%)'
+            transform: 'translate(-50%, calc(-100% - 12px))'
           }}
         >
           <div className="flex items-start gap-3">

@@ -131,7 +131,8 @@ export function createErrorResponse(
 
   return NextResponse.json({
     error: ApiErrorType.INTERNAL_ERROR,
-    message: 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? message : 'Internal server error',
+    ...(process.env.NODE_ENV === 'development' && { detail: error instanceof Error ? error.stack : String(error) }),
     timestamp,
     requestId
   }, { status: 500 })

@@ -56,11 +56,12 @@ export async function POST(request: NextRequest) {
     if (!user) {
       // Create user if they don't exist (fallback for auth issues)
       console.log('User not found in database, creating user:', session.user.email)
+      const emailFallback = session.user.email ?? `user_${session.user.id}@unknown.invalid`
       user = await prisma.user.create({
         data: {
           id: session.user.id,
-          email: session.user.email!,
-          username: session.user.email!.split('@')[0] + '_' + Date.now(),
+          email: emailFallback,
+          username: emailFallback.split('@')[0] + '_' + Date.now(),
           displayName: session.user.name || undefined,
           avatar: session.user.image || undefined,
         }

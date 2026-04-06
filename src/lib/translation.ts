@@ -140,3 +140,14 @@ export async function translateBatchChunked(texts: string[], targetLang: string)
   }
   return result
 }
+
+/**
+ * Stub — previously pre-generated and cached description translations.
+ * That model was removed (task #84). Descriptions are now translated on-demand
+ * when a reader requests a non-English view. This is a no-op kept for import
+ * compatibility until callers can be cleaned up.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function persistDescriptionTranslations(_workId: string, _description: string): Promise<void> {
+  // no-op
+}
