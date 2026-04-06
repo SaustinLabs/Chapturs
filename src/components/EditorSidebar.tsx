@@ -347,7 +347,7 @@ export default function EditorSidebar({
                       <p>No characters yet</p>
                       <p className="text-sm mt-2">Select a character name in the editor and click &quot;Character&quot; to add a profile</p>
                       <div className="mt-3 flex justify-center">
-                        <FeatureHint title="About Characters" side="left">
+                        <FeatureHint title="About Characters" side="right">
                           <p>Create profile cards for your cast — name, role, appearance, and portrait. Character profiles are visible on your story page so readers always know who’s who.</p>
                           <p>You can also tag characters within a chapter, and readers can submit fan art linked to specific characters.</p>
                         </FeatureHint>
