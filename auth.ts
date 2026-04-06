@@ -125,13 +125,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return session
     },
-    async jwt({ token, account }) {
+    async jwt({ token, account, user }) {
       // Only runs on the initial sign-in (account is null on subsequent requests).
-      // Load the user's role from the DB and cache it in the JWT token.
-      // Do NOT persist the OAuth access_token — it would be exposed in the cookie.
+      // Pin token.sub to the real DB user ID (by email) so re-sign-ins don't
+      // generate a new UUID that mismatches the DB record.
       if (account) {
         try {
           const { prisma } = await import('@/lib/database/PrismaService')
+          // First try: look up by email so we always get the canonical DB ID
+          const email = user?.email
+          if (email) {
+            const dbUser = await prisma.user.findUnique({
+              where: { email },
+              select: { id: true, role: true },
+            })
+            if (dbUser) {
+              token.sub = dbUser.id          // pin JWT sub to actual DB ID
+              ;(token as any).role = dbUser.role ?? 'user'
+              return token
+            }
+          }
+          // Fallback: look up by the sub NextAuth assigned
           const dbUser = await prisma.user.findUnique({
             where: { id: token.sub! },
             select: { role: true },

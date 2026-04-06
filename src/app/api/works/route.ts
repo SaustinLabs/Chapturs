@@ -53,8 +53,20 @@ export async function POST(request: NextRequest) {
       where: { id: session.user.id }
     })
 
+    // Fallback: if session ID doesn't match any DB record, try by email.
+    // This handles re-auth cycles where NextAuth generates a new user.id but
+    // the upsert in signIn keeps the original DB ID unchanged.
+    if (!user && session.user.email) {
+      user = await prisma.user.findUnique({
+        where: { email: session.user.email }
+      })
+      if (user) {
+        console.log('[POST /api/works] Found user by email fallback:', user.id)
+      }
+    }
+
     if (!user) {
-      // Create user if they don't exist (fallback for auth issues)
+      // True new user: create them
       console.log('User not found in database, creating user:', session.user.email)
       const emailFallback = session.user.email ?? `user_${session.user.id}@unknown.invalid`
       user = await prisma.user.create({
@@ -69,16 +81,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Get or create author profile for this user
+    // Use user.id (the confirmed DB ID) — not session.user.id which may differ on re-auth
     let author = await prisma.author.findUnique({
-      where: { userId: session.user.id }
+      where: { userId: user.id }
     })
 
     if (!author) {
-      console.log('[POST /api/works] Author profile not found, creating for user:', session.user.id)
+      console.log('[POST /api/works] Author profile not found, creating for user:', user.id)
       // Create author profile automatically
       author = await prisma.author.create({
         data: {
-          userId: session.user.id,
+          userId: user.id,
           verified: false,
           socialLinks: '[]',
         }
