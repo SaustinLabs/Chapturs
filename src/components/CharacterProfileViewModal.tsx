@@ -1,9 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Upload } from 'lucide-react'
 import ImageUpload from '@/components/upload/ImageUpload'
 import { useToast } from '@/components/ui/Toast'
+import {
+  useFloating,
+  autoUpdate,
+  offset,
+  flip,
+  shift,
+  FloatingPortal,
+  useInteractions,
+  useHover,
+  useFocus,
+  useDismiss,
+  useRole,
+} from '@floating-ui/react'
 
 interface Character {
   id: string
@@ -31,6 +44,76 @@ interface CharacterProfileViewModalProps {
   character: Character
   isOpen: boolean
   onClose: () => void
+}
+
+function FirstSeenChip({ character }: { character: Character }) {
+  const [snippetOpen, setSnippetOpen] = useState(false)
+  const [snippet, setSnippet] = useState<{ text: string | null; chapterTitle: string | null } | null>(null)
+  const [snippetLoading, setSnippetLoading] = useState(false)
+  const fetchedRef = useRef(false)
+
+  const { refs, floatingStyles, context } = useFloating({
+    open: snippetOpen,
+    onOpenChange: setSnippetOpen,
+    placement: 'top',
+    middleware: [offset(8), flip(), shift({ padding: 8 })],
+    whileElementsMounted: autoUpdate,
+  })
+
+  const hover = useHover(context, { delay: { open: 300, close: 100 } })
+  const focus = useFocus(context)
+  const dismiss = useDismiss(context)
+  const role = useRole(context, { role: 'tooltip' })
+  const { getReferenceProps, getFloatingProps } = useInteractions([hover, focus, dismiss, role])
+
+  // Lazy-fetch snippet on first open
+  useEffect(() => {
+    if (!snippetOpen || fetchedRef.current) return
+    if (!character.firstAppearance || !character.id || !character.workId) return
+    fetchedRef.current = true
+    setSnippetLoading(true)
+    fetch(`/api/works/${character.workId}/characters/${character.id}/snippet`)
+      .then((r) => r.json())
+      .then((data) => setSnippet({ text: data.snippet ?? null, chapterTitle: data.chapterTitle ?? null }))
+      .catch(() => setSnippet({ text: null, chapterTitle: null }))
+      .finally(() => setSnippetLoading(false))
+  }, [snippetOpen, character.id, character.workId, character.firstAppearance])
+
+  return (
+    <>
+      <span
+        ref={refs.setReference}
+        {...getReferenceProps()}
+        className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-xs text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 cursor-help"
+      >
+        First seen: Ch. {character.firstAppearance}
+      </span>
+
+      {snippetOpen && (
+        <FloatingPortal>
+          <div
+            ref={refs.setFloating}
+            style={floatingStyles}
+            {...getFloatingProps()}
+            className="z-[9999] w-80 p-3 rounded-xl text-sm bg-gray-900/97 backdrop-blur-md border border-gray-700/60 shadow-2xl shadow-black/50 pointer-events-none"
+          >
+            {snippetLoading ? (
+              <span className="text-gray-400 italic">Loading excerpt…</span>
+            ) : snippet?.text ? (
+              <>
+                {snippet.chapterTitle && (
+                  <p className="text-xs text-blue-400 font-medium mb-1.5">{snippet.chapterTitle}</p>
+                )}
+                <p className="text-gray-200 leading-relaxed">&ldquo;{snippet.text}&rdquo;</p>
+              </>
+            ) : (
+              <span className="text-gray-400 italic">No excerpt available</span>
+            )}
+          </div>
+        </FloatingPortal>
+      )}
+    </>
+  )
 }
 
 export default function CharacterProfileViewModal({
@@ -179,9 +262,7 @@ export default function CharacterProfileViewModal({
                 </span>
               )}
               {character.firstAppearance && (
-                <span className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-xs text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
-                  First seen: Ch. {character.firstAppearance}
-                </span>
+                <FirstSeenChip character={character} />
               )}
             </div>
           )}
