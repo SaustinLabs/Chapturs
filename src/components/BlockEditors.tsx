@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { ChatBlock, ChatMessage, ChatPlatform, DialogueBlock, PhoneBlock, NarrationBlock } from '@/types/chapt'
-import { MessageCircle, Phone, Users, BookOpen, Plus, Trash2 } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { ChatBlock, ChatMessage, ChatPlatform, DialogueBlock, PhoneBlock, NarrationBlock, ImageBlock } from '@/types/chapt'
+import { MessageCircle, Phone, Users, BookOpen, Plus, Trash2, Image as ImageIcon } from 'lucide-react'
 import RichTextEditor from './RichTextEditor'
 
 // ============================================================================
@@ -918,4 +918,208 @@ function getPlatformStyles(platform: ChatPlatform) {
   }
 
   return styles[platform] || styles.generic
+}
+
+// ============================================================================
+// IMAGE BLOCK EDITOR
+// (Moved here from ChaptursEditor.tsx so NodeViews can import it)
+// ============================================================================
+
+interface ImageBlockEditorProps {
+  block: ImageBlock
+  mode: 'edit' | 'preview' | 'translate'
+  onUpdate: (updates: Partial<ImageBlock>) => void
+}
+
+export function ImageBlockEditor({ block, mode, onUpdate }: ImageBlockEditorProps) {
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'url' | 'upload'>('url')
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileUpload = async (file: File) => {
+    if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+      setUploadError('Only JPEG, PNG, WebP, and GIF images are allowed')
+      return
+    }
+    setUploadError(null)
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/upload/cover', { method: 'POST', body: formData })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.message || 'Upload failed')
+      }
+      const data = await res.json()
+      onUpdate({ url: data.imageUrl })
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  if (mode === 'preview' || mode === 'translate') {
+    return (
+      <div className="my-4">
+        {block.url ? (
+          <div>
+            <img
+              src={block.url}
+              alt={block.alt || ''}
+              className="w-full h-auto rounded-lg"
+              style={{ maxWidth: block.width || '100%', maxHeight: block.height || 'auto' }}
+            />
+            {block.caption && (
+              <p className="text-sm text-gray-600 dark:text-gray-400 text-center mt-2 italic">
+                {block.caption}
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="w-full h-48 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+            <div className="text-center text-gray-500 dark:text-gray-400">
+              <ImageIcon size={48} className="mx-auto mb-2" />
+              <p>No image URL provided</p>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 space-y-4 bg-gray-50 dark:bg-gray-800">
+      <div className="flex items-center gap-2">
+        <ImageIcon size={18} className="text-gray-600 dark:text-gray-400" />
+        <span className="font-medium text-gray-900 dark:text-gray-100">Image Block</span>
+      </div>
+
+      {/* Source tabs */}
+      <div className="flex border-b border-gray-200 dark:border-gray-600">
+        <button
+          onClick={() => setActiveTab('url')}
+          className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'url' ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
+        >
+          URL
+        </button>
+        <button
+          onClick={() => setActiveTab('upload')}
+          className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'upload' ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
+        >
+          Upload to hosting
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        {activeTab === 'url' ? (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Image URL</label>
+            <input
+              type="text"
+              value={block.url}
+              onChange={(e) => onUpdate({ url: e.target.value })}
+              placeholder="https://example.com/image.jpg"
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
+            />
+          </div>
+        ) : (
+          <div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) handleFileUpload(file)
+              }}
+            />
+            {block.url ? (
+              <div className="space-y-2">
+                <img src={block.url} alt="" className="max-h-40 rounded object-contain" />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  Replace image
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 flex flex-col items-center gap-2 text-gray-500 dark:text-gray-400 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors disabled:opacity-50"
+              >
+                <ImageIcon size={28} />
+                <span className="text-sm font-medium">{uploading ? 'Uploading…' : 'Click to upload image'}</span>
+                <span className="text-xs">JPEG, PNG, WebP, GIF · max 6 MB</span>
+              </button>
+            )}
+            {uploadError && <p className="text-sm text-red-500">{uploadError}</p>}
+          </div>
+        )}
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Alt Text</label>
+          <input
+            type="text"
+            value={block.alt || ''}
+            onChange={(e) => onUpdate({ alt: e.target.value })}
+            placeholder="Describe the image for accessibility"
+            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Caption (optional)</label>
+          <input
+            type="text"
+            value={block.caption || ''}
+            onChange={(e) => onUpdate({ caption: e.target.value })}
+            placeholder="Image caption"
+            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Max Width</label>
+            <input
+              type="text"
+              value={block.width || ''}
+              onChange={(e) => onUpdate({ width: e.target.value })}
+              placeholder="e.g., 500px or 100%"
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Max Height</label>
+            <input
+              type="text"
+              value={block.height || ''}
+              onChange={(e) => onUpdate({ height: e.target.value })}
+              placeholder="e.g., 300px or auto"
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
+            />
+          </div>
+        </div>
+      </div>
+
+      {block.url && (
+        <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Preview:</p>
+          <img
+            src={block.url}
+            alt={block.alt || ''}
+            className="w-full h-auto rounded"
+            style={{ maxWidth: block.width || '100%', maxHeight: '400px' }}
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+          />
+        </div>
+      )}
+    </div>
+  )
 }

@@ -2,15 +2,15 @@
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { ChaptDocument, ContentBlock, BlockType, ProseBlock, HeadingBlock, DividerBlock, DialogueBlock, ChatBlock, PhoneBlock, NarrationBlock, ImageBlock, EditorState, ChatPlatform } from '@/types/chapt'
-import { ChatBlockEditor, PhoneBlockEditor, DialogueBlockEditor, NarrationBlockEditor } from './BlockEditors'
+import { ChatBlockEditor, PhoneBlockEditor, DialogueBlockEditor, NarrationBlockEditor, ImageBlockEditor } from './BlockEditors'
 import { PlusCircle, Save, Eye, Edit3, Type, MessageSquare, Smartphone, Users, SplitSquareVertical, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, Maximize, Sparkles, X, ChevronRight, UserPlus } from 'lucide-react'
-import RichTextEditor from './RichTextEditor'
 import EditorSidebar from './EditorSidebar'
 import HtmlWithHighlights from './HtmlWithHighlights'
 import SelectionActionToolbar from './SelectionActionToolbar'
 import CharacterProfileModal from './CharacterProfileModal'
 import QualityReportModal from './QualityReportModal'
 import PrePublishChecklist from './PrePublishChecklist'
+import ChapterEditor from './editor/ChapterEditor'
 import { Activity, Clock } from 'lucide-react'
 import { measureTextRows } from '@/hooks/usePretext'
 import { buildEditorSelectionActions } from '@/lib/selectionActionRegistry'
@@ -601,40 +601,23 @@ export default function ChaptursEditor({
       {/* Editor Content — sidebar is absolute/overlay so no margin needed */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
         <div className="max-w-4xl mx-auto py-8 px-6 pb-96">
-          {editorState.document.content.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-900 dark:text-gray-100 mb-4 font-medium">Start writing your story...</p>
-              <button
-                onClick={() => addBlock('prose')}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                <PlusCircle size={18} />
-                Add First Block
-              </button>
-            </div>
-          ) : isSplitPreview ? (
+          {isSplitPreview ? (
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {/* Left: TipTap editor */}
               <div className="min-w-0">
                 <div className="mb-3 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Editor</div>
-                {editorState.document.content.map((block, index) => (
-                  <div key={`edit-${block.id}`} data-editor-block-id={block.id}>
-                    <BlockRenderer
-                      block={block}
-                      mode="edit"
-                      isActive={editorState.currentBlockId === block.id}
-                      onUpdate={(updates) => updateBlock(block.id, updates)}
-                      onDelete={() => deleteBlock(block.id)}
-                      onMoveUp={() => moveBlock(block.id, 'up')}
-                      onMoveDown={() => moveBlock(block.id, 'down')}
-                      onFocus={() => setEditorState(prev => ({ ...prev, currentBlockId: block.id }))}
-                      onAddBlockAfter={(e) => showBlockMenuAt(block.id, e)}
-                      canMoveUp={index > 0}
-                      canMoveDown={index < editorState.document.content.length - 1}
-                    />
-                  </div>
-                ))}
+                <ChapterEditor
+                  initialBlocks={editorState.document.content}
+                  chapterKey={chapterId || 'new'}
+                  onChange={(blocks) => setEditorState(prev => ({
+                    ...prev,
+                    document: { ...prev.document, content: blocks },
+                    isDirty: true
+                  }))}
+                />
               </div>
 
+              {/* Right: read-only preview */}
               <div ref={previewPaneRef} className="min-w-0 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 max-h-[70vh] overflow-y-auto">
                 <div className="mb-3 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Live Preview</div>
                 {editorState.document.content.map((block, index) => (
@@ -661,34 +644,41 @@ export default function ChaptursEditor({
                 ))}
               </div>
             </div>
+          ) : editorState.mode === 'edit' ? (
+            /* Edit mode: single TipTap document editor */
+            <ChapterEditor
+              initialBlocks={editorState.document.content}
+              chapterKey={chapterId || 'new'}
+              onChange={(blocks) => setEditorState(prev => ({
+                ...prev,
+                document: { ...prev.document, content: blocks },
+                isDirty: true
+              }))}
+            />
           ) : (
+            /* Preview mode: read-only block rendering with glossary highlights */
             <>
-              {editorState.document.content.map((block, index) => (
-                <BlockRenderer
-                  key={block.id}
-                  block={block}
-                  mode={editorState.mode}
-                  isActive={editorState.currentBlockId === block.id}
-                  onUpdate={(updates) => updateBlock(block.id, updates)}
-                  onDelete={() => deleteBlock(block.id)}
-                  onMoveUp={() => moveBlock(block.id, 'up')}
-                  onMoveDown={() => moveBlock(block.id, 'down')}
-                  onFocus={() => setEditorState(prev => ({ ...prev, currentBlockId: block.id }))}
-                  onAddBlockAfter={(e) => showBlockMenuAt(block.id, e)}
-                  canMoveUp={index > 0}
-                  canMoveDown={index < editorState.document.content.length - 1}
-                />
-              ))}
-
-              {/* Add block button at the end */}
-              {editorState.mode === 'edit' && (
-                <button
-                  onClick={(e) => showBlockMenuAt(null, e)}
-                  className="mt-4 flex items-center gap-2 text-gray-900 hover:text-blue-600 dark:text-gray-100 dark:hover:text-blue-400 font-medium"
-                >
-                  <PlusCircle size={18} />
-                  Add Block
-                </button>
+              {editorState.document.content.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-500 dark:text-gray-400">No content yet.</p>
+                </div>
+              ) : (
+                editorState.document.content.map((block, index) => (
+                  <BlockRenderer
+                    key={block.id}
+                    block={block}
+                    mode="preview"
+                    isActive={editorState.currentBlockId === block.id}
+                    onUpdate={() => {}}
+                    onDelete={() => {}}
+                    onMoveUp={() => {}}
+                    onMoveDown={() => {}}
+                    onFocus={() => {}}
+                    onAddBlockAfter={() => {}}
+                    canMoveUp={index > 0}
+                    canMoveDown={index < editorState.document.content.length - 1}
+                  />
+                ))
               )}
             </>
           )}
@@ -1238,14 +1228,8 @@ function ProseBlockEditor({
     )
   }
 
-  return (
-    <RichTextEditor
-      value={block.text}
-      onChange={(html) => onUpdate({ text: html })}
-      placeholder="Write something..."
-      minHeight="80px"
-    />
-  )
+  // Edit mode is handled by ChapterEditor — ProseBlockEditor is preview/translate only
+  return null
 }
 
 function HeadingBlockEditor({ 
@@ -1293,224 +1277,7 @@ function DividerBlockEditor({ block }: { block: DividerBlock; mode: 'edit' | 'pr
   )
 }
 
-function ImageBlockEditor({ 
-  block, 
-  mode, 
-  onUpdate 
-}: { 
-  block: ImageBlock
-  mode: 'edit' | 'preview' | 'translate'
-  onUpdate: (updates: Partial<ImageBlock>) => void
-}) {
-  const [uploading, setUploading] = useState(false)
-  const [uploadError, setUploadError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'url' | 'upload'>('url')
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const handleFileUpload = async (file: File) => {
-    if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
-      setUploadError('Only JPEG, PNG, WebP, and GIF images are allowed')
-      return
-    }
-    setUploadError(null)
-    setUploading(true)
-    try {
-      const formData = new FormData()
-      formData.append('file', file)
-      const res = await fetch('/api/upload/cover', { method: 'POST', body: formData })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.message || 'Upload failed')
-      }
-      const data = await res.json()
-      onUpdate({ url: data.imageUrl })
-    } catch (err) {
-      setUploadError(err instanceof Error ? err.message : 'Upload failed')
-    } finally {
-      setUploading(false)
-    }
-  }
-  if (mode === 'preview' || mode === 'translate') {
-    return (
-      <div className="my-4">
-        {block.url ? (
-          <div>
-            <img
-              src={block.url}
-              alt={block.alt || ''}
-              className="w-full h-auto rounded-lg"
-              style={{
-                maxWidth: block.width || '100%',
-                maxHeight: block.height || 'auto'
-              }}
-            />
-            {block.caption && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 text-center mt-2 italic">
-                {block.caption}
-              </p>
-            )}
-          </div>
-        ) : (
-          <div className="w-full h-48 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
-            <div className="text-center text-gray-500 dark:text-gray-400">
-              <ImageIcon size={48} className="mx-auto mb-2" />
-              <p>No image URL provided</p>
-            </div>
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  return (
-    <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 space-y-4 bg-gray-50 dark:bg-gray-800">
-      <div className="flex items-center gap-2">
-        <ImageIcon size={18} className="text-gray-600 dark:text-gray-400" />
-        <span className="font-medium text-gray-900 dark:text-gray-100">Image Block</span>
-      </div>
-
-      {/* Source tabs */}
-      <div className="flex border-b border-gray-200 dark:border-gray-600">
-        <button
-          onClick={() => setActiveTab('url')}
-          className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'url' ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
-        >
-          URL
-        </button>
-        <button
-          onClick={() => setActiveTab('upload')}
-          className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'upload' ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
-        >
-          Upload to hosting
-        </button>
-      </div>
-
-      <div className="space-y-3">
-        {activeTab === 'url' ? (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Image URL
-            </label>
-            <input
-              type="text"
-              value={block.url}
-              onChange={(e) => onUpdate({ url: e.target.value })}
-              placeholder="https://example.com/image.jpg"
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
-            />
-          </div>
-        ) : (
-          <div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file) handleFileUpload(file)
-              }}
-            />
-            {block.url ? (
-              <div className="space-y-2">
-                <img src={block.url} alt="" className="max-h-40 rounded object-contain" />
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-                >
-                  Replace image
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 flex flex-col items-center gap-2 text-gray-500 dark:text-gray-400 hover:border-blue-400 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors disabled:opacity-50"
-              >
-                <ImageIcon size={28} />
-                <span className="text-sm font-medium">{uploading ? 'Uploading…' : 'Click to upload image'}</span>
-                <span className="text-xs">JPEG, PNG, WebP, GIF · max 6 MB</span>
-              </button>
-            )}
-            {uploadError && <p className="text-sm text-red-500">{uploadError}</p>}
-          </div>
-        )}
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Alt Text
-          </label>
-          <input
-            type="text"
-            value={block.alt || ''}
-            onChange={(e) => onUpdate({ alt: e.target.value })}
-            placeholder="Describe the image for accessibility"
-            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Caption (optional)
-          </label>
-          <input
-            type="text"
-            value={block.caption || ''}
-            onChange={(e) => onUpdate({ caption: e.target.value })}
-            placeholder="Image caption"
-            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Max Width
-            </label>
-            <input
-              type="text"
-              value={block.width || ''}
-              onChange={(e) => onUpdate({ width: e.target.value })}
-              placeholder="e.g., 500px or 100%"
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Max Height
-            </label>
-            <input
-              type="text"
-              value={block.height || ''}
-              onChange={(e) => onUpdate({ height: e.target.value })}
-              placeholder="e.g., 300px or auto"
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Preview */}
-      {block.url && (
-        <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Preview:</p>
-          <img
-            src={block.url}
-            alt={block.alt || ''}
-            className="w-full h-auto rounded"
-            style={{
-              maxWidth: block.width || '100%',
-              maxHeight: block.height || '400px'
-            }}
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none'
-            }}
-          />
-        </div>
-      )}
-    </div>
-  )
-}
+// ImageBlockEditor is imported from ./BlockEditors
 
 // ============================================================================
 // BLOCK TYPE MENU
