@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { GlossaryTerm } from '@/types'
 
 interface GlossaryTooltipProps {
@@ -13,9 +13,35 @@ export function GlossaryTooltip({ term, definition, children }: GlossaryTooltipP
   const [visible, setVisible] = useState(false)
   const [pos, setPos] = useState({ x: 0, y: 0 })
   const [pinchDistance, setPinchDistance] = useState<number | null>(null)
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
   const triggerRef = useRef<HTMLSpanElement>(null)
+  const tooltipRef = useRef<HTMLSpanElement>(null)
 
   const TOOLTIP_W = 288 // matches w-72
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsTouchDevice(window.matchMedia('(pointer: coarse)').matches)
+    }
+  }, [])
+
+  // Dismiss on tap-outside when tooltip is open on mobile
+  useEffect(() => {
+    if (!visible || !isTouchDevice) return
+    const dismiss = (e: MouseEvent | TouchEvent) => {
+      if (
+        triggerRef.current?.contains(e.target as Node) ||
+        tooltipRef.current?.contains(e.target as Node)
+      ) return
+      setVisible(false)
+    }
+    document.addEventListener('click', dismiss, { capture: true })
+    document.addEventListener('touchend', dismiss, { capture: true })
+    return () => {
+      document.removeEventListener('click', dismiss, { capture: true })
+      document.removeEventListener('touchend', dismiss, { capture: true })
+    }
+  }, [visible, isTouchDevice])
 
   const show = () => {
     if (triggerRef.current) {
@@ -34,11 +60,25 @@ export function GlossaryTooltip({ term, definition, children }: GlossaryTooltipP
 
   const openMobileGlossary = () => {
     if (typeof window === 'undefined') return
+    setVisible(false)
     window.dispatchEvent(
       new CustomEvent('reader-open-mobile-glossary', {
         detail: { type: 'term', term },
       })
     )
+  }
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (isTouchDevice) {
+      e.preventDefault()
+      if (visible) {
+        hide()
+      } else {
+        show()
+      }
+    } else {
+      openMobileGlossary()
+    }
   }
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -64,9 +104,9 @@ export function GlossaryTooltip({ term, definition, children }: GlossaryTooltipP
     <span className="relative inline">
       <span
         ref={triggerRef}
-        onMouseEnter={show}
-        onMouseLeave={hide}
-        onClick={openMobileGlossary}
+        onMouseEnter={isTouchDevice ? undefined : show}
+        onMouseLeave={isTouchDevice ? undefined : hide}
+        onClick={handleClick}
         onDoubleClick={openMobileGlossary}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -78,12 +118,22 @@ export function GlossaryTooltip({ term, definition, children }: GlossaryTooltipP
 
       {visible && (
         <span
-          className="fixed z-50 pointer-events-none"
+          ref={tooltipRef}
+          className={`fixed z-50 ${isTouchDevice ? 'pointer-events-auto' : 'pointer-events-none'}`}
           style={{ left: pos.x, top: pos.y, transform: 'translate(-50%, calc(-100% - 12px))' }}
+          onClick={(e) => { if (isTouchDevice) e.stopPropagation() }}
         >
           <span className="block w-72 p-3 rounded-xl text-sm leading-relaxed bg-gray-900/95 backdrop-blur-md border border-gray-700/60 shadow-2xl shadow-black/50">
             <span className="font-semibold text-gray-100 block mb-1">{term}</span>
             <span className="text-gray-300">{definition}</span>
+            {isTouchDevice && (
+              <button
+                onClick={(e) => { e.stopPropagation(); openMobileGlossary() }}
+                className="mt-3 text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+              >
+                See all terms →
+              </button>
+            )}
             {/* Downward caret pointing at the term */}
             <span className="absolute left-1/2 -translate-x-1/2 top-full -mt-px border-[6px] border-transparent border-t-gray-800" />
           </span>

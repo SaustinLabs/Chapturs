@@ -34,6 +34,24 @@ export function CharacterTooltip({
     setIsTouchDevice(window.matchMedia('(pointer: coarse)').matches)
   }, [])
 
+  // Dismiss on tap-outside when tooltip is open on mobile
+  useEffect(() => {
+    if (!isVisible || !isTouchDevice) return
+    const dismiss = (e: MouseEvent | TouchEvent) => {
+      if (
+        triggerRef.current?.contains(e.target as Node) ||
+        tooltipRef.current?.contains(e.target as Node)
+      ) return
+      setIsVisible(false)
+    }
+    document.addEventListener('click', dismiss, { capture: true })
+    document.addEventListener('touchend', dismiss, { capture: true })
+    return () => {
+      document.removeEventListener('click', dismiss, { capture: true })
+      document.removeEventListener('touchend', dismiss, { capture: true })
+    }
+  }, [isVisible, isTouchDevice])
+
   const showTooltip = () => {
     if (!triggerRef.current) return
     const rect = triggerRef.current.getBoundingClientRect()
@@ -51,8 +69,16 @@ export function CharacterTooltip({
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault()
-    if (onCharacterClick) {
-      onCharacterClick(character)
+    if (isTouchDevice) {
+      if (isVisible) {
+        hideTooltip()
+      } else {
+        showTooltip()
+      }
+    } else {
+      if (onCharacterClick) {
+        onCharacterClick(character)
+      }
     }
   }
 
@@ -111,15 +137,16 @@ export function CharacterTooltip({
         {children}
       </span>
       
-      {isVisible && !isTouchDevice && (
+      {isVisible && (
         <div
           ref={tooltipRef}
-          className="fixed z-50 w-80 p-4 bg-gray-900 text-white rounded-lg shadow-xl pointer-events-none"
+          className={`fixed z-50 w-80 p-4 bg-gray-900 text-white rounded-lg shadow-xl ${isTouchDevice ? 'pointer-events-auto' : 'pointer-events-none'}`}
           style={{
             left: position.x,
             top: position.y,
             transform: 'translate(-50%, calc(-100% - 12px))'
           }}
+          onClick={(e) => { if (isTouchDevice) e.stopPropagation() }}
         >
           <div className="flex items-start gap-3">
             {character.imageUrl && (
@@ -142,7 +169,16 @@ export function CharacterTooltip({
                 {displayText}
               </div>
               <div className="text-xs text-green-400 mt-2">
-                Click for full profile →
+                {isTouchDevice ? (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); hideTooltip(); onCharacterClick?.(character) }}
+                    className="text-green-400 hover:text-green-300"
+                  >
+                    Tap for full profile →
+                  </button>
+                ) : (
+                  'Click for full profile →'
+                )}
               </div>
             </div>
           </div>
