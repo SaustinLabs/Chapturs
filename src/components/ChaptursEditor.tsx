@@ -598,10 +598,8 @@ export default function ChaptursEditor({
         />
       </button>
 
-      {/* Editor Content */}
-      <div className={`flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300 ${
-        showSidebar ? 'mr-96' : 'mr-0'
-      }`}>
+      {/* Editor Content — sidebar is absolute/overlay so no margin needed */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
         <div className="max-w-4xl mx-auto py-8 px-6 pb-96">
           {editorState.document.content.length === 0 ? (
             <div className="text-center py-12">
@@ -973,7 +971,7 @@ function BlockRenderer({
 
   // Determine max width based on alignment
   const maxWidthClass = block.align === 'full' ? 'max-w-full' :
-                       block.type === 'phone' || block.type === 'chat' ? 'max-w-md' :
+                       block.type === 'phone' ? 'max-w-md' :
                        'max-w-2xl'
 
   return (
@@ -1304,6 +1302,34 @@ function ImageBlockEditor({
   mode: 'edit' | 'preview' | 'translate'
   onUpdate: (updates: Partial<ImageBlock>) => void
 }) {
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'url' | 'upload'>('url')
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileUpload = async (file: File) => {
+    if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+      setUploadError('Only JPEG, PNG, WebP, and GIF images are allowed')
+      return
+    }
+    setUploadError(null)
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/upload/cover', { method: 'POST', body: formData })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.message || 'Upload failed')
+      }
+      const data = await res.json()
+      onUpdate({ url: data.imageUrl })
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setUploading(false)
+    }
+  }
   if (mode === 'preview' || mode === 'translate') {
     return (
       <div className="my-4">
@@ -1343,19 +1369,72 @@ function ImageBlockEditor({
         <span className="font-medium text-gray-900 dark:text-gray-100">Image Block</span>
       </div>
 
+      {/* Source tabs */}
+      <div className="flex border-b border-gray-200 dark:border-gray-600">
+        <button
+          onClick={() => setActiveTab('url')}
+          className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'url' ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
+        >
+          URL
+        </button>
+        <button
+          onClick={() => setActiveTab('upload')}
+          className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'upload' ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
+        >
+          Upload to hosting
+        </button>
+      </div>
+
       <div className="space-y-3">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Image URL *
-          </label>
-          <input
-            type="text"
-            value={block.url}
-            onChange={(e) => onUpdate({ url: e.target.value })}
-            placeholder="https://example.com/image.jpg"
-            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
-          />
-        </div>
+        {activeTab === 'url' ? (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Image URL
+            </label>
+            <input
+              type="text"
+              value={block.url}
+              onChange={(e) => onUpdate({ url: e.target.value })}
+              placeholder="https://example.com/image.jpg"
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
+            />
+          </div>
+        ) : (
+          <div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) handleFileUpload(file)
+              }}
+            />
+            {block.url ? (
+              <div className="space-y-2">
+                <img src={block.url} alt="" className="max-h-40 rounded object-contain" />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  Replace image
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 flex flex-col items-center gap-2 text-gray-500 dark:text-gray-400 hover:border-blue-400 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors disabled:opacity-50"
+              >
+                <ImageIcon size={28} />
+                <span className="text-sm font-medium">{uploading ? 'Uploading…' : 'Click to upload image'}</span>
+                <span className="text-xs">JPEG, PNG, WebP, GIF · max 6 MB</span>
+              </button>
+            )}
+            {uploadError && <p className="text-sm text-red-500">{uploadError}</p>}
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

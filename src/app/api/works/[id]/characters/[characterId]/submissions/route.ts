@@ -3,6 +3,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '../../../../../../../../auth'
 import { prisma } from '@/lib/database/PrismaService'
+import { resolveDbUserId } from '@/lib/resolveDbUserId'
 import { z } from 'zod'
 
 interface RouteParams {
@@ -220,7 +221,8 @@ export async function PATCH(request: NextRequest, props: RouteParams) {
       return NextResponse.json({ error: 'Work not found' }, { status: 404 })
     }
 
-    if (work.author.userId !== session.user.id) {
+    const dbUserId = await resolveDbUserId(session)
+    if (work.author.userId !== dbUserId) {
       return NextResponse.json({ error: 'Unauthorized - Only creator can review submissions' }, { status: 403 })
     }
 

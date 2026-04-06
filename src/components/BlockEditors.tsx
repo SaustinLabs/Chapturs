@@ -863,22 +863,6 @@ export function NarrationBlockEditor({ block, mode, onUpdate }: NarrationBlockEd
         className="w-full min-h-[100px] px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded resize-none font-serif text-gray-900 dark:text-gray-100 dark:bg-gray-700 placeholder-gray-500 dark:placeholder-gray-400"
       />
 
-      {/* Preview */}
-      <div className="bg-gray-50 rounded p-4">
-        {mode === 'edit' && (
-          <div className={`
-            ${variant === 'box' ? 'border-2 border-gray-400 bg-white p-4 rounded' : ''}
-            ${variant === 'overlay' ? 'bg-black/80 text-white p-6 rounded-lg' : ''}
-            ${variant === 'inline' ? 'italic text-gray-600 border-l-4 border-gray-400 pl-4' : ''}
-            text-center
-          `}>
-            <BookOpen className="inline-block mb-2 text-gray-500" size={20} />
-            <div className="font-serif text-sm leading-relaxed">
-              {block.text || 'Preview will appear here...'}
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   )
 }

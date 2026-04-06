@@ -3,6 +3,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '../../../../../../../../auth'
 import { prisma } from '@/lib/database/PrismaService'
+import { resolveDbUserId } from '@/lib/resolveDbUserId'
 
 interface RouteParams {
   params: Promise<{
@@ -51,7 +52,8 @@ export async function POST(request: NextRequest, props: RouteParams) {
       return NextResponse.json({ error: 'Work not found' }, { status: 404 })
     }
 
-    if (work.author.userId !== session.user.id) {
+    const dbUserId = await resolveDbUserId(session)
+    if (work.author.userId !== dbUserId) {
       return NextResponse.json({ error: 'Unauthorized - You do not own this work' }, { status: 403 })
     }
 

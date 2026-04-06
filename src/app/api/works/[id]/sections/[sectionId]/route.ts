@@ -3,6 +3,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '../../../../../../../auth'
 import DatabaseService, { prisma } from '../../../../../../lib/database/PrismaService'
+import { resolveDbUserId } from '@/lib/resolveDbUserId'
 import { assessWorkSynchronously } from '@/lib/quality-assessment/assessment-sync'
 import { maybeTriggerCumulativeReview } from '@/lib/quality-assessment/cumulative-review'
 import { notifyNewChapter } from '@/lib/email'
@@ -96,13 +97,20 @@ export async function PATCH(request: NextRequest, props: RouteParams) {
     const body = await request.json()
     const { title, content, wordCount, status } = body
 
+    // Resolve the canonical DB user ID — handles re-auth JWT ID mismatch
+    let dbUserId = session.user.id
+    if (session.user.email) {
+      const dbUser = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } })
+      if (dbUser) dbUserId = dbUser.id
+    }
+
     // Verify the work belongs to the user
     const work = await prisma.work.findUnique({
       where: { id: workId },
       include: { author: true }
     })
 
-    if (!work || work.author.userId !== session.user.id) {
+    if (!work || work.author.userId !== dbUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
@@ -230,13 +238,16 @@ export async function DELETE(request: NextRequest, props: RouteParams) {
     const workId = params.id
     const sectionId = params.sectionId
 
+    // Resolve canonical DB user ID (handles re-auth JWT mismatch)
+    const dbUserId = await resolveDbUserId(session)
+
     // Verify the work belongs to the user
     const work = await prisma.work.findUnique({
       where: { id: workId },
       include: { author: true }
     })
 
-    if (!work || work.author.userId !== session.user.id) {
+    if (!work || work.author.userId !== dbUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 

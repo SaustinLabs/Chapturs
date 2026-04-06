@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/database/PrismaService'
+import { resolveDbUserId } from '@/lib/resolveDbUserId'
 
 const MAX_AUTHOR_PICKS = 4
 
@@ -55,7 +56,8 @@ export async function PUT(
   })
 
   if (!work) return NextResponse.json({ error: 'Work not found' }, { status: 404 })
-  if (work.author.userId !== session.user.id) {
+  const dbUserId = await resolveDbUserId(session)
+  if (work.author.userId !== dbUserId) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

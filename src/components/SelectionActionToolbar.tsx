@@ -32,7 +32,7 @@ export default function SelectionActionToolbar({
 
   return (
     <div
-      className={`fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex gap-2 ${className || ''}`}
+      className={`fixed z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-2 flex gap-2 ${className || ''}`}
       style={{ top: position.top, left: position.left }}
     >
       {actions.map((action) => (
@@ -47,7 +47,7 @@ export default function SelectionActionToolbar({
           className={
             action.variant === 'primary'
               ? `px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed ${action.className || ''}`
-              : `px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed ${action.className || ''}`
+              : `px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-500 text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed ${action.className || ''}`
           }
         >
           {action.icon}
@@ -60,7 +60,7 @@ export default function SelectionActionToolbar({
           event.preventDefault()
         }}
         onClick={onClose}
-        className="p-1.5 text-gray-400 hover:text-gray-600"
+        className="p-1.5 text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
       >
         <X size={14} />
       </button>
