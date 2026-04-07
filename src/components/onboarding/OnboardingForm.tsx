@@ -67,6 +67,25 @@ function getTropesForTitle(title: string): string[] {
   return []
 }
 
+// Map Google Books category strings to platform genre tags
+function mapCategoriesToTags(categories: string[]): string[] {
+  const found = new Set<string>()
+  for (const cat of categories) {
+    const lower = cat.toLowerCase()
+    if (lower.includes('fantasy')) found.add('Fantasy')
+    if (lower.includes('romance') || lower.includes('love stories')) found.add('Romance')
+    if (lower.includes('science fiction') || lower.includes('sci-fi') || lower.includes('space opera')) found.add('Science Fiction')
+    if (lower.includes('mystery') || lower.includes('detective') || lower.includes('crime')) found.add('Mystery')
+    if (lower.includes('thriller') || lower.includes('suspense')) found.add('Thriller')
+    if (lower.includes('horror') || lower.includes('ghost') || lower.includes('occult')) found.add('Horror')
+    if (lower.includes('adventure') || lower.includes('action')) found.add('Adventure')
+    if (lower.includes('humor') || lower.includes('comedy') || lower.includes('satire')) found.add('Comedy')
+    if (lower.includes('drama') || lower.includes('literary fiction')) found.add('Drama')
+    if (lower.includes('historical') || lower.includes('history')) found.add('Historical')
+  }
+  return [...found]
+}
+
 type BookResult = {
   googleId: string
   title: string
@@ -166,13 +185,27 @@ export default function OnboardingForm() {
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
     if (!value.trim()) { setBookResults([]); return }
 
-    // Debounce the network call, tag matching is instant above
+    // Call Google Books API directly from the browser — each user has their own
+    // per-IP quota so we never hit rate limits on the server side
     searchTimeoutRef.current = setTimeout(async () => {
       setIsSearching(true)
       try {
-        const res = await fetch(`/api/onboarding/book-search?q=${encodeURIComponent(value)}`)
+        const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(value)}&maxResults=6&printType=books&langRestrict=en`
+        const res = await fetch(apiUrl)
+        if (!res.ok) { setBookResults([]); return }
         const data = await res.json()
-        setBookResults(data.books ?? [])
+        const books: BookResult[] = (data.items ?? []).map((item: any) => {
+          const info = item.volumeInfo ?? {}
+          const rawCover: string | undefined = info.imageLinks?.thumbnail ?? info.imageLinks?.smallThumbnail
+          return {
+            googleId: item.id as string,
+            title: (info.title as string) ?? 'Unknown Title',
+            authors: (info.authors as string[]) ?? [],
+            cover: rawCover ? rawCover.replace(/^http:\/\//, 'https://') : null,
+            genres: mapCategoriesToTags((info.categories as string[]) ?? []),
+          }
+        })
+        setBookResults(books)
       } catch {
         setBookResults([])
       } finally {
