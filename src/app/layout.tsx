@@ -6,8 +6,6 @@ import UsernameGuard from '@/components/auth/UsernameGuard'
 import { ToastProvider } from '@/components/ui/Toast'
 import { validateEnvironment } from '@/lib/config'
 import { auth } from '@/auth-edge'
-import { SpeedInsights } from "@vercel/speed-insights/next"
-import { Analytics } from '@vercel/analytics/react'
 import ChunkRecovery from '@/components/ChunkRecovery'
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' })
@@ -87,8 +85,6 @@ export default async function RootLayout({
             </UsernameGuard>
           </ToastProvider>
         </AuthProvider>
-        <SpeedInsights />
-        <Analytics />
       </body>
     </html>
   )
