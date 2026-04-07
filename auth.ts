@@ -122,6 +122,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.id = token.sub
         // Propagate role so admin checks work on the client and in API routes
         ;(session.user as any).role = (token as any).role ?? 'user'
+        // Propagate onboarding state — defaults true so old JWTs don't redirect
+        ;(session.user as any).hasSetUsername = (token as any).hasSetUsername ?? true
       }
       return session
     },
