@@ -86,7 +86,7 @@
 ### Notifications
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 27 | In-app notification centre (bell icon, unread count) | 🔶 | Schema exists, UI needs building |
+| 27 | In-app notification centre (bell icon, unread count) | ✅ | Bell on desktop sidebar + mobile bottom nav Alerts tab; full `/notifications` page; per-notification mark-as-read; 60s polling |
 | 28 | Weekly email digest of activity on followed works | ⬜ | Requires batching logic / cron job |
 | 29 | Web push notifications (service worker) | ⬜ | Nice-to-have, after in-app centre |
 

@@ -18,7 +18,9 @@ import {
   PhotoIcon,
   CurrencyDollarIcon,
   SparklesIcon,
+  BellIcon,
 } from '@heroicons/react/24/outline'
+import { BellAlertIcon } from '@heroicons/react/24/solid'
 import NotificationBell from './NotificationBell'
 
 interface SidebarProps {
@@ -30,8 +32,23 @@ interface SidebarProps {
 
 export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggleCollapsed }: SidebarProps) {
   const [username, setUsername] = useState<string | null>(null)
+  const [mobileUnreadCount, setMobileUnreadCount] = useState(0)
   const { data: session, status } = useSession()
   const pathname = usePathname()
+
+  // Fetch unread count for mobile bell badge
+  useEffect(() => {
+    if (status !== 'authenticated') return
+    const fetchCount = () => {
+      fetch('/api/notifications')
+        .then(r => r.json())
+        .then(d => setMobileUnreadCount(d.unreadCount ?? 0))
+        .catch(() => {})
+    }
+    fetchCount()
+    const interval = setInterval(fetchCount, 60_000)
+    return () => clearInterval(interval)
+  }, [status])
 
   // Fetch username when session is available
   useEffect(() => {
@@ -369,13 +386,23 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
             <span>Search</span>
           </a>
           <a
-            href="/reader/settings"
+            href="/notifications"
             className={`flex flex-col items-center gap-0.5 px-3 py-1 text-xs font-medium transition-colors ${
-              pathname.startsWith('/reader/settings') ? 'text-blue-400' : 'text-gray-500'
+              pathname.startsWith('/notifications') ? 'text-blue-400' : 'text-gray-500'
             }`}
           >
-            <CogIcon className="w-5 h-5" />
-            <span>Settings</span>
+            <div className="relative">
+              {mobileUnreadCount > 0
+                ? <BellAlertIcon className="w-5 h-5 text-blue-400" />
+                : <BellIcon className="w-5 h-5" />
+              }
+              {mobileUnreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
+                  {mobileUnreadCount > 9 ? '9+' : mobileUnreadCount}
+                </span>
+              )}
+            </div>
+            <span>Alerts</span>
           </a>
         </div>
       ) : (

@@ -54,6 +54,16 @@ export default function NotificationBell({ isCollapsed }: { isCollapsed: boolean
     } catch {}
   }
 
+  async function markOneRead(id: string) {
+    try {
+      await fetch(`/api/notifications/${id}`, { method: 'PATCH' })
+      setNotifications(prev =>
+        prev.map(n => n.id === id ? { ...n, isRead: true } : n)
+      )
+      setUnreadCount(prev => Math.max(0, prev - 1))
+    } catch {}
+  }
+
   function handleOpen() {
     setOpen(prev => !prev)
     if (!open && unreadCount > 0) markAllRead()
@@ -122,7 +132,10 @@ export default function NotificationBell({ isCollapsed }: { isCollapsed: boolean
                 <a
                   key={n.id}
                   href={n.url ?? '#'}
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    if (!n.isRead) markOneRead(n.id)
+                    setOpen(false)
+                  }}
                   className={`flex gap-3 px-4 py-3 hover:bg-gray-700/60 transition-colors border-b border-gray-700/50 last:border-0
                     ${!n.isRead ? 'bg-blue-900/20' : ''}`}
                 >
