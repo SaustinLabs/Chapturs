@@ -35,10 +35,13 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=5&printType=books&langRestrict=en`
+    const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=6&printType=books&langRestrict=en`
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 5000)
     const res = await fetch(apiUrl, {
-      next: { revalidate: 300 }, // cache identical queries for 5 min
-    })
+      signal: controller.signal,
+      next: { revalidate: 300 },
+    }).finally(() => clearTimeout(timeout))
 
     if (!res.ok) {
       return NextResponse.json({ books: [] })
