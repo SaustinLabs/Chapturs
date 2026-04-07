@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 export default auth(function middleware(req) {
   const { pathname } = req.nextUrl
   const role = (req.auth?.user as any)?.role as string | undefined
+  const hasSetUsername = (req.auth?.user as any)?.hasSetUsername as boolean | undefined
 
   // /admin/bootstrap is the escape hatch — any authenticated user may reach it
   // so they can elevate themselves if they know the PIN.
@@ -27,6 +28,15 @@ export default auth(function middleware(req) {
     }
     if (role !== 'admin' && role !== 'superadmin') {
       return NextResponse.redirect(new URL('/admin/bootstrap', req.url))
+    }
+  }
+
+  // New user onboarding: redirect to /onboarding if username is still auto-generated.
+  // hasSetUsername defaults to true for existing JWTs without the claim, so this only
+  // triggers for users who signed in after this feature was deployed.
+  if (req.auth && hasSetUsername === false) {
+    if (!pathname.startsWith('/onboarding') && !pathname.startsWith('/auth')) {
+      return NextResponse.redirect(new URL('/onboarding', req.url))
     }
   }
 

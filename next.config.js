@@ -87,6 +87,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'cdn.discordapp.com', // Discord OAuth avatars
       },
+      {
+        protocol: 'https',
+        hostname: 'books.google.com', // Google Books API cover thumbnails
+      },
+      {
+        protocol: 'https',
+        hostname: 'books.googleusercontent.com', // Google Books cover images
+      },
     ],
   },
 };

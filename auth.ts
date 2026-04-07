@@ -125,7 +125,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return session
     },
-    async jwt({ token, account, user }) {
+    async jwt({ token, account, user, trigger, session }: any) {
+      // Handle client-triggered session update (e.g. after completing onboarding)
+      if (trigger === 'update' && session?.hasSetUsername !== undefined) {
+        (token as any).hasSetUsername = session.hasSetUsername
+        return token
+      }
+
       // Only runs on the initial sign-in (account is null on subsequent requests).
       // Pin token.sub to the real DB user ID (by email) so re-sign-ins don't
       // generate a new UUID that mismatches the DB record.
@@ -137,22 +143,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           if (email) {
             const dbUser = await prisma.user.findUnique({
               where: { email },
-              select: { id: true, role: true },
+              select: { id: true, role: true, username: true },
             })
             if (dbUser) {
               token.sub = dbUser.id          // pin JWT sub to actual DB ID
               ;(token as any).role = dbUser.role ?? 'user'
+              // Track whether user has set a real username (not auto-generated)
+              ;(token as any).hasSetUsername = !/_\d+$/.test(dbUser.username ?? '')
               return token
             }
           }
           // Fallback: look up by the sub NextAuth assigned
           const dbUser = await prisma.user.findUnique({
             where: { id: token.sub! },
-            select: { role: true },
+            select: { role: true, username: true },
           })
           ;(token as any).role = dbUser?.role ?? 'user'
+          ;(token as any).hasSetUsername = !/_\d+$/.test(dbUser?.username ?? '')
         } catch {
           ;(token as any).role = 'user'
+          ;(token as any).hasSetUsername = true // safe default: don't block on error
         }
       }
       return token

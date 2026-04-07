@@ -32,6 +32,8 @@ const { auth, handlers, signIn, signOut } = NextAuth({
         session.user.id = token.sub as string
         // Propagate role so middleware can gate /admin routes without a DB call
         ;(session.user as any).role = (token as any).role ?? 'user'
+        // Propagate onboarding state — default true so old JWTs without the claim don't redirect
+        ;(session.user as any).hasSetUsername = (token as any).hasSetUsername ?? true
       }
       return session
     },

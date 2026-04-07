@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/components/AuthProvider'
-import UsernameGuard from '@/components/auth/UsernameGuard'
 import { ToastProvider } from '@/components/ui/Toast'
 import { validateEnvironment } from '@/lib/config'
 import { auth } from '@/auth-edge'
@@ -80,9 +79,7 @@ export default async function RootLayout({
         <ChunkRecovery />
         <AuthProvider session={session}>
           <ToastProvider>
-            <UsernameGuard>
-              {children}
-            </UsernameGuard>
+            {children}
           </ToastProvider>
         </AuthProvider>
       </body>

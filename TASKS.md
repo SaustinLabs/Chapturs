@@ -1,5 +1,5 @@
 # Chapturs — Master Task List
-> Last updated: April 5, 2026  
+> Last updated: April 7, 2026  
 > **Legend:** ✅ Done · 🔶 Partial / in progress · ⬜ Not started
 
 ---
@@ -53,6 +53,7 @@
 | 18 | Browse page: filter by genre, tags, completion status, update frequency | ✅ | URL-driven `/browse` — genre pills, status/sort pills, cover-image grid, load-more; no search query required |
 | 19 | "New and Promising" section on homepage | ✅ | `NewAndPromisingSection.tsx` — horizontal scroll strip of recent works above InfiniteFeed |
 | 20 | Trending page | ✅ | `/trending` — popular works sorted by viewCount; time filters (this week / this month / all time); rank badges for top 3; Trending added to sidebar nav |
+| 105 | New user onboarding page with book taste discovery | ✅ | `/onboarding` — 2-step: username setup + book taste search via Google Books API (free, no key); extracted genres saved to `UserProfile.genreAffinities`; middleware-based redirect replaces annoying `UsernameGuard` popup; `hasSetUsername` JWT claim controls redirect lifecycle |
 
 ### Content Seeding
 | # | Task | Status | Notes |
