@@ -3,6 +3,17 @@
 import { useState, useEffect, useRef } from 'react'
 import { BellIcon } from '@heroicons/react/24/outline'
 import { BellAlertIcon } from '@heroicons/react/24/solid'
+import {
+  useFloating,
+  autoUpdate,
+  flip,
+  shift,
+  offset,
+  useClick,
+  useDismiss,
+  useInteractions,
+  FloatingPortal,
+} from '@floating-ui/react'
 
 interface Notification {
   id: string
@@ -20,20 +31,22 @@ export default function NotificationBell({ isCollapsed }: { isCollapsed: boolean
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
+  const { refs, floatingStyles, context } = useFloating({
+    open,
+    onOpenChange: setOpen,
+    placement: 'right-start',
+    middleware: [offset(8), flip(), shift({ padding: 8 })],
+    whileElementsMounted: autoUpdate,
+  })
+
+  const click = useClick(context)
+  const dismiss = useDismiss(context)
+  const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss])
+
   useEffect(() => {
     fetchNotifications()
-    // Poll every 60s
     const interval = setInterval(fetchNotifications, 60_000)
     return () => clearInterval(interval)
-  }, [])
-
-  // Close on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
   }, [])
 
   async function fetchNotifications() {
@@ -65,7 +78,6 @@ export default function NotificationBell({ isCollapsed }: { isCollapsed: boolean
   }
 
   function handleOpen() {
-    setOpen(prev => !prev)
     if (!open && unreadCount > 0) markAllRead()
   }
 
@@ -89,7 +101,9 @@ export default function NotificationBell({ isCollapsed }: { isCollapsed: boolean
   return (
     <div ref={ref} className="relative">
       <button
+        ref={refs.setReference}
         onClick={handleOpen}
+        {...getReferenceProps()}
         className={`flex items-center w-full px-3 py-2 rounded-lg text-sm font-medium
           text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800
           hover:text-gray-900 dark:hover:text-white transition-colors
@@ -112,47 +126,64 @@ export default function NotificationBell({ isCollapsed }: { isCollapsed: boolean
       </button>
 
       {open && (
-        <div className="absolute left-full ml-2 top-0 z-50 w-80 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
-            <span className="text-sm font-semibold text-white">Notifications</span>
-            {unreadCount > 0 && (
-              <button onClick={markAllRead} className="text-xs text-blue-400 hover:text-blue-300">
-                Mark all read
-              </button>
-            )}
-          </div>
+        <FloatingPortal>
+          <div
+            ref={refs.setFloating}
+            style={floatingStyles}
+            {...getFloatingProps()}
+            className="z-[9999] w-80 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl overflow-hidden"
+          >
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
+              <span className="text-sm font-semibold text-white">Notifications</span>
+              {unreadCount > 0 && (
+                <button onClick={markAllRead} className="text-xs text-blue-400 hover:text-blue-300">
+                  Mark all read
+                </button>
+              )}
+            </div>
 
-          <div className="max-h-96 overflow-y-auto">
-            {notifications.length === 0 ? (
-              <div className="px-4 py-8 text-center text-sm text-gray-500">
-                No notifications yet
-              </div>
-            ) : (
-              notifications.map(n => (
-                <a
-                  key={n.id}
-                  href={n.url ?? '#'}
-                  onClick={() => {
-                    if (!n.isRead) markOneRead(n.id)
-                    setOpen(false)
-                  }}
-                  className={`flex gap-3 px-4 py-3 hover:bg-gray-700/60 transition-colors border-b border-gray-700/50 last:border-0
-                    ${!n.isRead ? 'bg-blue-900/20' : ''}`}
-                >
-                  <span className="text-lg mt-0.5 flex-shrink-0">{typeIcon[n.type] ?? '🔔'}</span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{n.title}</p>
-                    <p className="text-xs text-gray-400 truncate">{n.message}</p>
-                    <p className="text-[11px] text-gray-500 mt-0.5">{timeAgo(n.createdAt)}</p>
-                  </div>
-                  {!n.isRead && (
-                    <div className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0 mt-1.5" />
-                  )}
-                </a>
-              ))
-            )}
+            <div className="max-h-96 overflow-y-auto">
+              {notifications.length === 0 ? (
+                <div className="px-4 py-8 text-center text-sm text-gray-500">
+                  No notifications yet
+                </div>
+              ) : (
+                notifications.map(n => (
+                  <a
+                    key={n.id}
+                    href={n.url ?? '#'}
+                    onClick={() => {
+                      if (!n.isRead) markOneRead(n.id)
+                      setOpen(false)
+                    }}
+                    className={`flex gap-3 px-4 py-3 hover:bg-gray-700/60 transition-colors border-b border-gray-700/50 last:border-0
+                      ${!n.isRead ? 'bg-blue-900/20' : ''}`}
+                  >
+                    <span className="text-lg mt-0.5 flex-shrink-0">{typeIcon[n.type] ?? '🔔'}</span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-white truncate">{n.title}</p>
+                      <p className="text-xs text-gray-400 truncate">{n.message}</p>
+                      <p className="text-[11px] text-gray-500 mt-0.5">{timeAgo(n.createdAt)}</p>
+                    </div>
+                    {!n.isRead && (
+                      <div className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0 mt-1.5" />
+                    )}
+                  </a>
+                ))
+              )}
+            </div>
+
+            <div className="px-4 py-2 border-t border-gray-700">
+              <a
+                href="/notifications"
+                onClick={() => setOpen(false)}
+                className="block text-center text-xs text-blue-400 hover:text-blue-300 py-1"
+              >
+                See all notifications →
+              </a>
+            </div>
           </div>
-        </div>
+        </FloatingPortal>
       )}
     </div>
   )

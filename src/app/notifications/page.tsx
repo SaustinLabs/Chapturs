@@ -44,12 +44,6 @@ function NotificationsPage() {
   const [markingAll, setMarkingAll] = useState(false)
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.replace('/')
-    }
-  }, [status, router])
-
-  useEffect(() => {
     if (status !== 'authenticated') return
     setLoading(true)
     fetch('/api/notifications')
@@ -85,6 +79,21 @@ function NotificationsPage() {
   async function handleNotificationClick(n: Notification) {
     if (!n.isRead) await markOneRead(n.id)
     if (n.url) router.push(n.url)
+  }
+
+  if (status === 'unauthenticated') {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-20 text-center">
+        <BellIcon className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+        <p className="text-gray-300 font-medium mb-2">Sign in to see your notifications</p>
+        <a
+          href="/auth/signin?callbackUrl=/notifications"
+          className="inline-block mt-4 px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+        >
+          Sign in
+        </a>
+      </div>
+    )
   }
 
   if (status === 'loading' || loading) {
