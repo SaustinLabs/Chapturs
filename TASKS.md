@@ -79,7 +79,7 @@
 | 102 | Author glossary achievement milestones (entry count + evolving definitions) | ⬜ | Count distinct glossary entries/instances over story progression |
 | 103 | Author character index achievement milestones | ⬜ | Milestones like 25/50/100 character entries |
 | 104 | High-impact contribution points: translations, audiobooks, fan-art, featured placements | ⬜ | Launch with existing contribution types; feature bonus rules can be phased |
-| 105 | Publishing flow options in editor: upload document / paste document / continue writing | ⬜ | Low-friction ingest for beta author onboarding |
+| 105 | Publishing flow options in editor: upload document / paste document / continue writing | ✅ | Entry picker shown on new chapters: Write from scratch / Upload document / Paste text. Paste converts plain text to prose blocks and loads into editor. |
 | 106 | Define release cadence UX (scheduled vs metadata-only) for beta publishing | ⬜ | Decide strict scheduling later if needed |
 | 107 | Founder program policy doc for exact point values + award rules | ⬜ | Source-of-truth + public docs; values must be admin-editable in runtime settings to rebalance meta shifts |
 
@@ -135,7 +135,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | 47 | Series subscription (one click covers all works in a set) | ⬜ |
 | 48 | Reader-to-reader recommendation ("finished X → also loved Y") | ⬜ |
 | 49 | "Readers Also Enjoyed" block on story pages | ✅ | Smart cascade: author picks → collaborative signals → semantic LLM Jaccard → trending → popular. `WorkSemanticProfile` + `AuthorRecommendation` schema, `similarity.ts` service, `/api/works/[id]/related`. |
-| 49a | Author-curated "Readers Also Enjoyed" picks — Creator Hub UI | ⬜ | API exists (`PUT /api/works/[id]/author-recommendations`, max 4). Need a work-search autocomplete + list UI in Story Management settings. |
+| 49a | Author-curated "Readers Also Enjoyed" picks — Creator Hub UI | ✅ | Work-search autocomplete + pick list (max 4) added to `/creator/work/[id]/edit`. Auto-saves on add/remove. |
 | 49b | Collaborative signal cron/trigger — periodically call `computeCollaborativeSignals` | ⬜ | Hook exists; needs a scheduled API route or admin trigger to run it for works with sufficient readership. |
 
 ---

@@ -101,6 +101,13 @@ export default function CreatorEditorPage() {
   // UI state
   const [showStatsBar, setShowStatsBar] = useState(false) // Quick stats bar toggle
 
+  // Publishing flow entry picker (#105)
+  const [startPickerDismissed, setStartPickerDismissed] = useState(false)
+  const [pasteMode, setPasteMode] = useState(false)
+  const [pasteText, setPasteText] = useState('')
+  // Show the "how do you want to start?" picker for new chapters (not when editing an existing one)
+  const showStartPicker = mode === 'create' && !chapterId && !startPickerDismissed
+
   useEffect(() => {
     console.log('useEffect triggered:', { mode, workId, draftId, chapterId })
     // Load work data if workId provided (load existing work + sections)
@@ -736,7 +743,122 @@ export default function CreatorEditorPage() {
 
         {/* Main Content */}
         <div className="flex-1 overflow-hidden">
-          {editorMode.type === 'editor' ? (
+          {showStartPicker ? (
+            /* ── Publishing flow entry picker (#105) ─────────────────────── */
+            <div className="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-900 p-6">
+              <div className="max-w-lg w-full">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">
+                  How do you want to start?
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400 text-center text-sm mb-8">
+                  Choose the fastest path to getting your chapter in.
+                </p>
+                <div className="grid grid-cols-1 gap-4">
+                  <button
+                    onClick={() => setStartPickerDismissed(true)}
+                    className="flex items-start gap-4 p-5 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-md transition-all text-left"
+                  >
+                    <span className="text-3xl flex-shrink-0 mt-0.5">✍️</span>
+                    <div>
+                      <p className="font-semibold text-gray-900 dark:text-white">Write from scratch</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                        Open the rich editor and start typing directly.
+                      </p>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => { setEditorMode({ type: 'uploader' }); setStartPickerDismissed(true) }}
+                    className="flex items-start gap-4 p-5 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-purple-500 dark:hover:border-purple-500 hover:shadow-md transition-all text-left"
+                  >
+                    <span className="text-3xl flex-shrink-0 mt-0.5">📄</span>
+                    <div>
+                      <p className="font-semibold text-gray-900 dark:text-white">Upload a document</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                        Import a .docx, .txt, or other file and parse it automatically.
+                      </p>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => { setPasteMode(true); setStartPickerDismissed(true) }}
+                    className="flex items-start gap-4 p-5 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-green-500 dark:hover:border-green-500 hover:shadow-md transition-all text-left"
+                  >
+                    <span className="text-3xl flex-shrink-0 mt-0.5">📋</span>
+                    <div>
+                      <p className="font-semibold text-gray-900 dark:text-white">Paste text</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                        Paste a block of plain text. We'll convert it into editor blocks for you.
+                      </p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : pasteMode ? (
+            /* ── Paste text panel (#105) ─────────────────────────────────── */
+            <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 p-6 overflow-auto">
+              <div className="max-w-2xl w-full mx-auto flex flex-col flex-1">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Paste your text</h2>
+                  <button
+                    onClick={() => { setPasteMode(false); setStartPickerDismissed(false) }}
+                    className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                  >
+                    ← Back
+                  </button>
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                  Blank lines will become paragraph breaks. Each paragraph becomes an editor block.
+                </p>
+                <textarea
+                  value={pasteText}
+                  onChange={e => setPasteText(e.target.value)}
+                  placeholder="Paste your chapter text here..."
+                  className="flex-1 min-h-64 w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl text-sm font-mono resize-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-xs text-gray-400">
+                    {pasteText.trim() ? `~${pasteText.trim().split(/\s+/).length} words` : 'Nothing pasted yet'}
+                  </p>
+                  <button
+                    disabled={!pasteText.trim()}
+                    onClick={() => {
+                      const paragraphs = pasteText.split(/\n\n+/).filter(p => p.trim())
+                      const blocks = paragraphs.map(para => ({
+                        id: Math.random().toString(36).slice(2, 10),
+                        type: 'prose' as const,
+                        text: para.trim(),
+                      }))
+                      const doc = {
+                        type: 'chapter' as const,
+                        version: '1.0.0',
+                        metadata: {
+                          id: 'new',
+                          title: 'Chapter 1',
+                          chapterNumber: 1,
+                          author: { id: '', name: '' },
+                          language: 'en',
+                          wordCount: pasteText.trim().split(/\s+/).filter(Boolean).length,
+                          created: new Date().toISOString(),
+                          modified: new Date().toISOString(),
+                          status: 'draft' as const,
+                          tags: [],
+                        },
+                        content: blocks,
+                      }
+                      setLoadedContent(doc)
+                      setPasteMode(false)
+                      setEditorMode({ type: 'editor' })
+                    }}
+                    className="px-6 py-2.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Import into editor →
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : editorMode.type === 'editor' ? (
             <ChaptursEditor
               workId={workId || 'new'}
               chapterId={chapterId}
