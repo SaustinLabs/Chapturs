@@ -210,7 +210,8 @@ model Work {
   formatType     String // 'novel', 'article', 'comic', 'hybrid'
   coverImage     String?
   status         String   @default("draft") // 'draft', 'ongoing', 'completed', 'hiatus'
-  maturityRating String   @default("PG") // 'G', 'PG', 'PG-13', 'R', 'NC-17'
+  maturityRating    String   @default("PG") // 'G', 'PG', 'PG-13', 'R', 'NC-17'
+  aiUseDisclosure   String   @default("none") // 'none' | 'assisted' | 'generated'
   genres         String // JSON array
   tags           String // JSON array
   statistics     String // JSON object

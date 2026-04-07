@@ -44,6 +44,7 @@ export default function EditWorkPage() {
     genres: [] as string[],
     tags: [] as string[],
     maturityRating: 'PG',
+    aiUseDisclosure: 'none',
     status: 'draft',
     coverImage: ''
   })
@@ -63,6 +64,7 @@ export default function EditWorkPage() {
             genres: data.genres || [],
             tags: data.tags || [],
             maturityRating: data.maturityRating || 'PG',
+            aiUseDisclosure: data.aiUseDisclosure || 'none',
             status: data.status || 'draft',
             coverImage: data.coverImage || ''
           })
@@ -344,6 +346,45 @@ export default function EditWorkPage() {
               <option value="R">R - Restricted</option>
               <option value="NC-17">NC-17 - Adults Only</option>
             </select>
+          </div>
+
+          {/* AI Use Disclosure */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              AI Use Disclosure
+            </label>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+              Help readers make informed choices by disclosing how AI tools were used in creating this work.
+            </p>
+            <div className="space-y-2">
+              {([
+                { value: 'none', label: 'No AI use', desc: 'Entirely human-written — no AI tools used' },
+                { value: 'assisted', label: 'AI-Assisted', desc: 'Human-written with AI tools for editing, grammar, or suggestions' },
+                { value: 'generated', label: 'AI-Generated', desc: 'Substantially or fully produced by AI' },
+              ] as const).map(({ value, label, desc }) => (
+                <label
+                  key={value}
+                  className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                    formData.aiUseDisclosure === value
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="aiUseDisclosure"
+                    value={value}
+                    checked={formData.aiUseDisclosure === value}
+                    onChange={() => setFormData({ ...formData, aiUseDisclosure: value })}
+                    className="mt-0.5 accent-blue-500"
+                  />
+                  <span>
+                    <span className="block text-sm font-medium text-gray-900 dark:text-white">{label}</span>
+                    <span className="block text-xs text-gray-500 dark:text-gray-400">{desc}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
           </div>
 
           {/* Status */}

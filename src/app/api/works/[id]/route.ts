@@ -87,21 +87,26 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       genres,
       tags,
       maturityRating,
+      aiUseDisclosure,
       status,
       coverImage
     } = body
 
-    console.log(`Works API: Updating work with data:`, { title, description, status, genres, tags, maturityRating, coverImage })
+    console.log(`Works API: Updating work with data:`, { title, description, status, genres, tags, maturityRating, aiUseDisclosure, coverImage })
 
     // Prepare update data
     const VALID_STATUSES = ['draft', 'ongoing', 'completed', 'hiatus', 'unpublished', 'published']
     const VALID_RATINGS = ['G', 'PG', 'PG-13', 'R', 'NC-17']
+    const VALID_AI_DISCLOSURES = ['none', 'assisted', 'generated']
 
     if (status && !VALID_STATUSES.includes(status)) {
       return NextResponse.json({ error: 'Invalid status value' }, { status: 400 })
     }
     if (maturityRating && !VALID_RATINGS.includes(maturityRating)) {
       return NextResponse.json({ error: 'Invalid maturity rating' }, { status: 400 })
+    }
+    if (aiUseDisclosure && !VALID_AI_DISCLOSURES.includes(aiUseDisclosure)) {
+      return NextResponse.json({ error: 'Invalid AI use disclosure value' }, { status: 400 })
     }
 
     const updateData: any = {
@@ -113,6 +118,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
     if (genres) updateData.genres = JSON.stringify(genres)
     if (tags) updateData.tags = JSON.stringify(tags)
     if (maturityRating) updateData.maturityRating = maturityRating
+    if (aiUseDisclosure) updateData.aiUseDisclosure = aiUseDisclosure
     if (status) updateData.status = status
     if (coverImage !== undefined) updateData.coverImage = coverImage
 

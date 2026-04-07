@@ -51,6 +51,7 @@ export interface Work {
   formatType: ContentFormat
   status: WorkStatus
   maturityRating: MaturityRating
+  aiUseDisclosure?: string // 'none' | 'assisted' | 'generated'
   
   // Metadata
   genres: string[]

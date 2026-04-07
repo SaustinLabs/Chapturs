@@ -444,6 +444,11 @@ export default function StoryPageClient({ initialWork, aiReview, featuredComment
                         {genre}
                       </span>
                     ))}
+                    {(story as any).aiUseDisclosure && (story as any).aiUseDisclosure !== 'none' && (
+                      <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-sm rounded-full border border-purple-200 dark:border-purple-700/50">
+                        {(story as any).aiUseDisclosure === 'generated' ? '🤖 AI-Generated' : '✨ AI-Assisted'}
+                      </span>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {story.tags.map((tag) => (

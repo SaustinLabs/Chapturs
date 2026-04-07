@@ -9,7 +9,7 @@
 | # | Task | Status | Notes |
 |---|---|---|---|
 | 1 | Run bootstrap flow: sign in → `/admin/bootstrap` → enter PIN → sign out → sign back in | ⬜ | Deploy `0363768` must finish first |
-| 2 | Verify `RESEND_API_KEY` + `EMAIL_FROM` are in GitHub Secrets | ⬜ | Without these, all transactional emails are silently dropped |
+| 2 | Verify `RESEND_API_KEY` + `EMAIL_FROM` are in GitHub Secrets | ✅ | Confirmed set by user |
 | 3 | Run `npx prisma db push` on the production DB | ⬜ | Schema has `CommunityLink.signupCount` + `User.communityRef` that aren't pushed yet |
 | 4 | Set up Admin → Settings → Email Addresses in the admin panel | ⬜ | New email group defaults to `@chapturs.com` values but needs to be confirmed/customised after first deploy |
 
@@ -30,16 +30,17 @@
 |---|---|---|---|
 | 9 | Write a dedicated DMCA policy page (`/dmca`) | ✅ | `/app/dmca/page.tsx` — full takedown + counter-notice procedure, links `dmca@chapturs.com` |
 | 10 | Review Terms of Service — ensure it mentions AI-generated content rules | ⬜ | With AI author bots planned, terms should cover this now |
+| 10a | AI-use disclosure framework for authors | ✅ | `aiUseDisclosure` field on Work schema (none/assisted/generated); radio selector in creator work edit page; disclosure badge on story page |
 | 11 | Age verification / parental advisory for mature-rated works | ✅ | `MaturityGate.tsx` — full-screen interstitial for R/NC-17 works; localStorage consent; wraps StoryPageClient in story page |
 | 12 | Privacy policy audit — confirm GDPR/CCPA delete-account flow works | ✅ | `DELETE /api/user/account` with cascade delete; Danger Zone section in Reader Settings with typed confirmation modal |
 
 ### SEO & Discoverability
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 13 | Audit sitemap.ts — confirm all public story/author pages are included | 🔶 | File exists, unknown if comprehensive |
+| 13 | Audit sitemap.ts — confirm all public story/author pages are included | ✅ | Added /trending, /search, /about/roadmap, /features, /contact, /dmca to static routes; dynamic story + user profile routes already present |
 | 14 | Per-story `og:image` meta tags using cover art | ✅ | Fixed `resolveCoverSrc` bug in story layout — was passing wrong args, now returns correct absolute URL |
 | 15 | Per-chapter `og:description` using chapter hook / first paragraph | ✅ | Chapter layout also fixed — og:image now works for chapter social shares |
-| 16 | Canonical URLs on paginated/filtered pages | ⬜ | Feed has filters that may create duplicate URL issues |
+| 16 | Canonical URLs on paginated/filtered pages | ✅ | /browse and /trending extracted to server wrappers (BrowsePageClient, TrendingPageClient) that export metadata with canonical alternates |
 
 ---
 

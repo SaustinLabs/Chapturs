@@ -247,6 +247,7 @@ export default class DatabaseService {
       coverImage: work.coverImage,
       status: work.status,
       maturityRating: work.maturityRating,
+      aiUseDisclosure: (work as any).aiUseDisclosure ?? 'none',
       genres: JSON.parse((work as any).genres || '[]'),
       tags: JSON.parse((work as any).tags || '[]'),
       statistics: JSON.parse((work as any).statistics || '{}'),
