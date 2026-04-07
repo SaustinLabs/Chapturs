@@ -19,6 +19,7 @@ import {
   CurrencyDollarIcon,
   SparklesIcon,
   BellIcon,
+  FireIcon,
 } from '@heroicons/react/24/outline'
 import { BellAlertIcon } from '@heroicons/react/24/solid'
 import NotificationBell from './NotificationBell'
@@ -70,6 +71,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
 
   const readerItems = [
     { icon: HomeIcon, label: 'Home', href: '/' },
+    { icon: FireIcon, label: 'Trending', href: '/trending' },
     { icon: BookmarkIcon, label: 'Library', href: '/library' },
     { icon: BookOpenIcon, label: 'Subscriptions', href: '/subscriptions' },
     { icon: MagnifyingGlassIcon, label: 'Search', href: '/search' },

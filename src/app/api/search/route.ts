@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
     const maturityRating = searchParams.get('maturityRating') || ''
     const formatType = searchParams.get('formatType') || ''
     const sortBy = searchParams.get('sortBy') || 'popular'
+    const publishedWithinDays = parseInt(searchParams.get('publishedWithinDays') || '0', 10)
     const limit = Math.min(parseInt(searchParams.get('limit') || '24', 10), 100)
     const offset = parseInt(searchParams.get('offset') || '0', 10)
 
@@ -42,6 +43,11 @@ export async function GET(request: NextRequest) {
     if (formatType) where.formatType = formatType
     // Genre stored as JSON string — use a substring search
     if (genre) where.genres = { contains: genre }
+    if (publishedWithinDays > 0) {
+      const since = new Date()
+      since.setDate(since.getDate() - publishedWithinDays)
+      where.createdAt = { gte: since }
+    }
 
     let orderBy: any
     if (sortBy === 'recent') {

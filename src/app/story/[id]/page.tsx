@@ -2,6 +2,7 @@
 import { notFound } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import StoryPageClient from '@/components/story/StoryPageClient'
+import MaturityGate from '@/components/MaturityGate'
 import PrismaService from '@/lib/database/PrismaService'
 import { prisma } from '@/lib/database/PrismaService'
 import { resolveCoverSrc } from '@/lib/images'
@@ -112,13 +113,17 @@ export default async function StoryPage({ params }: Props) {
     }),
   }
 
+  const maturityRating: string = (work as any).maturityRating ?? 'PG'
+
   return (
     <AppLayout>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <StoryPageClient initialWork={work as any} aiReview={aiReview} featuredComments={featuredComments as any} relatedWorks={relatedWorks} />
+      <MaturityGate maturityRating={maturityRating}>
+        <StoryPageClient initialWork={work as any} aiReview={aiReview} featuredComments={featuredComments as any} relatedWorks={relatedWorks} />
+      </MaturityGate>
     </AppLayout>
   )
 }

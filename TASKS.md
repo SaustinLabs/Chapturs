@@ -30,8 +30,8 @@
 |---|---|---|---|
 | 9 | Write a dedicated DMCA policy page (`/dmca`) | ✅ | `/app/dmca/page.tsx` — full takedown + counter-notice procedure, links `dmca@chapturs.com` |
 | 10 | Review Terms of Service — ensure it mentions AI-generated content rules | ⬜ | With AI author bots planned, terms should cover this now |
-| 11 | Age verification / parental advisory for mature-rated works | ⬜ | Maturity rating field exists, no reader-side gate |
-| 12 | Privacy policy audit — confirm GDPR/CCPA delete-account flow works | ⬜ | Delete account doesn't appear to be wired up end-to-end |
+| 11 | Age verification / parental advisory for mature-rated works | ✅ | `MaturityGate.tsx` — full-screen interstitial for R/NC-17 works; localStorage consent; wraps StoryPageClient in story page |
+| 12 | Privacy policy audit — confirm GDPR/CCPA delete-account flow works | ✅ | `DELETE /api/user/account` with cascade delete; Danger Zone section in Reader Settings with typed confirmation modal |
 
 ### SEO & Discoverability
 | # | Task | Status | Notes |
@@ -51,7 +51,7 @@
 | 17 | Feed reads `community_genres` cookie for cold-start seeding | ✅ | Cookie read in feed API; genre-matching works floated to top for guest visitors arriving via community links |
 | 18 | Browse page: filter by genre, tags, completion status, update frequency | ✅ | URL-driven `/browse` — genre pills, status/sort pills, cover-image grid, load-more; no search query required |
 | 19 | "New and Promising" section on homepage | ✅ | `NewAndPromisingSection.tsx` — horizontal scroll strip of recent works above InfiniteFeed |
-| 20 | Trending page | ⬜ | Beyond the feed — dedicated trending works list |
+| 20 | Trending page | ✅ | `/trending` — popular works sorted by viewCount; time filters (this week / this month / all time); rank badges for top 3; Trending added to sidebar nav |
 
 ### Content Seeding
 | # | Task | Status | Notes |
@@ -270,3 +270,6 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 | FEATURE_ROADMAP.md refreshed |
 | "Readers Also Enjoyed" — smart similarity cascade: author picks → collaborative signals → semantic LLM tags → trending → popular fallback. WorkSemanticProfile + AuthorRecommendation schema, similarity service, `/api/works/[id]/related`, `/api/works/[id]/author-recommendations`. LLM now emits structured `semanticProfile` alongside QA assessment (zero extra cost). `ContentSimilarity` table auto-populated after every QA run. Author UI pending — see TASKS below. |
 | Author-curated companion works API — `PUT /api/works/[id]/author-recommendations` (max 4, auth-gated to work owner) |
+| Maturity gate (#11) — `MaturityGate.tsx` interstitial for R/NC-17 stories; localStorage consent; wired into `/story/[id]` |
+| Delete account (#12) — `DELETE /api/user/account` cascade delete + Danger Zone UI in Reader Settings |
+| Trending page (#20) — `/trending` with time filters, rank badges, sidebar nav link; `publishedWithinDays` param added to `/api/search` |
