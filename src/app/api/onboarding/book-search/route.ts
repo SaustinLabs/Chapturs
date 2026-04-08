@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const runtime = 'nodejs'
+
 // Platform genre taxonomy
 const PLATFORM_GENRES = [
   'Fantasy', 'Romance', 'Science Fiction', 'Mystery', 'Thriller',
@@ -35,7 +37,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=6&printType=books&langRestrict=en`
+    const apiKey = process.env.GOOGLE_BOOKS_API_KEY
+    const keyParam = apiKey ? `&key=${encodeURIComponent(apiKey)}` : ''
+    const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=6&printType=books&langRestrict=en${keyParam}`
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 5000)
     const res = await fetch(apiUrl, {

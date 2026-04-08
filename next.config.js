@@ -38,8 +38,7 @@ const nextConfig = {
         'https://books.googleusercontent.com',
       ].join(' '),
       "font-src 'self'",
-      // Allow Google Books API calls from the browser (onboarding taste search)
-      "connect-src 'self' https://www.googleapis.com",
+      "connect-src 'self'",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",

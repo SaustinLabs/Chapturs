@@ -185,30 +185,16 @@ export default function OnboardingForm() {
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
     if (!value.trim()) { setBookResults([]); return }
 
-    // Call Google Books API directly from the browser — each user has their own
-    // per-IP quota so we never hit rate limits on the server side
+    // Minimum 3 chars before hitting the API to avoid burning quota on short keystrokes
+    if (value.trim().length < 3) { setBookResults([]); return }
+
     searchTimeoutRef.current = setTimeout(async () => {
-      // Don't hit the Books API until we have at least 3 characters — avoids
-      // 429s from single/double-character keystrokes spamming the quota
-      if (value.trim().length < 3) { setIsSearching(false); return }
       setIsSearching(true)
       try {
-        const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(value)}&maxResults=6&printType=books&langRestrict=en`
-        const res = await fetch(apiUrl)
+        const res = await fetch(`/api/onboarding/book-search?q=${encodeURIComponent(value)}`)
         if (!res.ok) { setBookResults([]); return }
         const data = await res.json()
-        const books: BookResult[] = (data.items ?? []).map((item: any) => {
-          const info = item.volumeInfo ?? {}
-          const rawCover: string | undefined = info.imageLinks?.thumbnail ?? info.imageLinks?.smallThumbnail
-          return {
-            googleId: item.id as string,
-            title: (info.title as string) ?? 'Unknown Title',
-            authors: (info.authors as string[]) ?? [],
-            cover: rawCover ? rawCover.replace(/^http:\/\//, 'https://') : null,
-            genres: mapCategoriesToTags((info.categories as string[]) ?? []),
-          }
-        })
-        setBookResults(books)
+        setBookResults(data.books ?? [])
       } catch {
         setBookResults([])
       } finally {
