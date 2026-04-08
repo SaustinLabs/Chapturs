@@ -4,20 +4,44 @@ import { prisma } from '@/lib/database/PrismaService'
 
 export const runtime = 'nodejs'
 
+/** Verify a reCAPTCHA v3 token server-side. Returns the score (0–1) or null on failure. */
+async function verifyRecaptcha(token: string): Promise<number | null> {
+  const secret = process.env.RECAPTCHA_SECRET_KEY
+  if (!secret) return null // key not configured — skip check
+  try {
+    const res = await fetch(
+      `https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${token}`,
+      { method: 'POST', signal: AbortSignal.timeout(5000) }
+    )
+    const data = await res.json()
+    return data.success ? (data.score ?? null) : null
+  } catch {
+    return null
+  }
+}
+
 export async function POST(request: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  let body: { username?: string; genres?: string[] }
+  let body: { username?: string; genres?: string[]; recaptchaToken?: string }
   try {
     body = await request.json()
   } catch {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  const { username, genres = [] } = body
+  const { username, genres = [], recaptchaToken } = body
+
+  // reCAPTCHA v3 check — block obvious bots (score < 0.3) when the key is configured
+  if (recaptchaToken) {
+    const score = await verifyRecaptcha(recaptchaToken)
+    if (score !== null && score < 0.3) {
+      return NextResponse.json({ error: 'Request blocked by spam filter' }, { status: 403 })
+    }
+  }
 
   try {
     // Update username if provided

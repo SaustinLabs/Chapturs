@@ -1,8 +1,20 @@
 ﻿'use client'
 
-import { useState, useRef, useMemo, useEffect } from 'react'
+import { useState, useRef, useMemo, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+
+/** Execute a reCAPTCHA v3 action and return the token (or empty string if not loaded). */
+async function getRecaptchaToken(action: string): Promise<string> {
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+  if (!siteKey) return ''
+  return new Promise<string>((resolve) => {
+    if (typeof window === 'undefined' || !(window as any).grecaptcha) { resolve(''); return }
+    ;(window as any).grecaptcha.ready(() => {
+      ;(window as any).grecaptcha.execute(siteKey, { action }).then(resolve).catch(() => resolve(''))
+    })
+  })
+}
 
 // All searchable tags — platform genres + popular tropes a reader might type
 const ALL_TAGS = [
@@ -243,10 +255,11 @@ export default function OnboardingForm() {
   const completeOnboarding = async () => {
     setIsSubmitting(true)
     try {
+      const recaptchaToken = await getRecaptchaToken('onboarding_complete')
       await fetch('/api/onboarding/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username || undefined, genres: [...selectedTags] }),
+        body: JSON.stringify({ username: username || undefined, genres: [...selectedTags], recaptchaToken }),
       })
     } catch { /* non-fatal */ }
     await update({ hasSetUsername: true })

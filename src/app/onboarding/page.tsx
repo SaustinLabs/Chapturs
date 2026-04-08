@@ -1,5 +1,6 @@
 ﻿import { auth } from '@/auth-edge'
 import { redirect } from 'next/navigation'
+import Script from 'next/script'
 import OnboardingForm from '@/components/onboarding/OnboardingForm'
 
 export default async function OnboardingPage() {
@@ -7,5 +8,16 @@ export default async function OnboardingPage() {
   if (!session?.user) {
     redirect('/auth/signin?callbackUrl=/onboarding')
   }
-  return <OnboardingForm />
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+  return (
+    <>
+      {siteKey && (
+        <Script
+          src={`https://www.google.com/recaptcha/api.js?render=${siteKey}`}
+          strategy="afterInteractive"
+        />
+      )}
+      <OnboardingForm />
+    </>
+  )
 }

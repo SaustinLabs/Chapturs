@@ -457,48 +457,71 @@ export class ContentValidationService {
   }
 
   /**
-   * Check thumbnail/image safety (public for testing)
+   * Check thumbnail/image safety using Google Cloud Vision SafeSearch.
+   * Falls back to basic URL/extension validation if the API key is not configured.
    */
   static async checkImageSafety(imageUrl: string, workId: string): Promise<ValidationResult> {
-    // TODO: Integrate with image safety APIs like:
-    // - Google Cloud Vision API
-    // - AWS Rekognition
-    // - Clarifai
-    // - Sightengine
-
-    // For now, basic URL validation and file extension check
     const flags: string[] = []
 
+    // Validate URL is parseable first
     try {
-      // Check if URL is valid
       new URL(imageUrl)
-
-      // Check file extension (basic filter)
-      const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg']
-      const hasAllowedExtension = allowedExtensions.some(ext =>
-        imageUrl.toLowerCase().includes(ext)
-      )
-
-      if (!hasAllowedExtension) {
-        flags.push('invalid_image_format')
-      }
-
-      // TODO: Add actual image analysis here
-      // This would download the image and analyze it for:
-      // - Nudity detection
-      // - Violence detection
-      // - Hate symbols
-      // - Inappropriate content
-
     } catch {
-      flags.push('invalid_image_url')
+      return { passed: false, score: 0.0, flags: ['invalid_image_url'], details: { imageUrl } }
     }
+
+    const apiKey = process.env.GOOGLE_CLOUD_VISION_API_KEY
+    if (apiKey) {
+      try {
+        const visionRes = await fetch(
+          `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              requests: [{
+                image: { source: { imageUri: imageUrl } },
+                features: [{ type: 'SAFE_SEARCH_DETECTION' }],
+              }],
+            }),
+            signal: AbortSignal.timeout(8000),
+          }
+        )
+
+        if (visionRes.ok) {
+          const data = await visionRes.json()
+          const annotation = data.responses?.[0]?.safeSearchAnnotation
+          if (annotation) {
+            // Likelihood levels: UNKNOWN, VERY_UNLIKELY, UNLIKELY, POSSIBLE, LIKELY, VERY_LIKELY
+            const HIGH = new Set(['LIKELY', 'VERY_LIKELY'])
+            if (HIGH.has(annotation.adult))    flags.push('nsfw_adult')
+            if (HIGH.has(annotation.violence)) flags.push('nsfw_violence')
+            if (HIGH.has(annotation.racy))     flags.push('nsfw_racy')
+            if (HIGH.has(annotation.medical))  flags.push('nsfw_medical')
+
+            return {
+              passed: flags.length === 0,
+              score: flags.length === 0 ? 1.0 : 0.0,
+              flags,
+              details: { imageUrl, analysis: 'cloud_vision_safe_search', annotation },
+            }
+          }
+        }
+      } catch {
+        // Vision API unreachable — fall through to basic check rather than blocking upload
+      }
+    }
+
+    // Basic fallback: extension check only
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg']
+    const hasAllowedExtension = allowedExtensions.some(ext => imageUrl.toLowerCase().includes(ext))
+    if (!hasAllowedExtension) flags.push('invalid_image_format')
 
     return {
       passed: flags.length === 0,
       score: flags.length === 0 ? 1.0 : 0.0,
-      details: { imageUrl, analysis: 'basic_url_validation' },
-      flags
+      flags,
+      details: { imageUrl, analysis: apiKey ? 'vision_api_fallback' : 'basic_url_validation' },
     }
   }
 }

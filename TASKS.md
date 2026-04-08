@@ -12,6 +12,7 @@
 | 2 | Verify `RESEND_API_KEY` + `EMAIL_FROM` are in GitHub Secrets | ✅ | Confirmed set by user |
 | 3 | Run `npx prisma db push` on the production DB | ⬜ | Schema has `CommunityLink.signupCount` + `User.communityRef` that aren't pushed yet |
 | 4 | Set up Admin → Settings → Email Addresses in the admin panel | ⬜ | New email group defaults to `@chapturs.com` values but needs to be confirmed/customised after first deploy |
+| 108 | Add `GOOGLE_BOOKS_API_KEY`, `GOOGLE_CLOUD_VISION_API_KEY`, `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY` to GitHub Secrets + VPS env | ⬜ | Documented in `.env.example`; Vision + reCAPTCHA code is live but keys must be set for them to activate |
 
 ---
 
@@ -102,7 +103,7 @@ These are literal `// TODO` comments in the codebase:
 |---|---|---|---|
 | 30 | `src/lib/r2-usage.ts:227` | Admin alert when R2 storage budget threshold hit | ⬜ |
 | 31 | `src/lib/ContentValidationService.ts:269` | Store content hashes for duplicate detection | ⬜ |
-| 32 | `src/lib/ContentValidationService.ts:463` | Integrate image safety API (currently no-op) | ⬜ |
+| 32 | `src/lib/ContentValidationService.ts:463` | Integrate image safety API (currently no-op) | ✅ | Google Cloud Vision SafeSearch — flags adult/violence/racy LIKELY+ images; graceful fallback to URL check if key absent |
 | 33 | `src/lib/analytics/view-counter.ts:187` | Add `viewCount` field to Section model in Prisma schema | ⬜ |
 | 34 | `src/app/api/works/publish/route.ts:226` | Wire content validation checks into publish flow | ⬜ |
 | 80 | `src/app/api/user/taste-profile/route.ts` | `workCount < 12` gate suppresses onboarding survey on sparse platform — lower threshold or remove it once seeded content is in place | ✅ | Lowered to `workCount < 3` — survey now fires with minimal seeded content |

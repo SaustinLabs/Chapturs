@@ -24,7 +24,7 @@ const nextConfig = {
     const csp = [
       "default-src 'self'",
       // unsafe-inline / unsafe-eval are required by Next.js inline scripts and Tiptap
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/",
       "style-src 'self' 'unsafe-inline'",
       [
         "img-src 'self' data: blob:",
@@ -38,7 +38,8 @@ const nextConfig = {
         'https://books.googleusercontent.com',
       ].join(' '),
       "font-src 'self'",
-      "connect-src 'self'",
+      "connect-src 'self' https://www.google.com/recaptcha/",
+      "frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
