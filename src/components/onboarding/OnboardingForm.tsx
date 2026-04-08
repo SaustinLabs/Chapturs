@@ -188,6 +188,9 @@ export default function OnboardingForm() {
     // Call Google Books API directly from the browser — each user has their own
     // per-IP quota so we never hit rate limits on the server side
     searchTimeoutRef.current = setTimeout(async () => {
+      // Don't hit the Books API until we have at least 3 characters — avoids
+      // 429s from single/double-character keystrokes spamming the quota
+      if (value.trim().length < 3) { setIsSearching(false); return }
       setIsSearching(true)
       try {
         const apiUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(value)}&maxResults=6&printType=books&langRestrict=en`
@@ -211,7 +214,7 @@ export default function OnboardingForm() {
       } finally {
         setIsSearching(false)
       }
-    }, 350)
+    }, 600)
   }
 
   const addTag = (tag: string) => {
