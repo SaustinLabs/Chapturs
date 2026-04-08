@@ -34,9 +34,12 @@ const nextConfig = {
         'https://cdn.discordapp.com',
         'https://images.unsplash.com',
         'https://source.unsplash.com',
+        'https://books.google.com',
+        'https://books.googleusercontent.com',
       ].join(' '),
       "font-src 'self'",
-      "connect-src 'self'",
+      // Allow Google Books API calls from the browser (onboarding taste search)
+      "connect-src 'self' https://www.googleapis.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
