@@ -74,6 +74,19 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`h-full dark ${inter.className}`}>
       <head>
+        <link
+          rel="preconnect"
+          href="https://fonts.googleapis.com"
+        />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body className={`font-sans h-full ${inter.className}`}>
         <ChunkRecovery />

@@ -1,5 +1,5 @@
 # Chapturs — Master Task List
-> Last updated: April 7, 2026  
+> Last updated: April 12, 2026  
 > **Legend:** ✅ Done · 🔶 Partial / in progress · ⬜ Not started
 
 ---
@@ -202,7 +202,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | 95 | Feed back-navigation: instant restore via module-level snapshot cache | ✅ | `src/lib/feedCache.ts` stores items+page+scroll on unmount; InfiniteFeed restores on mount (after auth settles); `staleTimes.dynamic: 30` added to next.config.js for router-level caching; taste-profile onboarding clears the cache so the fresh personalised feed always loads |
 | 82 | Add Playwright mobile smoke tests (feed/reader/editor) for regression checks | ✅ | Added `playwright.config.ts`, mobile smoke suite, and npm scripts (`test:e2e`, `test:e2e:mobile`) |
 | 81 | Sidebar expand should overlay (no content reflow); verify reader alignment on desktop + mobile | ✅ | Implemented fixed content lane + sliding sidebar (no main-content reflow when expanding) |
-| 108 | Rich text font-family support in editor toolbar (TipTap `FontFamily`) | ⬜ | Add curated families, persist in block content, keep default serif fallback |
+| 108 | Rich text font-family support in editor toolbar (TipTap `FontFamily`) | ✅ | `FontFamily` extension added to ChapterEditor; curated dropdown (8 serif/sans/mono families + reset) in BubbleToolbar; Google Fonts (Lora, Merriweather, Playfair, Crimson, EB Garamond) loaded via `<link>` in layout.tsx; round-trip already supported by convert.ts textStyle mark handler |
 
 ---
 
@@ -276,3 +276,4 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 | Maturity gate (#11) — `MaturityGate.tsx` interstitial for R/NC-17 stories; localStorage consent; wired into `/story/[id]` |
 | Delete account (#12) — `DELETE /api/user/account` cascade delete + Danger Zone UI in Reader Settings |
 | Trending page (#20) — `/trending` with time filters, rank badges, sidebar nav link; `publishedWithinDays` param added to `/api/search` |
+| Font-family support in editor (#108) — TipTap FontFamily extension, curated dropdown in BubbleToolbar, Google Fonts loaded globally |

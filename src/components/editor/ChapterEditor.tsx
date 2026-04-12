@@ -9,6 +9,7 @@ import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import { TextStyle } from '@tiptap/extension-text-style'
+import { FontFamily } from '@tiptap/extension-font-family'
 import TextAlign from '@tiptap/extension-text-align'
 import Typography from '@tiptap/extension-typography'
 import Placeholder from '@tiptap/extension-placeholder'
@@ -44,6 +45,20 @@ import {
 } from './extensions'
 import { blocksToHtml, editorJsonToBlocks, detectChapters } from './convert'
 import type { ContentBlock, BlockType, ChatBlock, PhoneBlock, NarrationBlock, DialogueBlock, ImageBlock } from '@/types/chapt'
+
+// ---------------------------------------------------------------------------
+// Curated font families for the editor toolbar
+// ---------------------------------------------------------------------------
+const FONT_FAMILIES = [
+  { label: 'Serif',      value: 'Georgia, serif' },
+  { label: 'Sans Serif', value: 'Inter, system-ui, sans-serif' },
+  { label: 'Mono',       value: 'ui-monospace, monospace' },
+  { label: 'Lora',       value: '"Lora", serif' },
+  { label: 'Merriweather', value: '"Merriweather", serif' },
+  { label: 'Playfair',   value: '"Playfair Display", serif' },
+  { label: 'Crimson',    value: '"Crimson Text", serif' },
+  { label: 'EB Garamond', value: '"EB Garamond", serif' },
+] as const
 
 // ---------------------------------------------------------------------------
 // Props
@@ -119,6 +134,7 @@ function BubbleToolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
   const [linkInput, setLinkInput] = useState('')
   const [showLink, setShowLink] = useState(false)
+  const [showFontMenu, setShowFontMenu] = useState(false)
 
   useEffect(() => {
     if (!editor) return
@@ -180,6 +196,56 @@ function BubbleToolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
       <Btn active={editor.isActive({ textAlign: 'left' })} onClick={() => editor.chain().focus().setTextAlign('left').run()} title="Left"><AlignLeft size={13} /></Btn>
       <Btn active={editor.isActive({ textAlign: 'center' })} onClick={() => editor.chain().focus().setTextAlign('center').run()} title="Center"><AlignCenter size={13} /></Btn>
       <Btn active={editor.isActive({ textAlign: 'right' })} onClick={() => editor.chain().focus().setTextAlign('right').run()} title="Right"><AlignRight size={13} /></Btn>
+
+      <div className="w-px h-4 bg-gray-600 mx-0.5" />
+
+      {/* Font family dropdown */}
+      <div className="relative">
+        <button
+          onMouseDown={(e) => { e.preventDefault(); setShowFontMenu(v => !v) }}
+          title="Font family"
+          className="px-1.5 py-1 rounded text-xs text-gray-300 hover:bg-gray-700 hover:text-white transition-colors max-w-[90px] truncate"
+          style={{ fontFamily: editor.getAttributes('textStyle').fontFamily || undefined }}
+        >
+          {FONT_FAMILIES.find(f => f.value === editor.getAttributes('textStyle').fontFamily)?.label || 'Font'}
+        </button>
+        {showFontMenu && (
+          <div
+            className="absolute top-full left-0 mt-1 z-50 bg-gray-900 dark:bg-gray-800 border border-gray-700 rounded-lg shadow-xl py-1 min-w-[140px]"
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            {FONT_FAMILIES.map((font) => (
+              <button
+                key={font.value}
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  editor.chain().focus().setFontFamily(font.value).run()
+                  setShowFontMenu(false)
+                }}
+                className={`block w-full text-left px-3 py-1.5 text-xs hover:bg-gray-700 transition-colors ${
+                  editor.getAttributes('textStyle').fontFamily === font.value
+                    ? 'text-blue-400 bg-gray-800'
+                    : 'text-gray-300'
+                }`}
+                style={{ fontFamily: font.value }}
+              >
+                {font.label}
+              </button>
+            ))}
+            <div className="border-t border-gray-700 my-1" />
+            <button
+              onMouseDown={(e) => {
+                e.preventDefault()
+                editor.chain().focus().unsetFontFamily().run()
+                setShowFontMenu(false)
+              }}
+              className="block w-full text-left px-3 py-1.5 text-xs text-gray-400 hover:bg-gray-700 hover:text-white transition-colors"
+            >
+              Reset to default
+            </button>
+          </div>
+        )}
+      </div>
 
       <div className="w-px h-4 bg-gray-600 mx-0.5" />
 
@@ -282,6 +348,7 @@ export default function ChapterEditor({
         HTMLAttributes: { rel: 'noopener noreferrer nofollow', class: 'text-blue-500 underline' },
       }),
       TextStyle,
+      FontFamily,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Typography,
       Placeholder.configure({
