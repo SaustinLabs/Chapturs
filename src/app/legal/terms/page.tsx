@@ -91,7 +91,23 @@ export default function TermsOfServicePage() {
               You own your words. They're not training data for someone else's product.
             </p>
 
-            <h3 className="text-xl font-semibold text-gray-800 mb-3">4.4 Content You're Responsible For</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-3">4.4 AI-Generated Content Disclosure</h3>
+            <p className="text-gray-700 mb-4">
+              Chapturs supports the use of AI tools in the creative process. To maintain transparency and trust within our community, authors must disclose when a work has been created or significantly assisted by AI tools.
+            </p>
+            <p className="text-gray-700 mb-4">
+              Chapturs provides an <strong>AI Use Disclosure</strong> field on every work with three options:
+            </p>
+            <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-2">
+              <li><strong>None:</strong> No AI tools were used in creating this content.</li>
+              <li><strong>Assisted:</strong> AI tools were used for brainstorming, editing, grammar, translations, or minor enhancements, but the core creative work is human-authored.</li>
+              <li><strong>Generated:</strong> AI tools were used to generate the primary text or narrative content.</li>
+            </ul>
+            <p className="text-gray-700 mb-4">
+              AI-generated content is welcome on Chapturs as long as it is properly labeled. Works marked as "Assisted" or "Generated" will display a disclosure badge visible to readers. We reserve the right to remove or reclassify content that is discovered to be AI-generated without proper disclosure. Repeated violations may result in account suspension.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-800 mb-3">4.5 Content You're Responsible For</h3>
             <p className="text-gray-700 mb-4">
               You promise that your content:
             </p>
@@ -102,7 +118,7 @@ export default function TermsOfServicePage() {
               <li>Follows our Community Guidelines (see below)</li>
             </ul>
 
-            <h3 className="text-xl font-semibold text-gray-800 mb-3">4.5 Copyright Infringement</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-3">4.6 Copyright Infringement</h3>
             <p className="text-gray-700 mb-4">
               We respect copyright. If you believe content on Chapturs infringes your copyright, send a DMCA notice to{' '}
               <a href="mailto:dmca@chapturs.com" className="text-blue-600 hover:underline">dmca@chapturs.com</a> with:

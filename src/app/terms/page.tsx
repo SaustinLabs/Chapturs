@@ -50,7 +50,29 @@ export default function TermsOfService() {
         We reserve the right to review, moderate, or remove any content that violates these Terms or our Content Policy. We use both automated systems and human review for content moderation.
       </p>
 
-      <h2>5. Monetization</h2>
+      <h2>5. AI-Generated Content</h2>
+      <p>
+        Chapturs supports the use of AI tools in the creative process. To maintain transparency and trust within our community, we require the following:
+      </p>
+      <h3>5.1 Disclosure Requirement</h3>
+      <p>
+        Authors must disclose when a work has been created or significantly assisted by AI tools. Chapturs provides an <strong>AI Use Disclosure</strong> field on every work with three options:
+      </p>
+      <ul>
+        <li><strong>None:</strong> No AI tools were used in creating this content.</li>
+        <li><strong>Assisted:</strong> AI tools were used for brainstorming, editing, grammar, translations, or minor enhancements, but the core creative work is human-authored.</li>
+        <li><strong>Generated:</strong> AI tools were used to generate the primary text or narrative content.</li>
+      </ul>
+      <h3>5.2 Labeling</h3>
+      <p>
+        AI-generated content is welcome on Chapturs as long as it is properly labeled. Works marked as "Assisted" or "Generated" will display a disclosure badge visible to readers.
+      </p>
+      <h3>5.3 Enforcement</h3>
+      <p>
+        We reserve the right to remove or reclassify content that is discovered to be AI-generated without proper disclosure. Repeated violations may result in account suspension.
+      </p>
+
+      <h2>6. Monetization</h2>
       <ul>
         <li>Creators may earn revenue through ad sharing and premium content features.</li>
         <li>Revenue share is 70% to the creator, 30% to the platform, unless otherwise agreed.</li>
@@ -58,7 +80,7 @@ export default function TermsOfService() {
         <li>We reserve the right to withhold payments for accounts suspected of fraud or abuse.</li>
       </ul>
 
-      <h2>6. Prohibited Activities</h2>
+      <h2>7. Prohibited Activities</h2>
       <p>You agree not to:</p>
       <ul>
         <li>Use the Service for any illegal purpose</li>
@@ -69,42 +91,42 @@ export default function TermsOfService() {
         <li>Interfere with or disrupt the Service</li>
       </ul>
 
-      <h2>7. Intellectual Property</h2>
+      <h2>8. Intellectual Property</h2>
       <p>
         The Chapturs name, logo, and all related trademarks are owned by us. You may not use our trademarks without our prior written consent. The Service and its original content (excluding user-generated content) are protected by copyright and other intellectual property laws.
       </p>
 
-      <h2>8. Advertising</h2>
+      <h2>9. Advertising</h2>
       <p>
         The Service may display advertisements from third-party ad networks, including Google AdSense. These ads may be personalized based on your interests. You may opt out of personalized advertising through your browser settings or ad preferences.
       </p>
 
-      <h2>9. Disclaimer of Warranties</h2>
+      <h2>10. Disclaimer of Warranties</h2>
       <p>
         THE SERVICE IS PROVIDED &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot; WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
       </p>
 
-      <h2>10. Limitation of Liability</h2>
+      <h2>11. Limitation of Liability</h2>
       <p>
         TO THE MAXIMUM EXTENT PERMITTED BY LAW, WE SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO LOSS OF PROFITS, DATA, OR GOODWILL.
       </p>
 
-      <h2>11. Indemnification</h2>
+      <h2>12. Indemnification</h2>
       <p>
         You agree to indemnify and hold harmless Chapturs and its officers, directors, employees, and agents from any claims, damages, or expenses arising from your use of the Service or violation of these Terms.
       </p>
 
-      <h2>12. Changes to Terms</h2>
+      <h2>13. Changes to Terms</h2>
       <p>
         We reserve the right to modify these Terms at any time. We will notify users of material changes via email or a notice on the Service. Your continued use of the Service after changes constitutes acceptance of the new Terms.
       </p>
 
-      <h2>13. Governing Law</h2>
+      <h2>14. Governing Law</h2>
       <p>
         These Terms shall be governed by and construed in accordance with the laws of the United States, without regard to its conflict of law provisions.
       </p>
 
-      <h2>14. Contact</h2>
+      <h2>15. Contact</h2>
       <p>
         For questions about these Terms, contact us via our <a href="/contact">contact page</a> (Legal &amp; Privacy).
       </p>

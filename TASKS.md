@@ -30,7 +30,7 @@
 | # | Task | Status | Notes |
 |---|---|---|---|
 | 9 | Write a dedicated DMCA policy page (`/dmca`) | ✅ | `/app/dmca/page.tsx` — full takedown + counter-notice procedure, links `dmca@chapturs.com` |
-| 10 | Review Terms of Service — ensure it mentions AI-generated content rules | ⬜ | With AI author bots planned, terms should cover this now |
+| 10 | Review Terms of Service — ensure it mentions AI-generated content rules | ✅ | Added section 5 (AI-Generated Content) to `/terms/page.tsx` and section 4.4 to `/legal/terms/page.tsx` — covers disclosure requirement, labeling rules, and enforcement for undisclosed AI content |
 | 10a | AI-use disclosure framework for authors | ✅ | `aiUseDisclosure` field on Work schema (none/assisted/generated); radio selector in creator work edit page; disclosure badge on story page |
 | 11 | Age verification / parental advisory for mature-rated works | ✅ | `MaturityGate.tsx` — full-screen interstitial for R/NC-17 works; localStorage consent; wraps StoryPageClient in story page |
 | 12 | Privacy policy audit — confirm GDPR/CCPA delete-account flow works | ✅ | `DELETE /api/user/account` with cascade delete; Danger Zone section in Reader Settings with typed confirmation modal |
