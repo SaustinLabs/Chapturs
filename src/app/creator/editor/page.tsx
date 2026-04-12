@@ -456,19 +456,20 @@ export default function CreatorEditorPage() {
               return
             }
 
-          // Build success message with assessment info if available
-          let successMessage = 'Work published successfully!'
+          // Build success message based on review status
+          let successMessage = result.status === 'pending_review'
+            ? 'Work submitted for review!'
+            : 'Work published successfully!'
           if (result.assessment?.completed) {
-            successMessage += ` Quality assessment complete: ${result.assessment.tier} (${result.assessment.score}/100)`
+            successMessage += ` Quality: ${result.assessment.tier} (${result.assessment.score}/100)`
           } else if (result.assessment?.rateLimited) {
             successMessage += ` ${result.assessment.message}`
           }
 
           toast.success(successMessage)
           
-          // No need to manually queue - assessment already ran synchronously during publish
+          // Redirect to the story page
           console.log('[EDITOR] Redirecting to story page:', result.workId)
-          // Redirect to the published work story page (has proper navigation)
           window.location.href = `/story/${result.workId}`
         } else {
           const error = await response.json()
@@ -1177,6 +1178,14 @@ export default function CreatorEditorPage() {
             </div>
           </div>
         )}
+        {/* Maturity confirmation modal */}
+        <ConfirmMatureModal
+          open={modalState.open}
+          suggestedRating={modalState.suggestedRating}
+          validationDetails={modalState.validationDetails}
+          onConfirm={handleModalConfirm}
+          onCancel={handleModalCancel}
+        />
       </div>
     </AppLayout>
   )

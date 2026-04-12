@@ -124,80 +124,94 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate the first section (comprehensive checks)
-    const firstSection = draft.sections[0]
-    if (firstSection) {
-      try {
-        const validationResult = await ContentValidationService.validateContent(
+    // Validate ALL sections — content checks for every chapter, comprehensive for first
+    try {
+      let highestSuggestedRating = 'G'
+      const ratingPriority: Record<string, number> = { 'G': 0, 'PG': 1, 'PG-13': 2, 'R': 3, 'NC-17': 4 }
+      const allFlags: string[] = []
+      let firstSectionId: string | null = null
+
+      for (let i = 0; i < draft.sections.length; i++) {
+        const section = draft.sections[i]
+        if (i === 0) firstSectionId = section.id
+
+        const result = await ContentValidationService.validateContent(
           draftId,
-          firstSection.id,
-          firstSection.content,
+          section.id,
+          section.content,
           {
-            checkPlagiarism: true,
-            checkDuplicates: true,
             checkSafety: true,
             checkQuality: true,
-            isFirstChapter: true
+            isFirstChapter: i === 0
           }
         )
 
-        // If validation returns flags other than rating suggestions, block publishing
-        const nonRatingFlags = (validationResult.flags || []).filter(f => f !== 'too_short' && f !== 'repetitive_content')
-        if (nonRatingFlags.length > 0) {
-          return NextResponse.json(
-            {
-              error: 'Content validation failed. Please review and fix the issues before publishing.',
-              validationErrors: validationResult.flags,
-              details: validationResult.details
-            },
-            { status: 400 }
-          )
-        }
+        // Collect non-rating flags that should block publishing
+        const blockingFlags = (result.flags || []).filter(
+          f => !['too_short', 'repetitive_content'].includes(f)
+        )
+        allFlags.push(...blockingFlags)
 
-        // Auto-set maturityRating if suggestedRating is R or NC-17 unless authorOverride flag provided
-        const suggested = validationResult.details?.suggestedRating
-        const authorOverride = body?.publishData?.authorOverride || false
-        // If the content is suggested as mature (R/NC-17) and the author has NOT explicitly confirmed,
-        // return a response indicating confirmation is required. The client should prompt the author
-        // and re-call this endpoint with publishData.authorOverride = true to proceed.
-        if (!authorOverride && (suggested === 'R' || suggested === 'NC-17')) {
-          return NextResponse.json(
-            {
-              success: false,
-              confirmationRequired: true,
-              message: 'Author confirmation required for mature content',
-              suggestedRating: suggested,
-              validationDetails: validationResult.details,
-              validationFlags: validationResult.flags
-            },
-            { status: 200 }
-          )
-        }
-        // If authorOverride provided, persist the maturity rating automatically and record an audit validation
-        if (authorOverride && (suggested === 'R' || suggested === 'NC-17')) {
-          await prisma.work.update({ where: { id: draftId }, data: { maturityRating: suggested } })
-          try {
-            await prisma.contentValidation.create({
-              data: {
-                workId: draftId,
-                sectionId: firstSection.id,
-                validationType: 'author_confirmation',
-                status: 'passed',
-                score: 1.0,
-                details: JSON.stringify({ confirmedByAuthorId: session.user.id, suggestedRating: suggested, timestamp: new Date().toISOString(), validationDetails: validationResult.details })
-              }
-            })
-          } catch (e) {
-            console.warn('Failed to write author confirmation audit:', e)
+        // Track highest suggested maturity rating across all sections
+        const sectionRating = result.details?.suggestedRating
+        if (sectionRating && ratingPriority[sectionRating] !== undefined) {
+          if (ratingPriority[sectionRating] > ratingPriority[highestSuggestedRating]) {
+            highestSuggestedRating = sectionRating
           }
         }
-      } catch (error) {
-        console.error('Content validation error:', error)
+      }
+
+      // Block if any section has safety/image/quality blocking flags
+      const uniqueFlags = [...new Set(allFlags)]
+      if (uniqueFlags.length > 0) {
         return NextResponse.json(
-          { error: 'Content validation failed. Please try again.' },
-          { status: 500 }
+          {
+            error: 'Content validation failed. Please review and fix the issues before publishing.',
+            validationErrors: uniqueFlags
+          },
+          { status: 400 }
         )
       }
+
+      // Mature content confirmation: require author opt-in for R/NC-17
+      const authorOverride = body?.publishData?.authorOverride || false
+      if (!authorOverride && (highestSuggestedRating === 'R' || highestSuggestedRating === 'NC-17')) {
+        return NextResponse.json(
+          {
+            success: false,
+            confirmationRequired: true,
+            message: 'Author confirmation required for mature content',
+            suggestedRating: highestSuggestedRating,
+            validationFlags: uniqueFlags
+          },
+          { status: 200 }
+        )
+      }
+
+      // Author confirmed mature content — persist rating + audit log
+      if (authorOverride && (highestSuggestedRating === 'R' || highestSuggestedRating === 'NC-17')) {
+        await prisma.work.update({ where: { id: draftId }, data: { maturityRating: highestSuggestedRating } })
+        try {
+          await prisma.contentValidation.create({
+            data: {
+              workId: draftId,
+              sectionId: firstSectionId,
+              validationType: 'author_confirmation',
+              status: 'passed',
+              score: 1.0,
+              details: JSON.stringify({ confirmedByAuthorId: session.user.id, suggestedRating: highestSuggestedRating, timestamp: new Date().toISOString() })
+            }
+          })
+        } catch (e) {
+          console.warn('[PUBLISH] Failed to write author confirmation audit:', e)
+        }
+      }
+    } catch (error) {
+      console.error('[PUBLISH] Content validation error:', error)
+      return NextResponse.json(
+        { error: 'Content validation service unavailable. Please try again.' },
+        { status: 503 }
+      )
     }
 
     // Set status to 'pending_review' for moderation
@@ -223,21 +237,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // TODO: Here we would add content validation checks:
-    // - Plagiarism detection
-    // - Similarity to other content
-    // - Content safety (abuse, dangerous content)
-    // For now, we'll auto-approve for testing
-    
-    // Auto-approve for testing (remove this in production)
-    await prisma.work.update({
-      where: { id: draftId },
-      data: {
-        status: 'published'
-      }
-    })
-
-    // Run quality assessment synchronously (after publish is confirmed)
+    // Run quality assessment synchronously (after validation passed)
     console.log('[PUBLISH] Running quality assessment...')
     const assessmentResult = await assessWorkSynchronously(draftId, publishedWork.sections[0]?.id)
     
@@ -254,10 +254,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Work published successfully!',
+      message: 'Work submitted for review!',
       workId: publishedWork.id,
       firstSectionId: publishedWork.sections[0]?.id,
-      status: 'published', // In production: 'pending_review'
+      status: 'pending_review',
       assessment: {
         completed: assessmentResult.success,
         rateLimited: assessmentResult.rateLimited,

@@ -45,13 +45,13 @@ export default function PrePublishChecklist({
       setLoading(true)
       const results: CheckResult[] = []
 
-      // 1. Basic checks
+      // Client-side checks
       const wordCount = document.metadata.wordCount || 0
       results.push({
         id: 'length',
         label: 'Minimum Length',
-        status: wordCount > 500 ? 'pass' : 'warn',
-        message: wordCount > 500 ? 'Good length!' : 'This chapter is quite short.'
+        status: wordCount > 500 ? 'pass' : wordCount >= 100 ? 'warn' : 'fail',
+        message: wordCount > 500 ? 'Good length!' : wordCount >= 100 ? 'This chapter is quite short.' : `Only ${wordCount} words. Need at least 100.`
       })
 
       if (!document.metadata.title) {
@@ -70,18 +70,40 @@ export default function PrePublishChecklist({
         })
       }
 
-      // 2. Fetch quality assessment if available
+      // Server-side validation checks
       try {
-        // Here we could fetch the last assessment result if it exists
-        // For now we'll simulate a check
-      } catch (e) {}
+        const resp = await fetch(`/api/works/${workId}/validate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        })
+        if (resp.ok) {
+          const data = await resp.json()
+          // Merge server checks, skipping duplicates (title/length already checked client-side)
+          for (const check of data.checks) {
+            if (check.id === 'length' || check.id === 'title') continue
+            results.push({
+              id: check.id,
+              label: check.label,
+              status: check.status,
+              message: check.message
+            })
+          }
+        }
+      } catch (e) {
+        results.push({
+          id: 'server-check',
+          label: 'Server Checks',
+          status: 'warn',
+          message: 'Could not reach validation service. Will retry on publish.'
+        })
+      }
 
       setChecks(results)
       setLoading(false)
     }
 
     runChecks()
-  }, [isOpen, document])
+  }, [isOpen, document, workId])
 
   if (!isOpen) return null
 

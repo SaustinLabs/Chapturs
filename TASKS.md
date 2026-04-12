@@ -126,7 +126,7 @@ These are literal `// TODO` comments in the codebase:
 | 31 | `src/lib/ContentValidationService.ts:269` | Store content hashes for duplicate detection | ⬜ | |
 | 32 | `src/lib/ContentValidationService.ts:463` | Integrate image safety API (currently no-op) | ✅ | Google Cloud Vision SafeSearch — flags adult/violence/racy LIKELY+ images; graceful fallback to URL check if key absent |
 | 33 | `src/lib/analytics/view-counter.ts:187` | Add `viewCount` field to Section model in Prisma schema | ⬜ | |
-| 34 | `src/app/api/works/publish/route.ts:226` | Wire content validation checks into publish flow | ⬜ | |
+| 34 | `src/app/api/works/publish/route.ts` | Wire content validation checks into publish flow | ✅ | Validates ALL sections (not just first); removed auto-approve; mature content confirmation modal wired; PrePublishChecklist calls server validation; new `/api/works/[id]/validate` dry-run endpoint. |
 | 80 | `src/app/api/user/taste-profile/route.ts` | `workCount < 12` gate suppresses onboarding survey on sparse platform | ✅ | Lowered to `workCount < 3` — survey now fires with minimal seeded content |
 
 ---
@@ -283,6 +283,8 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 | community_genres cookie wired into feed cold-start (task 17) |
 | New user empty state with genre quick-picks (task 72) |
 | AdSense false-positive adblock detection fixed (task 69) |
+| Rich text font-family support in editor toolbar (task 108) |
+| Content validation wired into publish flow — all sections validated, auto-approve removed, maturity confirmation modal, PrePublishChecklist server-side checks, new validate API endpoint (task 34) |
 | Sidebar expansion now overlays without reflow; reader content no longer shifts when opening sidebar (task 81) |
 | Playwright mobile smoke tests added and passing for mobile home + creator editor (task 82) |
 | Contact page reads live from SiteSettings |
