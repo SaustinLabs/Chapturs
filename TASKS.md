@@ -129,7 +129,7 @@ These are literal `// TODO` comments in the codebase:
 | 33 | `src/lib/analytics/view-counter.ts:187` | Add `viewCount` field to Section model in Prisma schema | ⬜ | |
 | 34 | `src/app/api/works/publish/route.ts` | Wire content validation checks into publish flow | ✅ | Validates ALL sections (not just first); removed auto-approve; mature content confirmation modal wired; PrePublishChecklist calls server validation; new `/api/works/[id]/validate` dry-run endpoint. |
 | 80 | `src/app/api/user/taste-profile/route.ts` | `workCount < 12` gate suppresses onboarding survey on sparse platform | ✅ | Lowered to `workCount < 3` — survey now fires with minimal seeded content |
-| 114 | `package.json` | `groq-sdk` is listed as a dependency but architecture decision bans it (use OpenRouter only) | ⬜ | Remove `groq-sdk` from dependencies; confirm no call sites remain |
+| 114 | `package.json` | `groq-sdk` is listed as a dependency but architecture decision bans it (use OpenRouter only) | ✅ | Removed; confirmed no call sites — all LLM calls use `openai` SDK via OpenRouter |
 
 ---
 
