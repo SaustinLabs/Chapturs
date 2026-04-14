@@ -11,6 +11,7 @@ import {
   ApiError,
   ApiErrorType
 } from '@/lib/api/errorHandling'
+import { awardPoints, POINTS_EVENT_TYPE } from '@/lib/achievements/points'
 
 /**
  * POST /api/works/[id]/view
@@ -67,6 +68,10 @@ export async function POST(
     }
 
     await Promise.all(updates)
+
+    if (userId) {
+      awardPoints(userId, POINTS_EVENT_TYPE.FIRST_READ, 5, workId).catch(() => {})
+    }
 
     return createSuccessResponse({ incremented: true }, 'View counted', requestId)
   } catch (error) {

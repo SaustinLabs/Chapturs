@@ -5,6 +5,7 @@ import { prisma } from '@/lib/database/PrismaService'
 export const POINTS_EVENT_TYPE = {
   CHAPTER_PUBLISHED:   'CHAPTER_PUBLISHED',
   FIRST_READ:          'FIRST_READ',
+  COMMENT:             'COMMENT',
   GLOSSARY_ENTRY:      'GLOSSARY_ENTRY',
   CHARACTER_CREATED:   'CHARACTER_CREATED',
   FAN_TRANSLATION:     'FAN_TRANSLATION',

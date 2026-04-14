@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '../../../../../../auth'
 import { prisma } from '@/lib/database/PrismaService'
 import { resolveDbUserId } from '@/lib/resolveDbUserId'
+import { awardPoints, POINTS_EVENT_TYPE } from '@/lib/achievements/points'
 
 interface RouteParams {
   params: Promise<{
@@ -68,6 +69,7 @@ export async function POST(request: NextRequest, props: RouteParams) {
         }
       }
     })
+    const isNewEntry = !glossaryEntry
 
     if (!glossaryEntry) {
       // Create new glossary entry with initial definition
@@ -87,6 +89,10 @@ export async function POST(request: NextRequest, props: RouteParams) {
       INSERT INTO glossary_definition_versions (id, "glossaryEntryId", definition, "fromChapter", notes, "createdAt")
       VALUES (gen_random_uuid()::text, ${glossaryEntry!.id}, ${definition}, ${currentChapter || 1}, ${'Updated in chapter ' + (currentChapter || 1)}, NOW())
     `
+
+    if (isNewEntry && glossaryEntry) {
+      awardPoints(dbUserId, POINTS_EVENT_TYPE.GLOSSARY_ENTRY, 5, (glossaryEntry as any).id).catch(() => {})
+    }
 
     return NextResponse.json({
       success: true,

@@ -8,6 +8,7 @@ import { assessWorkSynchronously } from '@/lib/quality-assessment/assessment-syn
 import { maybeTriggerCumulativeReview } from '@/lib/quality-assessment/cumulative-review'
 import { notifyNewChapter } from '@/lib/email'
 import { createNotification } from '@/lib/notifications'
+import { awardPoints, checkAndAwardFoundingCreator, POINTS_EVENT_TYPE } from '@/lib/achievements/points'
 
 interface RouteParams {
   params: Promise<{
@@ -208,6 +209,9 @@ export async function PATCH(request: NextRequest, props: RouteParams) {
           console.error('[notify] New chapter notification failed:', err)
         }
       })()
+
+      awardPoints(dbUserId, POINTS_EVENT_TYPE.CHAPTER_PUBLISHED, 10, sectionId).catch(() => {})
+      checkAndAwardFoundingCreator(dbUserId, sectionId).catch(() => {})
     }
 
     return NextResponse.json({

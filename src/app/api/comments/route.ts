@@ -3,6 +3,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
 import { auth } from '@/auth-edge'
+import { awardPoints, POINTS_EVENT_TYPE } from '@/lib/achievements/points'
 
 // GET /api/comments?workId=xxx&sectionId=xxx&blockId=xxx
 export async function GET(request: NextRequest) {
@@ -96,6 +97,8 @@ export async function POST(request: NextRequest) {
         parentId
       }
     })
+
+    awardPoints(session.user.id, POINTS_EVENT_TYPE.COMMENT, 3, comment.id).catch(() => {})
 
     return NextResponse.json({ comment }, { status: 201 })
   } catch (error) {
