@@ -103,4 +103,12 @@ const nextConfig = {
 };
 
 const { withSentryConfig } = require("@sentry/nextjs");
-module.exports = withSentryConfig(nextConfig, { silent: true, org: "", project: "" });
+module.exports = withSentryConfig(nextConfig, {
+  silent: true,
+  org: "",
+  project: "",
+  // Disable source map upload — no org/project configured yet.
+  // Prevents ETIMEDOUT retries during build and reduces memory pressure.
+  sourcemaps: { disable: true },
+  disableLogger: true,
+});

@@ -139,6 +139,10 @@ fi
 
 # 5. Build Next.js
 echo -e "${YELLOW}Building Next.js application...${NC}"
+# Increase Node.js heap to avoid OOM on low-memory VPS.
+# Adjust down if VPS has < 2 GB RAM (use 800 for 1 GB).
+export NODE_OPTIONS="--max-old-space-size=1536"
+export NEXT_TELEMETRY_DISABLED=1
 if npm run build; then
     echo -e "${GREEN}✓ Next.js build successful${NC}"
 else
