@@ -1,6 +1,6 @@
 # Chapturs — Master Task List
 
-> Last updated: April 12, 2026
+> Last updated: April 14, 2026
 > **Legend:** ✅ Done · 🔶 Partial / in progress · ⬜ Not started
 > **Format:** Every task has a unique numeric ID, concise title, status, and notes.
 
@@ -26,6 +26,7 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 | 3 | Run `npx prisma db push` on the production DB | ⬜ | Schema has `CommunityLink.signupCount` + `User.communityRef` that aren't pushed yet |
 | 4 | Set up Admin → Settings → Email Addresses in the admin panel | ⬜ | New email group defaults to `@chapturs.com` values but needs to be confirmed/customised after first deploy |
 | 108 | Add `GOOGLE_BOOKS_API_KEY`, `GOOGLE_CLOUD_VISION_API_KEY`, `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY` to GitHub Secrets + VPS env | ⬜ | Documented in `.env.example`; Vision + reCAPTCHA code is live but keys must be set for them to activate |
+| 112 | Install and configure Squad multi-agent dev team in repo | ✅ | `squad init` run; `.squad/` scaffold created; decisions.md, routing.md, wisdom.md, identity files seeded with Chapturs context; team cast via VS Code Squad agent mode |
 
 ---
 
@@ -235,6 +236,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | 77 | Error reporting (Sentry free tier) — currently errors only go to console | ⬜ | |
 | 78 | Review VPS resource usage — RAM / disk / CPU headroom before traffic | ⬜ | |
 | 79 | Log rotation on PM2 — ensure server logs don't fill the disk | ⬜ | |
+| 113 | Cast Squad team via VS Code Agent mode (switch to Squad agent in Copilot Chat) | ⬜ | `.squad/team.md` scaffold exists; open Copilot Chat → Agent mode → select Squad → team will be cast and agents created |
 
 ---
 
@@ -275,6 +277,7 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 
 | Task |
 |------|
+| Squad multi-agent dev team installed — `squad init` run, scaffold seeded with Chapturs context (task #112) |
 | Admin security lockdown — middleware + server layout auth guard |
 | Bootstrap PIN API + page |
 | Admin settings + deploy workflow now include ADMIN_EMAIL + ADMIN_BOOTSTRAP_PIN |
