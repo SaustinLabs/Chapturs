@@ -94,8 +94,8 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 96 | Achievements MVP schema + points ledger (`Achievement`, `UserAchievement`, `PointsLedger`, `LevelTier`) | 🔶 | Schema added + `showAchievements` field on User. Seeding: 5 level tiers + 11 achievements in `prisma/seed.ts`. Next: `prisma db push` on prod, then `npm run db:seed` to populate. |
-| 97 | Points event pipeline (`POINTS_EVENT_TYPE`) for reader/author/contributor triggers | 🔶 | `src/lib/achievements/points.ts` created: `awardPoints`, `awardAchievement`, `getUserLevel`, `checkAndAwardFoundingCreator`. Wire call sites (publish, glossary, comment, read) next. GET + PATCH endpoints ready. |
+| 96 | Achievements MVP schema + points ledger (`Achievement`, `UserAchievement`, `PointsLedger`, `LevelTier`) | ✅ | Schema live on prod. 5 level tiers + 11 achievements seeded via `prisma/seed.ts`. VPS synced April 14 2026. |
+| 97 | Points event pipeline (`POINTS_EVENT_TYPE`) for reader/author/contributor triggers | ✅ | `awardPoints` wired: chapter publish (10pts + founding_creator check), glossary new entry (5pts), comment (3pts), first read per work (5pts). All fire-and-forget. Unit tests in `src/__tests__/points.test.ts`. |
 | 98 | Profile "Achievements / Level" block with user visibility toggle | ✅ | `AchievementsBlock.tsx` wired into profile page; `PATCH /api/achievements/[userId]/visibility` ready (gracefully no-op until User.showAchievements is pushed) |
 | 99 | Pin featured achievements in profile block | ✅ | `FeaturedAchievements.tsx` with star pins; `PATCH /api/achievements/[userId]/featured` ready; 4-pin cap enforced server-side. |
 | 100 | Founding Creator cohort badge (first 100 publishing authors) | ⬜ | Trigger on first chapter that goes live (not draft/save); store award timestamp + chapterId |
