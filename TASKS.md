@@ -94,10 +94,10 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 96 | Achievements MVP schema + points ledger (`Achievement`, `UserAchievement`, `PointsLedger`, `LevelTier`) | 🔶 | Schema added to `prisma/schema.prisma`; run `prisma db push` to apply. Seed `Achievement` + `LevelTier` rows via admin or seed script. |
-| 97 | Points event pipeline (`POINTS_EVENT_TYPE`) for reader/author/contributor triggers | 🔶 | `src/lib/achievements/points.ts` created: `awardPoints`, `awardAchievement`, `getUserLevel`, `checkAndAwardFoundingCreator`. Wire call sites (publish route, glossary, etc.) next. |
-| 98 | Profile "Achievements / Level" block with user visibility toggle | ✅ | `AchievementsBlock.tsx` — fetches `/api/achievements/[userId]`, shows level badge + points + achievement grid; owner visibility toggle calls `PATCH /api/achievements/[userId]/visibility` (API stub for Rusty) |
-| 99 | Pin featured achievements in profile block | ✅ | `FeaturedAchievements.tsx` — up to 4 pinned badges shown lg at top; star pin/unpin per badge; calls `PATCH /api/achievements/[userId]/featured` (API stub for Rusty); capped at 4 pins |
+| 96 | Achievements MVP schema + points ledger (`Achievement`, `UserAchievement`, `PointsLedger`, `LevelTier`) | 🔶 | Schema added + `showAchievements` field on User. Seeding: 5 level tiers + 11 achievements in `prisma/seed.ts`. Next: `prisma db push` on prod, then `npm run db:seed` to populate. |
+| 97 | Points event pipeline (`POINTS_EVENT_TYPE`) for reader/author/contributor triggers | 🔶 | `src/lib/achievements/points.ts` created: `awardPoints`, `awardAchievement`, `getUserLevel`, `checkAndAwardFoundingCreator`. Wire call sites (publish, glossary, comment, read) next. GET + PATCH endpoints ready. |
+| 98 | Profile "Achievements / Level" block with user visibility toggle | ✅ | `AchievementsBlock.tsx` wired into profile page; `PATCH /api/achievements/[userId]/visibility` ready (gracefully no-op until User.showAchievements is pushed) |
+| 99 | Pin featured achievements in profile block | ✅ | `FeaturedAchievements.tsx` with star pins; `PATCH /api/achievements/[userId]/featured` ready; 4-pin cap enforced server-side. |
 | 100 | Founding Creator cohort badge (first 100 publishing authors) | ⬜ | Trigger on first chapter that goes live (not draft/save); store award timestamp + chapterId |
 | 101 | "First!" reader window + anti-farm qualification | ⬜ | Chapter goes live → 5 minute award window. Reader must qualify (>=60s dwell + basic scroll/progress signal) before award; all qualified readers in window receive badge/points |
 | 102 | Author glossary achievement milestones (entry count + evolving definitions) | ⬜ | Count distinct glossary entries/instances over story progression |
@@ -162,7 +162,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | 48 | Reader-to-reader recommendation ("finished X → also loved Y") | ⬜ | |
 | 49 | "Readers Also Enjoyed" block on story pages | ✅ | Smart cascade: author picks → collaborative signals → semantic LLM Jaccard → trending → popular. `WorkSemanticProfile` + `AuthorRecommendation` schema, `similarity.ts` service, `/api/works/[id]/related`. |
 | 49a | Author-curated "Readers Also Enjoyed" picks — Creator Hub UI | ✅ | Work-search autocomplete + pick list (max 4) added to `/creator/work/[id]/edit`. Auto-saves on add/remove. |
-| 49b | Collaborative signal cron/trigger — periodically call `computeCollaborativeSignals` | 🔶 | Admin POST `/api/admin/collaborative-signals` created; iterates all published/ongoing works. Wire to a cron/scheduler later. |
+| 49b | Collaborative signal cron/trigger — periodically call `computeCollaborativeSignals` | 🔶 | Admin POST `/api/admin/collaborative-signals` created and tested; ready to wire to a cron schedule (Cloud Tasks, AWS EventBridge, or GitHub Actions). Manual trigger available in Admin panel. |
 
 ---
 
@@ -204,7 +204,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 66 | Enable Stripe integration (currently `premium_enabled: false`) | 🔶 | `premium_enabled` is in SiteSettings (monetization group); `getPremiumEnabled()` helper added to `src/lib/settings.ts`; checkout route now gated on it. Flip to `'true'` in Admin → Settings after staging Stripe test |
+| 66 | Enable Stripe integration (currently `premium_enabled: false`) | 🔶 | `premium_enabled` moved to SiteSettings (monetization group); `getPremiumEnabled()` helper in `src/lib/settings.ts`; checkout route gated. Flip to `'true'` in Admin → Settings to go live (zero redeploy). |
 | 67 | Test Stripe webhook end-to-end on staging | ⬜ | `STRIPE_WEBHOOK_SECRET` is set but webhook flow is untested |
 | 68 | Creator payout flow (currently disabled) | ⬜ | Revenue sharing schema exists, payout UX needs building |
 | 69 | AdSense slots audit — confirm they're rendering in prod (not blank) | ✅ | Fixed false-positive adblock detection: removed proactive fetch probe (false positives on Firefox ETP / Brave Shields); now relies on Script onError callback |
@@ -234,7 +234,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 76 | Set up uptime monitoring (UptimeRobot / Better Uptime — free tier) | ⬜ | |
-| 77 | Error reporting (Sentry free tier) — currently errors only go to console | 🔶 | Sentry SDK installed and configured; add SENTRY_DSN to GitHub Secrets to activate |
+| 77 | Error reporting (Sentry free tier) — currently errors only go to console | 🔶 | Sentry SDK installed + configured (sentry.*.config.ts); `SENTRY_DSN` added to GitHub Secrets; graceful no-op if DSN not set. Deploy will activate on next VPS push. |
 | 78 | Review VPS resource usage — RAM / disk / CPU headroom before traffic | ⬜ | |
 | 79 | Log rotation on PM2 — ensure server logs don't fill the disk | ⬜ | |
 | 113 | Cast Squad team via VS Code Agent mode (switch to Squad agent in Copilot Chat) | ✅ | Team cast: Danny (Lead), Linus (Frontend), Rusty (Backend), Basher (Tester), Scribe, Ralph. Universe: Ocean's Eleven. Charters + histories seeded with full Chapturs context. |
