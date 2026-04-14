@@ -1,0 +1,24 @@
+{
+  "universe_usage_history": [
+    {
+      "universe": "Ocean's Eleven",
+      "assignment_id": "chapturs-2026-04-14",
+      "used_at": "2026-04-14T00:00:00.000Z"
+    }
+  ],
+  "assignment_cast_snapshots": {
+    "chapturs-2026-04-14": {
+      "universe": "Ocean's Eleven",
+      "project": "Chapturs",
+      "agents": {
+        "lead": "Danny",
+        "frontend-dev": "Linus",
+        "backend-dev": "Rusty",
+        "tester": "Basher",
+        "scribe": "Scribe",
+        "ralph": "Ralph"
+      },
+      "created_at": "2026-04-14T00:00:00.000Z"
+    }
+  }
+}

@@ -6,16 +6,16 @@ How to decide who handles what.
 
 | Work Type | Route To | Examples |
 |-----------|----------|----------|
-| Frontend / UI / React components | Frontend Dev | Feed, reader, editor, forms, modals, responsive layout, Tailwind, TipTap |
-| API routes, database, Prisma, auth | Backend Dev | `/src/app/api/**`, Prisma schema, NextAuth, email, R2, OpenRouter LLM |
-| Architecture, code review, planning | Lead | Multi-file decisions, tech debt, new system design, PR review |
-| Tests, quality, edge cases | Tester | Playwright e2e, unit tests, QA, security checks |
-| Deployment, CI/CD, infra | Lead | GitHub Actions workflows, VPS config, env secrets |
-| Admin panel work | Backend Dev | `/src/app/admin/**`, SiteSettings, moderation queue |
-| Creator Hub UI | Frontend Dev | `/src/app/creator/**`, editor, glossary, analytics |
-| Reader Hub UI | Frontend Dev | `/src/app/story/**`, chapter reader, feed, InfiniteFeed |
-| LLM / AI features | Backend Dev | Quality assessment, translation, OpenRouter calls |
-| Scope & priorities | Lead | What to build next, trade-offs, TASKS.md decisions |
+| Frontend / UI / React components | Linus | Feed, reader, editor, forms, modals, responsive layout, Tailwind, TipTap |
+| API routes, database, Prisma, auth | Rusty | `/src/app/api/**`, Prisma schema, NextAuth, email, R2, OpenRouter LLM |
+| Architecture, code review, planning | Danny | Multi-file decisions, tech debt, new system design, PR review |
+| Tests, quality, edge cases | Basher | Playwright e2e, unit tests, QA, security checks |
+| Deployment, CI/CD, infra | Danny + Rusty | GitHub Actions workflows, VPS config, env secrets |
+| Admin panel work | Rusty | `/src/app/admin/**`, SiteSettings, moderation queue |
+| Creator Hub UI | Linus | `/src/app/creator/**`, editor, glossary, analytics |
+| Reader Hub UI | Linus | `/src/app/story/**`, chapter reader, feed, InfiniteFeed |
+| LLM / AI features | Rusty | Quality assessment, translation, OpenRouter calls |
+| Scope & priorities | Danny | What to build next, trade-offs, TASKS.md decisions |
 | Session logging | Scribe | Automatic — never needs routing |
 
 ## Issue Routing

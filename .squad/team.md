@@ -12,6 +12,12 @@
 
 | Name | Role | Charter | Status |
 |------|------|---------|--------|
+| Danny | 🏗️ Lead | [charter](.squad/agents/danny/charter.md) | active |
+| Linus | ⚛️ Frontend Dev | [charter](.squad/agents/linus/charter.md) | active |
+| Rusty | 🔧 Backend Dev | [charter](.squad/agents/rusty/charter.md) | active |
+| Basher | 🧪 Tester | [charter](.squad/agents/basher/charter.md) | active |
+| Scribe | 📋 Session Logger | [charter](.squad/agents/scribe/charter.md) | active |
+| Ralph | 🔄 Work Monitor | [charter](.squad/agents/ralph/charter.md) | active |
 
 ## Project Context
 

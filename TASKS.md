@@ -236,7 +236,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | 77 | Error reporting (Sentry free tier) — currently errors only go to console | ⬜ | |
 | 78 | Review VPS resource usage — RAM / disk / CPU headroom before traffic | ⬜ | |
 | 79 | Log rotation on PM2 — ensure server logs don't fill the disk | ⬜ | |
-| 113 | Cast Squad team via VS Code Agent mode (switch to Squad agent in Copilot Chat) | ⬜ | `.squad/team.md` scaffold exists; open Copilot Chat → Agent mode → select Squad → team will be cast and agents created |
+| 113 | Cast Squad team via VS Code Agent mode (switch to Squad agent in Copilot Chat) | ✅ | Team cast: Danny (Lead), Linus (Frontend), Rusty (Backend), Basher (Tester), Scribe, Ralph. Universe: Ocean's Eleven. Charters + histories seeded with full Chapturs context. |
 
 ---
 
