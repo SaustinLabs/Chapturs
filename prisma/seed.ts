@@ -954,6 +954,136 @@ He was already north of the river.`,
   }
 
   // ─────────────────────────────────────────────────────────────────────
+  // LEVEL TIERS
+  // ─────────────────────────────────────────────────────────────────────
+  const levelTiers = [
+    { level: 1, minPoints: 0, title: 'Newcomer', badge: '🌱' },
+    { level: 2, minPoints: 50, title: 'Apprentice', badge: '📖' },
+    { level: 3, minPoints: 150, title: 'Journeyman', badge: '✨' },
+    { level: 4, minPoints: 400, title: 'Master', badge: '👑' },
+    { level: 5, minPoints: 1000, title: 'Sage', badge: '🏆' },
+  ]
+  for (const tier of levelTiers) {
+    const exists = await prisma.levelTier.findFirst({ where: { level: tier.level } })
+    if (!exists) await prisma.levelTier.create({ data: tier })
+  }
+  console.log(`  ✓ ${levelTiers.length} level tiers seeded`)
+
+  // ─────────────────────────────────────────────────────────────────────
+  // ACHIEVEMENTS
+  // ─────────────────────────────────────────────────────────────────────
+  const achievements = [
+    // Author achievements
+    {
+      key: 'first_chapter',
+      title: 'First Chapter',
+      description: 'Published your first chapter.',
+      badgeIcon: '📝',
+      pointValue: 10,
+      tier: 'bronze',
+      category: 'author',
+    },
+    {
+      key: 'founding_creator',
+      title: 'Founding Creator',
+      description: 'One of the first 100 creators on Chapturs.',
+      badgeIcon: '⭐',
+      pointValue: 50,
+      tier: 'gold',
+      category: 'author',
+    },
+    {
+      key: 'ten_chapters',
+      title: 'Prolific',
+      description: 'Published 10 chapters.',
+      badgeIcon: '📚',
+      pointValue: 30,
+      tier: 'silver',
+      category: 'author',
+    },
+    {
+      key: 'glossary_10',
+      title: 'Worldbuilder',
+      description: 'Created 10 glossary entries.',
+      badgeIcon: '🌍',
+      pointValue: 25,
+      tier: 'silver',
+      category: 'author',
+    },
+    {
+      key: 'characters_25',
+      title: 'Cast Creator',
+      description: 'Added 25 characters to profile.',
+      badgeIcon: '👥',
+      pointValue: 40,
+      tier: 'silver',
+      category: 'author',
+    },
+    {
+      key: 'premium_supporter',
+      title: 'Premium Supporter',
+      description: 'Subscribed to premium membership.',
+      badgeIcon: '💎',
+      pointValue: 100,
+      tier: 'platinum',
+      category: 'reader',
+    },
+    // Reader achievements
+    {
+      key: 'first_read',
+      title: 'Reading Begins',
+      description: 'Read your first chapter.',
+      badgeIcon: '📖',
+      pointValue: 5,
+      tier: 'bronze',
+      category: 'reader',
+    },
+    {
+      key: 'hundred_pages',
+      title: 'Voracious',
+      description: 'Read 100+ pages on Chapturs.',
+      badgeIcon: '🔥',
+      pointValue: 25,
+      tier: 'silver',
+      category: 'reader',
+    },
+    {
+      key: 'first_comment',
+      title: 'Critic',
+      description: 'Left your first comment on a chapter.',
+      badgeIcon: '💬',
+      pointValue: 10,
+      tier: 'bronze',
+      category: 'reader',
+    },
+    {
+      key: 'featured_comment',
+      title: 'Insightful',
+      description: 'Had a comment featured by the author.',
+      badgeIcon: '⭐',
+      pointValue: 30,
+      tier: 'gold',
+      category: 'reader',
+    },
+    {
+      key: 'bookmarked_ten',
+      title: 'Collector',
+      description: 'Bookmarked 10 stories.',
+      badgeIcon: '🎯',
+      pointValue: 15,
+      tier: 'bronze',
+      category: 'reader',
+    },
+  ]
+  for (const achievement of achievements) {
+    const exists = await prisma.achievement.findFirst({
+      where: { key: achievement.key },
+    })
+    if (!exists) await prisma.achievement.create({ data: achievement })
+  }
+  console.log(`  ✓ ${achievements.length} achievements seeded`)
+
+  // ─────────────────────────────────────────────────────────────────────
   // SUBSCRIPTIONS & LIKES
   // ─────────────────────────────────────────────────────────────────────
   const allSubscriptions = [
