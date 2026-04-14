@@ -27,3 +27,4 @@ I'm Danny, the Lead on Chapturs. I own architecture, code review, and scope. TAS
 ## Learnings
 
 📌 Team hired on 2026-04-14. Universe: Ocean's Eleven. Crew: Linus (Frontend), Rusty (Backend), Basher (Tester).
+📌 2026-04-14: Wrote Gutenberg import pipeline spec to docs/source/plans/gutenberg-import-pipeline.md

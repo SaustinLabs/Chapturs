@@ -8,6 +8,7 @@ import ProfileLayout from '@/components/profile/ProfileLayout'
 import ProfileSidebar from '@/components/profile/ProfileSidebar'
 import FeaturedSpace from '@/components/profile/FeaturedSpace'
 import BlockGrid from '@/components/profile/BlockGrid'
+import AchievementsBlock from '@/components/AchievementsBlock'
 
 export default function ProfilePage() {
   const { username } = useParams<{ username: string }>()
@@ -146,6 +147,8 @@ export default function ProfilePage() {
           />
         }
       />
+
+      <AchievementsBlock userId={user.id} isOwnProfile={isOwner} />
 
       {/* Additional works beyond the featured one */}
       {works && works.length > 1 && (

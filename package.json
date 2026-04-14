@@ -29,6 +29,7 @@
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
     "@prisma/client": "^6.16.2",
+    "@sentry/nextjs": "^9",
     "@tiptap/extension-bubble-menu": "^3.4.4",
     "@tiptap/extension-character-count": "^3.4.4",
     "@tiptap/extension-color": "^3.4.4",

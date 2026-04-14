@@ -3,11 +3,17 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { PaymentService } from '@/lib/payment'
+import { getPremiumEnabled } from '@/lib/settings'
 
 export async function POST(_req: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const premiumEnabled = await getPremiumEnabled()
+  if (!premiumEnabled) {
+    return NextResponse.json({ error: 'Premium subscriptions are not available yet' }, { status: 503 })
   }
 
   if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_PRICE_ID) {

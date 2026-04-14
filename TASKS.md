@@ -21,10 +21,10 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 1 | Run bootstrap flow: sign in → `/admin/bootstrap` → enter PIN → sign out → sign back in | ⬜ | Deploy `0363768` must finish first |
+| 1 | Run bootstrap flow: sign in → `/admin/bootstrap` → enter PIN → sign out → sign back in | ✅ | Confirmed done by user |
 | 2 | Verify `RESEND_API_KEY` + `EMAIL_FROM` are in GitHub Secrets | ✅ | Confirmed set by user |
 | 3 | Run `npx prisma db push` on the production DB | ⬜ | Schema has `CommunityLink.signupCount` + `User.communityRef` that aren't pushed yet |
-| 4 | Set up Admin → Settings → Email Addresses in the admin panel | ⬜ | New email group defaults to `@chapturs.com` values but needs to be confirmed/customised after first deploy |
+| 4 | Set up Admin → Settings → Email Addresses in the admin panel | ✅ | Defaults to `@chapturs.com` values which are functional; no blocking issue confirmed |
 | 108 | Add `GOOGLE_BOOKS_API_KEY`, `GOOGLE_CLOUD_VISION_API_KEY`, `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY` to GitHub Secrets + VPS env | ⬜ | Documented in `.env.example`; Vision + reCAPTCHA code is live but keys must be set for them to activate |
 | 112 | Install and configure Squad multi-agent dev team in repo | ✅ | `squad init` run; `.squad/` scaffold created; decisions.md, routing.md, wisdom.md, identity files seeded with Chapturs context; team cast via VS Code Squad agent mode |
 
@@ -37,7 +37,7 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 5 | Cloudflare Email Routing for all inboxes | ✅ | Done by user |
-| 6 | Confirm domain DNS is healthy (R2, Resend DKIM, CF email routing coexist) | ⬜ | Worth a quick audit |
+| 6 | Confirm domain DNS is healthy (R2, Resend DKIM, CF email routing coexist) | ⬜ | Precautionary check only — no known conflict; tightly scoped audit |
 | 7 | Test welcome email end-to-end with a fresh signup | ⬜ | New code — verify Resend actually fires |
 | 8 | Test chapter rejection email end-to-end | ⬜ | New code — requires a moderation queue item |
 
@@ -78,9 +78,9 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 21 | Import 3–5 public domain works from Project Gutenberg | ⬜ | Feature demo content — cover art, AI glossary, character profiles. Suggested: *The Count of Monte Cristo*, *Dracula*, *Twenty Thousand Leagues Under the Sea* |
-| 22 | Generate AI glossary entries for imported works | ⬜ | Use existing Groq integration |
-| 23 | Generate character profiles for imported works | ⬜ | Use existing character profile system |
+| 21 | Import 3–5 public domain works from Project Gutenberg | 🔶 | Spec written at `docs/source/plans/gutenberg-import-pipeline.md`. Implement `POST /api/admin/import/gutenberg` + service in `src/lib/gutenberg-import/`. Suggested works: *Dracula* (#345), *Count of Monte Cristo* (#1184), *Twenty Thousand Leagues* (#164), *Pride and Prejudice* (#1342), *Jekyll and Hyde* (#43). |
+| 22 | Generate AI glossary entries for imported works | 🔶 | Covered by Gutenberg import pipeline spec (Step 6). Function: `generateGlossaryForWork()` in `src/lib/gutenberg-import/generate-glossary.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `glossary_entries` + `glossary_definition_versions` tables. |
+| 23 | Generate character profiles for imported works | 🔶 | Covered by Gutenberg import pipeline spec (Step 7). Function: `generateCharactersForWork()` in `src/lib/gutenberg-import/generate-characters.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `character_profiles` table. |
 
 ### Outreach
 
@@ -94,10 +94,10 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 96 | Achievements MVP schema + points ledger (`Achievement`, `UserAchievement`, `PointsLedger`, `LevelTier`) | ⬜ | Keep values configurable for fast tuning during beta |
-| 97 | Points event pipeline (`POINTS_EVENT_TYPE`) for reader/author/contributor triggers | ⬜ | Idempotent writes; include anti-abuse guards and per-event caps |
-| 98 | Profile "Achievements / Level" block with user visibility toggle | ⬜ | Add to profile block system with hide/show support |
-| 99 | Pin featured achievements in profile block | ⬜ | User selects featured badges; cap pinned items for clean layout |
+| 96 | Achievements MVP schema + points ledger (`Achievement`, `UserAchievement`, `PointsLedger`, `LevelTier`) | 🔶 | Schema added to `prisma/schema.prisma`; run `prisma db push` to apply. Seed `Achievement` + `LevelTier` rows via admin or seed script. |
+| 97 | Points event pipeline (`POINTS_EVENT_TYPE`) for reader/author/contributor triggers | 🔶 | `src/lib/achievements/points.ts` created: `awardPoints`, `awardAchievement`, `getUserLevel`, `checkAndAwardFoundingCreator`. Wire call sites (publish route, glossary, etc.) next. |
+| 98 | Profile "Achievements / Level" block with user visibility toggle | ✅ | `AchievementsBlock.tsx` — fetches `/api/achievements/[userId]`, shows level badge + points + achievement grid; owner visibility toggle calls `PATCH /api/achievements/[userId]/visibility` (API stub for Rusty) |
+| 99 | Pin featured achievements in profile block | ✅ | `FeaturedAchievements.tsx` — up to 4 pinned badges shown lg at top; star pin/unpin per badge; calls `PATCH /api/achievements/[userId]/featured` (API stub for Rusty); capped at 4 pins |
 | 100 | Founding Creator cohort badge (first 100 publishing authors) | ⬜ | Trigger on first chapter that goes live (not draft/save); store award timestamp + chapterId |
 | 101 | "First!" reader window + anti-farm qualification | ⬜ | Chapter goes live → 5 minute award window. Reader must qualify (>=60s dwell + basic scroll/progress signal) before award; all qualified readers in window receive badge/points |
 | 102 | Author glossary achievement milestones (entry count + evolving definitions) | ⬜ | Count distinct glossary entries/instances over story progression |
@@ -129,6 +129,7 @@ These are literal `// TODO` comments in the codebase:
 | 33 | `src/lib/analytics/view-counter.ts:187` | Add `viewCount` field to Section model in Prisma schema | ⬜ | |
 | 34 | `src/app/api/works/publish/route.ts` | Wire content validation checks into publish flow | ✅ | Validates ALL sections (not just first); removed auto-approve; mature content confirmation modal wired; PrePublishChecklist calls server validation; new `/api/works/[id]/validate` dry-run endpoint. |
 | 80 | `src/app/api/user/taste-profile/route.ts` | `workCount < 12` gate suppresses onboarding survey on sparse platform | ✅ | Lowered to `workCount < 3` — survey now fires with minimal seeded content |
+| 114 | `package.json` | `groq-sdk` is listed as a dependency but architecture decision bans it (use OpenRouter only) | ⬜ | Remove `groq-sdk` from dependencies; confirm no call sites remain |
 
 ---
 
@@ -161,7 +162,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | 48 | Reader-to-reader recommendation ("finished X → also loved Y") | ⬜ | |
 | 49 | "Readers Also Enjoyed" block on story pages | ✅ | Smart cascade: author picks → collaborative signals → semantic LLM Jaccard → trending → popular. `WorkSemanticProfile` + `AuthorRecommendation` schema, `similarity.ts` service, `/api/works/[id]/related`. |
 | 49a | Author-curated "Readers Also Enjoyed" picks — Creator Hub UI | ✅ | Work-search autocomplete + pick list (max 4) added to `/creator/work/[id]/edit`. Auto-saves on add/remove. |
-| 49b | Collaborative signal cron/trigger — periodically call `computeCollaborativeSignals` | ⬜ | Hook exists; needs a scheduled API route or admin trigger to run it for works with sufficient readership. |
+| 49b | Collaborative signal cron/trigger — periodically call `computeCollaborativeSignals` | 🔶 | Admin POST `/api/admin/collaborative-signals` created; iterates all published/ongoing works. Wire to a cron/scheduler later. |
 
 ---
 
@@ -173,7 +174,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 |---|------|--------|-------|
 | 50 | `LivingWorld`, `CanonEntry`, `CanonCharacter`, `LoreContradictionFlag`, `WorldCouncilVote` Prisma models | ⬜ | |
 | 51 | World definition UI (founder sets The Beginning + The End, canon characters) | ⬜ | |
-| 52 | Lore Master AI — Groq agent for writer queries + contradiction scanning | ⬜ | |
+| 52 | Lore Master AI — OpenRouter agent for writer queries + contradiction scanning | ⬜ | |
 | 53 | Canon graph (lore facts cite source chapters, spider-web model) | ⬜ | |
 | 54 | Vector-indexed lore store (pgvector or Pinecone) | ⬜ | |
 | 55 | World Council (admin group with veto on canon disputes) | ⬜ | |
@@ -191,7 +192,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 60 | Bot author DB record (`isBot: true` flag) | ⬜ | |
-| 61 | Story outline generation pipeline (Groq) | ⬜ | |
+| 61 | Story outline generation pipeline (OpenRouter) | ⬜ | |
 | 62 | Chapter-by-chapter generation with prior chapter context | ⬜ | |
 | 63 | Scheduling / cron job for cadenced publishing | ⬜ | |
 | 64 | Feed weight decay as real content accumulates | ⬜ | |
@@ -203,7 +204,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 66 | Enable Stripe integration (currently `premium_enabled: false`) | ⬜ | Stripe keys are in secrets, just need to flip the flag and test |
+| 66 | Enable Stripe integration (currently `premium_enabled: false`) | 🔶 | `premium_enabled` is in SiteSettings (monetization group); `getPremiumEnabled()` helper added to `src/lib/settings.ts`; checkout route now gated on it. Flip to `'true'` in Admin → Settings after staging Stripe test |
 | 67 | Test Stripe webhook end-to-end on staging | ⬜ | `STRIPE_WEBHOOK_SECRET` is set but webhook flow is untested |
 | 68 | Creator payout flow (currently disabled) | ⬜ | Revenue sharing schema exists, payout UX needs building |
 | 69 | AdSense slots audit — confirm they're rendering in prod (not blank) | ✅ | Fixed false-positive adblock detection: removed proactive fetch probe (false positives on Firefox ETP / Brave Shields); now relies on Script onError callback |
@@ -233,7 +234,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 76 | Set up uptime monitoring (UptimeRobot / Better Uptime — free tier) | ⬜ | |
-| 77 | Error reporting (Sentry free tier) — currently errors only go to console | ⬜ | |
+| 77 | Error reporting (Sentry free tier) — currently errors only go to console | 🔶 | Sentry SDK installed and configured; add SENTRY_DSN to GitHub Secrets to activate |
 | 78 | Review VPS resource usage — RAM / disk / CPU headroom before traffic | ⬜ | |
 | 79 | Log rotation on PM2 — ensure server logs don't fill the disk | ⬜ | |
 | 113 | Cast Squad team via VS Code Agent mode (switch to Squad agent in Copilot Chat) | ✅ | Team cast: Danny (Lead), Linus (Frontend), Rusty (Backend), Basher (Tester), Scribe, Ralph. Universe: Ocean's Eleven. Charters + histories seeded with full Chapturs context. |

@@ -94,6 +94,10 @@ model User {
   // Reading language preference (ISO 639-1, e.g. 'en', 'es', 'ja')
   preferredLanguage String? @default("en")
 
+  // Achievements & points
+  userAchievements UserAchievement[]
+  pointsLedger     PointsLedger[]
+
   @@map("users")
 }
 
@@ -1926,4 +1930,65 @@ model CommunityLink {
   updatedAt   DateTime @updatedAt
 
   @@map("community_links")
+}
+
+// ============================================================================
+// ACHIEVEMENTS & POINTS SYSTEM
+// ============================================================================
+
+model Achievement {
+  id          String   @id @default(cuid())
+  key         String   @unique  // e.g. "founding_creator", "first_chapter", "glossary_25"
+  title       String
+  description String
+  badgeIcon   String   // emoji or icon key
+  pointValue  Int      @default(0)
+  tier        String   @default("bronze") // bronze | silver | gold | platinum
+  category    String   @default("author") // author | reader | contributor
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  userAchievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  achievementId String
+  awardedAt     DateTime    @default(now())
+  sourceId      String?     // chapterId, workId, etc. — what triggered it
+  isFeatured    Boolean     @default(false)
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id])
+
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
+}
+
+model PointsLedger {
+  id         String   @id @default(cuid())
+  userId     String
+  eventType  String   // enum-like: CHAPTER_PUBLISHED, FIRST_READ, GLOSSARY_ENTRY, etc.
+  points     Int
+  sourceId   String?  // what triggered this event
+  metadata   Json?    // extra context
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, eventType])
+  @@map("points_ledger")
+}
+
+model LevelTier {
+  id        String @id @default(cuid())
+  level     Int    @unique
+  minPoints Int
+  title     String // "Newcomer", "Apprentice", "Journeyman", etc.
+  badge     String // emoji
+
+  @@map("level_tiers")
 }
