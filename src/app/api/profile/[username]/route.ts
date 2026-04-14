@@ -9,6 +9,16 @@ interface RouteParams {
   }>
 }
 
+function parseStringArray(input: string | null | undefined): string[] {
+  if (!input) return []
+  try {
+    const parsed = JSON.parse(input)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
 // GET /api/profile/[username] - Get public profile data
 export async function GET(request: Request, props: RouteParams) {
   const params = await props.params
@@ -129,8 +139,8 @@ export async function GET(request: Request, props: RouteParams) {
       } : null,
       works: works.map(w => ({
         ...w,
-        genres: JSON.parse(w.genres || '[]'),
-        tags: JSON.parse(w.tags || '[]'),
+        genres: parseStringArray(w.genres),
+        tags: parseStringArray(w.tags),
         statistics: {
           likes: w._count.likes,
           bookmarks: w._count.bookmarks,

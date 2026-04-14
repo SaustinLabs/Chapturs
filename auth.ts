@@ -120,6 +120,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       if (session.user && token.sub) {
         session.user.id = token.sub
+        ;(session.user as any).username = (token as any).username
         // Propagate role so admin checks work on the client and in API routes
         ;(session.user as any).role = (token as any).role ?? 'user'
         // Propagate onboarding state — defaults true so old JWTs don't redirect
@@ -149,6 +150,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             })
             if (dbUser) {
               token.sub = dbUser.id          // pin JWT sub to actual DB ID
+              ;(token as any).username = dbUser.username
               ;(token as any).role = dbUser.role ?? 'user'
               // Track whether user has set a real username (not auto-generated)
               ;(token as any).hasSetUsername = !/_\d+$/.test(dbUser.username ?? '')
@@ -160,6 +162,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             where: { id: token.sub! },
             select: { role: true, username: true },
           })
+          ;(token as any).username = dbUser?.username
           ;(token as any).role = dbUser?.role ?? 'user'
           ;(token as any).hasSetUsername = !/_\d+$/.test(dbUser?.username ?? '')
         } catch {
