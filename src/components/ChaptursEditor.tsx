@@ -15,6 +15,7 @@ import { Activity, Clock } from 'lucide-react'
 import { measureTextRows } from '@/hooks/usePretext'
 import { buildEditorSelectionActions } from '@/lib/selectionActionRegistry'
 import { useToast } from '@/components/ui/Toast'
+import Modal from '@/components/ui/Modal'
 
 interface ChaptursEditorProps {
   workId: string
@@ -24,7 +25,6 @@ interface ChaptursEditorProps {
   onPublish?: (document: ChaptDocument) => Promise<void>
 }
 
-export default function ChaptursEditor({ 
   workId, 
   chapterId, 
   initialDocument,
@@ -32,6 +32,13 @@ export default function ChaptursEditor({
   onPublish 
 }: ChaptursEditorProps) {
   const { toast } = useToast()
+
+  // Suggest Edit modal state
+  const [showSuggestModal, setShowSuggestModal] = useState(false)
+  const [suggestComment, setSuggestComment] = useState("")
+  const [suggestLoading, setSuggestLoading] = useState(false)
+  const [suggestError, setSuggestError] = useState("")
+  const [suggested, setSuggested] = useState(false)
   
   // Initialize editor state
   const [editorState, setEditorState] = useState<EditorState>(() => ({
@@ -512,6 +519,10 @@ export default function ChaptursEditor({
   // Calculate word count
   const wordCount = editorState.document.metadata.wordCount
 
+  // Permission logic (MVP: only show Suggest Edit if user can edit but not publish)
+  // TODO: Replace with real permission check from props/context
+  const canEdit = typeof onSave === 'function' && !onPublish
+
   return (
     <div className="h-full flex flex-col bg-gray-900 overflow-hidden relative">
       {/* Toolbar */}
@@ -563,6 +574,7 @@ export default function ChaptursEditor({
             Split
           </button>
           
+
           <button
             onClick={handleRunQualityCheck}
             disabled={!chapterId || editorState.isDirty}
@@ -572,6 +584,75 @@ export default function ChaptursEditor({
             <Activity size={16} />
             Assess
           </button>
+
+          {/* Suggest Edit button (only for collaborators with edit but not publish) */}
+          {canEdit && (
+            <button
+              onClick={() => setShowSuggestModal(true)}
+              disabled={suggested}
+              className={`px-3 py-1.5 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 flex items-center gap-2 ${suggested ? 'opacity-60 cursor-not-allowed' : ''}`}
+              title="Suggest an edit for review"
+            >
+              Suggest Edit
+              {suggested && <span className="ml-2 bg-yellow-700 text-xs px-2 py-0.5 rounded">Suggested</span>}
+            </button>
+          )}
+      {/* Suggest Edit Modal */}
+      <Modal isOpen={showSuggestModal} onClose={() => setShowSuggestModal(false)} title="Suggest Edit" size="md">
+        <div className="mb-3">
+          <label className="block text-sm font-medium text-gray-300 mb-1">Proposed content (read-only):</label>
+          <pre className="w-full p-3 bg-gray-900 text-gray-100 rounded border border-gray-700 whitespace-pre-wrap text-sm max-h-64 overflow-y-auto">{JSON.stringify(editorState.document.content, null, 2)}</pre>
+        </div>
+        <div className="mb-3">
+          <label className="block text-sm font-medium text-gray-300 mb-1">Comment (optional):</label>
+          <input
+            type="text"
+            value={suggestComment}
+            onChange={e => setSuggestComment(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-600 rounded bg-gray-900 text-gray-100"
+            placeholder="Why this change?"
+            disabled={suggestLoading}
+          />
+        </div>
+        {suggestError && <div className="text-red-400 mb-2">{suggestError}</div>}
+        <div className="flex justify-end gap-2 mt-4">
+          <button
+            onClick={() => setShowSuggestModal(false)}
+            className="px-4 py-2 text-sm text-gray-400 hover:text-gray-200"
+            disabled={suggestLoading}
+          >Cancel</button>
+          <button
+            onClick={async () => {
+              setSuggestLoading(true);
+              setSuggestError("");
+              try {
+                const res = await fetch(`/api/works/${workId}/sections/${chapterId}/suggestions`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    proposedContent: JSON.stringify(editorState.document.content),
+                    proposerComment: suggestComment,
+                  }),
+                });
+                if (!res.ok) throw new Error("Failed to propose suggestion");
+                toast.success("Suggestion submitted for review");
+                setSuggested(true);
+                setShowSuggestModal(false);
+                setSuggestComment("");
+              } catch (err) {
+                setSuggestError(err instanceof Error ? err.message : "Failed to propose suggestion");
+              } finally {
+                setSuggestLoading(false);
+              }
+            }}
+            disabled={suggestLoading}
+            className="px-4 py-2 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {suggestLoading ? 'Proposing...' : 'Propose'}
+          </button>
+        </div>
+        <p className="text-xs text-gray-400 mt-3">Your suggestion will be reviewed by the author.</p>
+      </Modal>
 
           <button
             onClick={handleSave}

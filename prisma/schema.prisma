@@ -1,3 +1,4 @@
+
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -88,6 +89,10 @@ model User {
 
   // Chapter reactions
   chapterReactions ChapterReaction[]
+
+  // Section edit suggestions (collaboration)
+  sectionEditSuggestionsProposed SectionEditSuggestion[] @relation("SectionEditSuggestionProposer")
+  sectionEditSuggestionsReviewed SectionEditSuggestion[] @relation("SectionEditSuggestionReviewer")
 
   // Community referral attribution (which /join/<slug> link brought this user)
   communityRef String?
@@ -326,7 +331,34 @@ model Section {
   // Chapter locks for edit collision prevention
   lock SectionLock?
 
+  // Section edit suggestions
+  sectionEditSuggestions SectionEditSuggestion[]
+
   @@map("sections")
+// SectionEditSuggestion model for collaborative editing proposals
+model SectionEditSuggestion {
+  id               String   @id @default(cuid())
+  workId           String
+  sectionId        String
+  proposedById     String
+  proposedContent  String
+  status           String   @default("pending") // 'pending', 'accepted', 'rejected', 'retracted'
+  authorComment    String?
+  proposerComment  String?
+  reviewedById     String?
+  reviewedAt       DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  section   Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  proposer  User    @relation("SectionEditSuggestionProposer", fields: [proposedById], references: [id], onDelete: Cascade)
+  reviewer  User?   @relation("SectionEditSuggestionReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([workId])
+  @@index([sectionId])
+  @@index([status])
+  @@index([proposedById])
 }
 
 // Chapter lock model for edit collision prevention

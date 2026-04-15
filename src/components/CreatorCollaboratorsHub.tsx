@@ -7,6 +7,7 @@ import {
   UserPlusIcon,
 } from '@heroicons/react/24/outline'
 import { useToast } from '@/components/ui/Toast'
+import EditSuggestionsPanel from './EditSuggestionsPanel'
 
 interface ActivityEvent {
   id: string
@@ -48,7 +49,9 @@ type CollaboratorResponse = {
 const roles = ['editor', 'contributor'] as const
 const HANDSHAKE_EMOJI = String.fromCodePoint(0x1f91d)
 
-export default function CreatorCollaboratorsHub() {
+// Add tab state for Activity/Suggestions
+  const [activeTab, setActiveTab] = useState<'activity' | 'suggestions'>('activity')
+  const [pendingSuggestions, setPendingSuggestions] = useState<number>(0)
   const params = useParams()
   const { toast } = useToast()
   const workId = params?.id as string
@@ -90,7 +93,7 @@ export default function CreatorCollaboratorsHub() {
         }
 
         setCollaborators(nextCollaborators)
-  setIsAuthor(nextIsAuthor)
+        setIsAuthor(nextIsAuthor)
       } catch (err) {
         console.error(err)
         setError(err instanceof Error ? err.message : 'Failed to load collaborators.')
@@ -99,8 +102,19 @@ export default function CreatorCollaboratorsHub() {
       }
     }
 
+    // Fetch pending suggestions count for badge
+    const fetchPendingSuggestions = async () => {
+      try {
+        const res = await fetch(`/api/works/${workId}/sections/${/* TODO: sectionId */'1'}/suggestions?status=pending&page=1&pageSize=1`)
+        if (!res.ok) return
+        const data = await res.json()
+        setPendingSuggestions(data.total ?? (data.suggestions?.length || 0))
+      } catch {}
+    }
+
     if (workId) {
       load()
+      fetchPendingSuggestions()
     }
   }, [workId])
 
@@ -209,6 +223,27 @@ export default function CreatorCollaboratorsHub() {
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
+      {/* Tabs for Activity/Suggestions */}
+      <div className="flex gap-4 mb-6">
+        <button
+          className={`px-4 py-2 rounded-t-lg font-semibold ${activeTab === 'activity' ? 'bg-gray-800 text-white border-b-2 border-blue-500' : 'bg-gray-700 text-gray-300'}`}
+          onClick={() => setActiveTab('activity')}
+        >
+          Activity
+        </button>
+        <button
+          className={`px-4 py-2 rounded-t-lg font-semibold relative ${activeTab === 'suggestions' ? 'bg-gray-800 text-white border-b-2 border-yellow-500' : 'bg-gray-700 text-gray-300'}`}
+          onClick={() => setActiveTab('suggestions')}
+        >
+          Suggestions
+          {pendingSuggestions > 0 && (
+            <span className="absolute -top-2 -right-3 bg-yellow-500 text-white text-xs rounded-full px-2 py-0.5">{pendingSuggestions}</span>
+          )}
+        </button>
+      </div>
+
+      {/* Tab content */}
+      {activeTab === 'activity' ? (
       <div>
         <h1 className="text-3xl font-bold text-white">Collaborators</h1>
           <p className="mt-2 text-gray-400">
@@ -433,6 +468,10 @@ export default function CreatorCollaboratorsHub() {
           )}
         </div>
       </div>
+      ) : (
+        // Suggestions tab content (lazy load panel)
+        <EditSuggestionsPanel workId={workId} sectionId={/* TODO: sectionId */'1'} currentContent={''} />
+      )}
     </div>
   )
 }

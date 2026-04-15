@@ -2,6 +2,22 @@
 
 ## Active Decisions
 
+### 2026-04-14: EditSuggestion Schema, API, and UI (Task #40)
+**Team:** Danny, Rusty, Linus, Basher
+**What shipped:** Schema, API, UI, Tests
+
+#### Summary
+EditSuggestion enables granular, auditable change proposals by collaborators. Schema supports comments, audit trail, and future versioning. API and permissions align with the collaboration model. Accepting a suggestion is an explicit author action and integrates with locking and activity logs. UI provides Suggest Edit button, suggestions panel, and full review/accept/reject flow. Tests cover all endpoints and permission cases.
+
+#### Key Decisions
+- **Schema:** Prisma model `EditSuggestion` with proposer/reviewer, status, comments, audit fields, and relations to Section/User.
+- **API:** REST endpoints for propose, list, accept/reject, retract. PATCH applies accepted suggestion to Section. Permission matrix restricts actions to proper roles.
+- **UI:** Suggest Edit button for collaborators, modal for proposing, panel for review, diff, accept/reject with comments. Responsive design, badge counts, and optimistic updates.
+- **Integration:** Activity log and version history integration. Lock required to accept. Analytics for acceptance rate.
+- **Blockers:** None reported. SectionId hardcoded for MVP in UI; diff is plain text for MVP.
+
+---
+
 ### 2026-04-14: Stack & Deployment
 **Decision:** Chapturs is a Next.js 15 App Router app deployed to a VPS (NOT Vercel) via GitHub Actions. Supabase PostgreSQL is the database. All secrets live in GitHub Secrets and are written to `.env.production` on the VPS at deploy time.
 **Rationale:** VPS gives full control over the runtime and avoids Vercel edge limitations.

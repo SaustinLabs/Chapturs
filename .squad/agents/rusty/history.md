@@ -1,3 +1,4 @@
+2026-04-14: Implemented suggestion API routes + Prisma migration
 # Project Context
 
 - **Owner:** stonecoldsam

@@ -1,3 +1,4 @@
+2026-04-14: Designed EditSuggestion schema for task #40
 # Project Context
 
 - **Owner:** stonecoldsam
