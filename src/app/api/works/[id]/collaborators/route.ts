@@ -1,75 +1,3 @@
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await auth()
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const dbUserId = await resolveDbUserId(session)
-    const { id: workId } = await params
-    const { userId, role, revenueShare } = await req.json()
-
-    if (!userId) {
-      return NextResponse.json({ error: 'userId is required' }, { status: 400 })
-    }
-
-    if (role !== undefined && !ALLOWED_ROLES.includes(role)) {
-      return NextResponse.json({ error: 'Invalid role. Allowed roles: editor, contributor' }, { status: 400 })
-    }
-    if (revenueShare !== undefined) {
-      if (typeof revenueShare !== 'number' || isNaN(revenueShare)) {
-        return NextResponse.json({ error: 'revenueShare must be a number' }, { status: 400 })
-      }
-      if (revenueShare < 0 || revenueShare > 100) {
-        return NextResponse.json({ error: 'revenueShare must be between 0 and 100' }, { status: 400 })
-      }
-    }
-
-    const work = await prisma.work.findUnique({ where: { id: workId } })
-    if (!work || work.authorId !== dbUserId) {
-      return NextResponse.json({ error: 'Only the author can update collaborators' }, { status: 403 })
-    }
-
-    const existing = await prisma.workCollaborator.findUnique({
-      where: { workId_userId: { workId, userId } },
-    })
-    if (!existing || existing.status === 'removed') {
-      return NextResponse.json({ error: 'Collaborator not found' }, { status: 404 })
-    }
-
-    const updateData: any = {}
-    if (role !== undefined) updateData.role = role
-    if (revenueShare !== undefined) updateData.revenueShare = revenueShare
-    if (Object.keys(updateData).length === 0) {
-      return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
-    }
-
-    const updated = await prisma.workCollaborator.update({
-      where: { workId_userId: { workId, userId } },
-      data: updateData,
-      include: {
-        user: { select: { id: true, username: true, displayName: true, avatar: true } }
-      }
-    })
-
-    await prisma.collaborationActivity.create({
-      data: {
-        workId,
-        userId: dbUserId,
-        action: 'updated_collaborator',
-        details: JSON.stringify({ updatedUserId: userId, ...updateData }),
-      },
-    })
-
-    return createSuccessResponse({ collaborator: updated }, 'Collaborator updated successfully')
-  } catch (error) {
-    console.error('[Update Collaborator Error]:', error)
-    return createErrorResponse(error, 'update-collaborator')
-  }
-}
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -77,6 +5,7 @@ import { auth } from '@/auth'
 import { prisma } from '@/lib/database/PrismaService'
 import { createErrorResponse, createSuccessResponse } from '@/lib/api/errorHandling'
 import { resolveDbUserId } from '@/lib/resolveDbUserId'
+import { validatePatchCollaborator } from '@/lib/collaborationPatchValidation'
 
 const ALLOWED_ROLES = ['editor', 'contributor'] as const
 
@@ -109,23 +38,19 @@ export async function GET(
     }
 
     const dbUserId = await resolveDbUserId(session)
-
     const { id: workId } = await params
 
-    const work = await prisma.work.findUnique({
-      where: { id: workId }
-    })
+    const work = await prisma.work.findUnique({ where: { id: workId } })
 
     if (!work) {
       return NextResponse.json({ error: 'Work not found' }, { status: 404 })
     }
 
     const isAuthor = work.authorId === dbUserId
-    
-    // For now only the author or existing collaborators can view collaborators
+
     if (!isAuthor) {
       const isCollaborator = await prisma.workCollaborator.findUnique({
-        where: { workId_userId: { workId, userId: dbUserId } }
+        where: { workId_userId: { workId, userId: dbUserId } },
       })
       if (!isCollaborator || isCollaborator.status === 'removed') {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -138,12 +63,12 @@ export async function GET(
         status: { in: ['active', 'pending'] },
       },
       include: {
-        user: { select: { id: true, username: true, displayName: true, avatar: true } }
+        user: { select: { id: true, username: true, displayName: true, avatar: true } },
       },
-      orderBy: { invitedAt: 'desc' }
+      orderBy: { invitedAt: 'desc' },
     })
 
-    return createSuccessResponse({ collaborators })
+    return createSuccessResponse({ collaborators, isAuthor })
   } catch (error) {
     console.error('[Get Collaborators Error]:', error)
     return createErrorResponse(error, 'get-collaborators')
@@ -161,7 +86,6 @@ export async function POST(
     }
 
     const dbUserId = await resolveDbUserId(session)
-
     const { id: workId } = await params
     const { identity, role, revenueShare } = await req.json()
 
@@ -180,14 +104,13 @@ export async function POST(
 
     const normalizedIdentity = String(identity).trim()
 
-    // Lookup user by username (primary) or email (backward-compatible)
     const targetUser = await prisma.user.findFirst({
       where: {
         OR: [
           { email: normalizedIdentity },
-          { username: { equals: normalizedIdentity, mode: 'insensitive' } }
-        ]
-      }
+          { username: { equals: normalizedIdentity, mode: 'insensitive' } },
+        ],
+      },
     })
 
     if (!targetUser) {
@@ -200,8 +123,8 @@ export async function POST(
 
     const existing = await prisma.workCollaborator.findUnique({
       where: {
-        workId_userId: { workId, userId: targetUser.id }
-      }
+        workId_userId: { workId, userId: targetUser.id },
+      },
     })
 
     if (existing) {
@@ -222,24 +145,79 @@ export async function POST(
         acceptedAt: new Date(),
       },
       include: {
-        user: { select: { id: true, username: true, displayName: true } }
-      }
+        user: { select: { id: true, username: true, displayName: true } },
+      },
     })
 
-    // Log Activity
     await prisma.collaborationActivity.create({
       data: {
         workId,
         userId: dbUserId,
         action: 'invited_collaborator',
-        details: JSON.stringify({ invitedUserId: targetUser.id, role })
-      }
+        details: JSON.stringify({ invitedUserId: targetUser.id, role }),
+      },
     })
 
     return createSuccessResponse({ collaborator }, 'Collaborator added successfully')
   } catch (error) {
     console.error('[Invite Collaborator Error]:', error)
     return createErrorResponse(error, 'invite-collaborator')
+  }
+}
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const dbUserId = await resolveDbUserId(session)
+    const { id: workId } = await params
+    const body = await req.json()
+    const { userId, role, revenueShare } = body
+
+    const work = await prisma.work.findUnique({ where: { id: workId } })
+    const validation = validatePatchCollaborator({ dbUserId, work, body })
+    if (!validation.ok) {
+      return NextResponse.json({ error: validation.error }, { status: validation.status })
+    }
+
+    const existing = await prisma.workCollaborator.findUnique({
+      where: { workId_userId: { workId, userId } },
+    })
+    if (!existing || existing.status === 'removed') {
+      return NextResponse.json({ error: 'Collaborator not found' }, { status: 404 })
+    }
+
+    const updateData: Record<string, unknown> = {}
+    if (role !== undefined) updateData.role = role
+    if (revenueShare !== undefined) updateData.revenueShare = revenueShare
+
+    const updated = await prisma.workCollaborator.update({
+      where: { workId_userId: { workId, userId } },
+      data: updateData,
+      include: {
+        user: { select: { id: true, username: true, displayName: true, avatar: true } },
+      },
+    })
+
+    await prisma.collaborationActivity.create({
+      data: {
+        workId,
+        userId: dbUserId,
+        action: 'updated_collaborator',
+        details: JSON.stringify({ updatedUserId: userId, ...updateData }),
+      },
+    })
+
+    return createSuccessResponse({ collaborator: updated }, 'Collaborator updated successfully')
+  } catch (error) {
+    console.error('[Update Collaborator Error]:', error)
+    return createErrorResponse(error, 'update-collaborator')
   }
 }
 

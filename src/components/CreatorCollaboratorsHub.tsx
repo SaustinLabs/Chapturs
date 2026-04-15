@@ -26,7 +26,7 @@ interface Collaborator {
   userId: string
   role: string
   status: string
-  revenueShare?: number // 0-1 (e.g., 0.125 = 12.5%)
+  revenueShare?: number // percentage in range 0..100
   user: {
     id: string
     username: string
@@ -40,7 +40,9 @@ type CollaboratorResponse = {
   data?: {
     collaborators?: Collaborator[]
     collaborator?: Collaborator
+    isAuthor?: boolean
   }
+  isAuthor?: boolean
 }
 
 const roles = ['editor', 'contributor'] as const
@@ -59,6 +61,7 @@ export default function CreatorCollaboratorsHub() {
   const [activityLoading, setActivityLoading] = useState(true)
   const [activityError, setActivityError] = useState<string | null>(null)
   const [collaborators, setCollaborators] = useState<Collaborator[]>([])
+  const [isAuthor, setIsAuthor] = useState(false)
   const [editing, setEditing] = useState<{ [userId: string]: boolean }>({})
   const [editValues, setEditValues] = useState<{ [userId: string]: { role: string; revenueShare: string } }>({})
   const [rowLoading, setRowLoading] = useState<{ [userId: string]: boolean }>({})
@@ -79,6 +82,7 @@ export default function CreatorCollaboratorsHub() {
 
         const data: CollaboratorResponse = await response.json()
         const nextCollaborators = data.data?.collaborators ?? data.collaborators
+        const nextIsAuthor = data.data?.isAuthor ?? data.isAuthor ?? false
 
         if (!Array.isArray(nextCollaborators)) {
           console.log('Unexpected collaborators response:', data)
@@ -86,6 +90,7 @@ export default function CreatorCollaboratorsHub() {
         }
 
         setCollaborators(nextCollaborators)
+  setIsAuthor(nextIsAuthor)
       } catch (err) {
         console.error(err)
         setError(err instanceof Error ? err.message : 'Failed to load collaborators.')
@@ -261,10 +266,8 @@ export default function CreatorCollaboratorsHub() {
               const isRowLoading = rowLoading[collaborator.userId]
               const editValue = editValues[collaborator.userId] || {
                 role: collaborator.role,
-                revenueShare: collaborator.revenueShare != null ? (collaborator.revenueShare * 100).toFixed(2) : '',
+                revenueShare: collaborator.revenueShare != null ? collaborator.revenueShare.toFixed(2) : '',
               }
-              // TODO: Replace with real owner check
-              const isOwner = true
               return (
                 <div
                   key={collaborator.id}
@@ -315,7 +318,7 @@ export default function CreatorCollaboratorsHub() {
                               const patchBody = {
                                 userId: collaborator.userId,
                                 role: editValue.role,
-                                revenueShare: parseFloat(editValue.revenueShare) / 100,
+                                revenueShare: parseFloat(editValue.revenueShare),
                               }
                               const response = await fetch(`/api/works/${workId}/collaborators`, {
                                 method: 'PATCH',
@@ -326,7 +329,11 @@ export default function CreatorCollaboratorsHub() {
                                 const data = await response.json().catch(() => null)
                                 throw new Error(data?.error || 'Failed to update collaborator.')
                               }
-                              setCollaborators(current => current.map(c => c.userId === collaborator.userId ? { ...c, ...patchBody } : c))
+                              setCollaborators(current =>
+                                current.map(c => (c.userId === collaborator.userId
+                                  ? { ...c, role: patchBody.role, revenueShare: patchBody.revenueShare }
+                                  : c))
+                              )
                               setEditing(v => ({ ...v, [collaborator.userId]: false }))
                               toast.success('Collaborator updated.')
                             } catch (err) {
@@ -347,9 +354,9 @@ export default function CreatorCollaboratorsHub() {
                       <>
                         <span className={roleBadgeClass(collaborator.role)}>{formatRole(collaborator.role)}</span>
                         <span className="ml-2 text-sm text-gray-300 font-mono">
-                          {collaborator.revenueShare != null ? `${(collaborator.revenueShare * 100).toFixed(2)}%` : '--'}
+                          {collaborator.revenueShare != null ? `${collaborator.revenueShare.toFixed(2)}%` : '--'}
                         </span>
-                        {isOwner && (
+                          {isAuthor && (
                           <button
                             type="button"
                             className="ml-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-blue-300 hover:bg-blue-500/20 disabled:opacity-50"
@@ -357,7 +364,7 @@ export default function CreatorCollaboratorsHub() {
                               setEditing(v => ({ ...v, [collaborator.userId]: true }))
                               setEditValues(v => ({ ...v, [collaborator.userId]: {
                                 role: collaborator.role,
-                                revenueShare: collaborator.revenueShare != null ? (collaborator.revenueShare * 100).toFixed(2) : '',
+                                revenueShare: collaborator.revenueShare != null ? collaborator.revenueShare.toFixed(2) : '',
                               }}))
                             }}
                             disabled={isRowLoading}
