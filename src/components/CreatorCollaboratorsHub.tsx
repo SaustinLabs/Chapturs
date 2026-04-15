@@ -1,3 +1,64 @@
+interface ActivityEvent {
+  id: string
+  actor: {
+    id: string
+    username: string
+    displayName?: string | null
+    avatar?: string | null
+  }
+  action: string
+  createdAt: string
+  summary?: string | null
+}
+
+function formatActionLabel(action: string) {
+  // Map backend action codes to human-friendly labels
+  switch (action) {
+    case 'added_collaborator':
+      return 'Added collaborator'
+    case 'removed_collaborator':
+      return 'Removed collaborator'
+    case 'changed_role':
+      return 'Changed role'
+    case 'published_chapter':
+      return 'Published chapter'
+    case 'edited_section':
+      return 'Edited section'
+    default:
+      return action.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+  }
+}
+
+function formatDateTime(iso: string) {
+  const date = new Date(iso)
+  return date.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+  const [activity, setActivity] = useState<ActivityEvent[]>([])
+  const [activityLoading, setActivityLoading] = useState(true)
+  const [activityError, setActivityError] = useState<string | null>(null)
+  // Fetch collaboration activity log
+  useEffect(() => {
+    if (!workId) return
+    setActivityLoading(true)
+    setActivityError(null)
+    fetch(`/api/works/${workId}/collaborators/activity`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error('Failed to fetch activity log.')
+        const data = await res.json()
+        if (!Array.isArray(data.activity)) throw new Error('Unexpected activity response.')
+        setActivity(data.activity)
+      })
+      .catch((err) => {
+        setActivityError(err instanceof Error ? err.message : 'Failed to load activity log.')
+      })
+      .finally(() => setActivityLoading(false))
+  }, [workId])
 'use client'
 
 import { FormEvent, useEffect, useState } from 'react'
@@ -210,7 +271,6 @@ export default function CreatorCollaboratorsHub() {
         <div className="border-b border-gray-700 px-6 py-5">
           <h2 className="text-lg font-semibold text-white">Current Collaborators</h2>
         </div>
-
         {collaborators.length === 0 ? (
           <EmptyState
             emoji={HANDSHAKE_EMOJI}
@@ -235,7 +295,6 @@ export default function CreatorCollaboratorsHub() {
                     <div className="text-sm text-gray-400">@{collaborator.user.username}</div>
                   </div>
                 </div>
-
                 <div className="flex items-center gap-3">
                   <span className={roleBadgeClass(collaborator.role)}>
                     {formatRole(collaborator.role)}
@@ -254,6 +313,51 @@ export default function CreatorCollaboratorsHub() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Collaboration Activity Log */}
+      <div className="rounded-2xl border border-gray-700 bg-gray-800">
+        <div className="border-b border-gray-700 px-6 py-5 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-white">Collaboration Activity</h2>
+        </div>
+        <div className="px-6 py-5">
+          {activityLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500" />
+            </div>
+          ) : activityError ? (
+            <div className="text-red-400 text-center py-8">{activityError}</div>
+          ) : activity.length === 0 ? (
+            <EmptyState
+              emoji="📝"
+              title="No collaboration activity yet"
+              description="All collaborator actions will appear here."
+            />
+          ) : (
+            <ul className="divide-y divide-gray-700">
+              {activity.map((event) => (
+                <li key={event.id} className="flex items-center gap-4 py-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-white">
+                    {getInitials(event.actor.displayName || event.actor.username)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-semibold text-white">
+                        {event.actor.displayName || event.actor.username}
+                      </span>
+                      <span className="text-gray-400 text-xs">@{event.actor.username}</span>
+                      <span className="text-gray-500 text-xs">• {formatActionLabel(event.action)}</span>
+                    </div>
+                    {event.summary && (
+                      <div className="text-gray-300 text-sm mt-1 line-clamp-2">{event.summary}</div>
+                    )}
+                  </div>
+                  <div className="text-xs text-gray-400 whitespace-nowrap ml-2">{formatDateTime(event.createdAt)}</div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </div>
   )

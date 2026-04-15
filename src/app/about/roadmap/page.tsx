@@ -128,6 +128,13 @@ export default function RoadmapPage() {
               </div>
             </div>
             <div className="flex items-start gap-3">
+              <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-gray-900">Collaboration Activity Log</h3>
+                <p className="text-sm text-gray-600">Live activity feed of collaborator actions (add/remove, edits, publishing) is now available in the Creator Hub.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
               <Clock className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="font-semibold text-gray-900">Role Permissions Rollout</h3>
