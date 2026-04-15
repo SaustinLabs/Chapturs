@@ -60,7 +60,7 @@ export async function GET(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const lock = getChapterLock(sectionId)
+  const lock = await getChapterLock(sectionId)
   return NextResponse.json({ lock })
 }
 
@@ -84,7 +84,7 @@ export async function POST(
   const body = await request.json().catch(() => ({}))
   const ttlMs = Math.max(30_000, Math.min(10 * 60_000, Number(body?.ttlMs) || 90_000))
 
-  const lockResult = acquireChapterLock({
+  const lockResult = await acquireChapterLock({
     sectionId,
     userId: dbUserId,
     username: session.user.name || session.user.email || 'unknown',
@@ -122,6 +122,6 @@ export async function DELETE(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const released = releaseChapterLock(sectionId, dbUserId, access.isAuthor)
+  const released = await releaseChapterLock(sectionId, dbUserId, access.isAuthor)
   return NextResponse.json(released)
 }

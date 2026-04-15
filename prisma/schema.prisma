@@ -78,6 +78,7 @@ model User {
   // Collaboration
   collaborations          WorkCollaborator[]
   collaborationActivities CollaborationActivity[]
+  sectionLocks            SectionLock[]
 
   // Featured comment recognition
   featuredCommentCount Int @default(0)
@@ -322,7 +323,25 @@ model Section {
   // Chapter reactions
   chapterReactions ChapterReaction[]
 
+  // Chapter locks for edit collision prevention
+  lock SectionLock?
+
   @@map("sections")
+}
+
+// Chapter lock model for edit collision prevention
+model SectionLock {
+  id        String   @id @default(cuid())
+  sectionId String   @unique
+  userId    String
+  acquiredAt DateTime @default(now())
+  expiresAt DateTime
+
+  // Relations
+  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("section_locks")
 }
 
 // Subscription model
