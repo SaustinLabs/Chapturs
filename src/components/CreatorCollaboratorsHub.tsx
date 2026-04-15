@@ -29,7 +29,7 @@ type CollaboratorResponse = {
   }
 }
 
-const roles = ['editor', 'proofreader', 'co-author'] as const
+const roles = ['editor', 'contributor'] as const
 const HANDSHAKE_EMOJI = String.fromCodePoint(0x1f91d)
 
 export default function CreatorCollaboratorsHub() {
@@ -168,8 +168,8 @@ export default function CreatorCollaboratorsHub() {
     <div className="max-w-5xl mx-auto p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-white">Collaborators</h1>
-        <p className="mt-2 text-gray-400">
-          Invite editors, proofreaders, and co-authors to contribute to this work.
+          <p className="mt-2 text-gray-400">
+          Invite collaborators by username and assign an editor or contributor role.
         </p>
       </div>
 
@@ -180,7 +180,7 @@ export default function CreatorCollaboratorsHub() {
             type="text"
             value={username}
             onChange={(event) => setUsername(event.target.value)}
-            placeholder="Enter username"
+            placeholder="Enter username (e.g. stonecoldsam)"
             className="rounded-xl border border-gray-700 bg-gray-900 px-4 py-3 text-white placeholder:text-gray-500 focus:border-blue-500 focus:outline-none"
             required
           />
@@ -280,7 +280,7 @@ function roleBadgeClass(role: string) {
     return 'inline-flex items-center rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-300'
   }
 
-  if (role === 'proofreader') {
+  if (role === 'contributor') {
     return 'inline-flex items-center rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300'
   }
 

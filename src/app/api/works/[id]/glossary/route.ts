@@ -6,6 +6,16 @@ import { prisma } from '@/lib/database/PrismaService'
 import { resolveDbUserId } from '@/lib/resolveDbUserId'
 import { awardPoints, POINTS_EVENT_TYPE } from '@/lib/achievements/points'
 
+function parseCollaboratorPermissions(raw: string | null | undefined) {
+  if (!raw) return { canEdit: false }
+  try {
+    const parsed = JSON.parse(raw)
+    return { canEdit: !!parsed.canEdit }
+  } catch {
+    return { canEdit: false }
+  }
+}
+
 interface RouteParams {
   params: Promise<{
     id: string
@@ -39,6 +49,8 @@ export async function POST(request: NextRequest, props: RouteParams) {
       )
     }
 
+    const dbUserId = await resolveDbUserId(session)
+
     // Verify user owns this work
     const work = await prisma.work.findUnique({
       where: { id: workId },
@@ -46,7 +58,17 @@ export async function POST(request: NextRequest, props: RouteParams) {
         authorId: true,
         author: {
           select: { userId: true }
-        }
+        },
+        collaborators: {
+          where: {
+            userId: dbUserId,
+            status: 'active',
+          },
+          select: {
+            permissions: true,
+          },
+          take: 1,
+        },
       }
     })
 
@@ -54,8 +76,10 @@ export async function POST(request: NextRequest, props: RouteParams) {
       return NextResponse.json({ error: 'Work not found' }, { status: 404 })
     }
 
-    const dbUserId = await resolveDbUserId(session)
-    if (work.author.userId !== dbUserId) {
+    const isAuthor = work.author.userId === dbUserId
+    const collaborator = work.collaborators[0]
+    const collaboratorPermissions = parseCollaboratorPermissions(collaborator?.permissions)
+    if (!isAuthor && !collaboratorPermissions.canEdit) {
       return NextResponse.json({ error: 'Unauthorized - You do not own this work' }, { status: 403 })
     }
 

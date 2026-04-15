@@ -10,6 +10,19 @@ import { notifyNewChapter } from '@/lib/email'
 import { createNotification } from '@/lib/notifications'
 import { awardPoints, checkAndAwardFoundingCreator, POINTS_EVENT_TYPE } from '@/lib/achievements/points'
 
+function parseCollaboratorPermissions(raw: string | null | undefined) {
+  if (!raw) return { canEdit: false, canPublish: false }
+  try {
+    const parsed = JSON.parse(raw)
+    return {
+      canEdit: !!parsed.canEdit,
+      canPublish: !!parsed.canPublish,
+    }
+  } catch {
+    return { canEdit: false, canPublish: false }
+  }
+}
+
 interface RouteParams {
   params: Promise<{
     id: string
@@ -108,11 +121,35 @@ export async function PATCH(request: NextRequest, props: RouteParams) {
     // Verify the work belongs to the user
     const work = await prisma.work.findUnique({
       where: { id: workId },
-      include: { author: true }
+      include: {
+        author: true,
+        collaborators: {
+          where: {
+            userId: dbUserId,
+            status: 'active',
+          },
+          select: {
+            permissions: true,
+          },
+          take: 1,
+        },
+      }
     })
 
-    if (!work || work.author.userId !== dbUserId) {
+    if (!work) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
+    const isAuthor = work.author.userId === dbUserId
+    const collaborator = work.collaborators[0]
+    const collaboratorPermissions = parseCollaboratorPermissions(collaborator?.permissions)
+
+    if (!isAuthor && !collaboratorPermissions.canEdit) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
+    if (status === 'published' && !isAuthor && !collaboratorPermissions.canPublish) {
+      return NextResponse.json({ error: 'Forbidden: publish permission required' }, { status: 403 })
     }
 
     // Verify the section belongs to this work

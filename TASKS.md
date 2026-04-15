@@ -139,8 +139,8 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 35 | Co-author invite by username UI | ⬜ | |
-| 36 | Role-based permissions (owner / editor / contributor) | ⬜ | |
+| 35 | Co-author invite by username UI | ✅ | Creator hub invite flow is live at `/creator/works/[id]/collaborators`; API + UI wired, collaborator removal endpoint added |
+| 36 | Role-based permissions (owner / editor / contributor) | 🔶 | Enforced in chapter edit/publish and glossary write paths using collaborator `permissions` JSON (`canEdit`, `canPublish`). Continue coverage across remaining write endpoints. |
 | 37 | Revenue share config per collaborator | ⬜ | |
 | 38 | Collaboration activity log per work | ⬜ | |
 | 39 | Chapter locking (prevent simultaneous edits) | ⬜ | |

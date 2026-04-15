@@ -115,23 +115,23 @@ export default function RoadmapPage() {
             <Clock className="w-8 h-8 text-indigo-600" />
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Phase 3: Collaborative Editor</h2>
-              <p className="text-sm text-gray-500 font-semibold">SCHEMA READY - UI PLANNED</p>
+              <p className="text-sm text-gray-500 font-semibold">IN PROGRESS</p>
             </div>
           </div>
 
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+              <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="font-semibold text-gray-900">Co-author Invites + Roles</h3>
-                <p className="text-sm text-gray-600">Invite by username, role permissions, collaborator activity logs.</p>
+                <p className="text-sm text-gray-600">Invite by username is live in Creator Hub, including collaborator removal and role assignment.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+              <Clock className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-900">Versioning + Locking</h3>
-                <p className="text-sm text-gray-600">Change suggestions, chapter locking, and author-attributed history.</p>
+                <h3 className="font-semibold text-gray-900">Role Permissions Rollout</h3>
+                <p className="text-sm text-gray-600">Chapter edit/publish and glossary writes now enforce collaborator permissions. Remaining creator write paths are being aligned.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
