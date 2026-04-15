@@ -1,3 +1,13 @@
+'use client'
+
+import { FormEvent, useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
+import {
+  TrashIcon,
+  UserPlusIcon,
+} from '@heroicons/react/24/outline'
+import { useToast } from '@/components/ui/Toast'
+
 interface ActivityEvent {
   id: string
   actor: {
@@ -10,64 +20,6 @@ interface ActivityEvent {
   createdAt: string
   summary?: string | null
 }
-
-function formatActionLabel(action: string) {
-  // Map backend action codes to human-friendly labels
-  switch (action) {
-    case 'added_collaborator':
-      return 'Added collaborator'
-    case 'removed_collaborator':
-      return 'Removed collaborator'
-    case 'changed_role':
-      return 'Changed role'
-    case 'published_chapter':
-      return 'Published chapter'
-    case 'edited_section':
-      return 'Edited section'
-    default:
-      return action.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-  }
-}
-
-function formatDateTime(iso: string) {
-  const date = new Date(iso)
-  return date.toLocaleString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-  const [activity, setActivity] = useState<ActivityEvent[]>([])
-  const [activityLoading, setActivityLoading] = useState(true)
-  const [activityError, setActivityError] = useState<string | null>(null)
-  // Fetch collaboration activity log
-  useEffect(() => {
-    if (!workId) return
-    setActivityLoading(true)
-    setActivityError(null)
-    fetch(`/api/works/${workId}/collaborators/activity`)
-      .then(async (res) => {
-        if (!res.ok) throw new Error('Failed to fetch activity log.')
-        const data = await res.json()
-        if (!Array.isArray(data.activity)) throw new Error('Unexpected activity response.')
-        setActivity(data.activity)
-      })
-      .catch((err) => {
-        setActivityError(err instanceof Error ? err.message : 'Failed to load activity log.')
-      })
-      .finally(() => setActivityLoading(false))
-  }, [workId])
-'use client'
-
-import { FormEvent, useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
-import {
-  TrashIcon,
-  UserPlusIcon,
-} from '@heroicons/react/24/outline'
-import { useToast } from '@/components/ui/Toast'
 
 interface Collaborator {
   id: string
@@ -102,6 +54,9 @@ export default function CreatorCollaboratorsHub() {
   const [submitting, setSubmitting] = useState(false)
   const [removingId, setRemovingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [activity, setActivity] = useState<ActivityEvent[]>([])
+  const [activityLoading, setActivityLoading] = useState(true)
+  const [activityError, setActivityError] = useState<string | null>(null)
   const [collaborators, setCollaborators] = useState<Collaborator[]>([])
   const [username, setUsername] = useState('')
   const [role, setRole] = useState<(typeof roles)[number]>('editor')
@@ -138,6 +93,24 @@ export default function CreatorCollaboratorsHub() {
     if (workId) {
       load()
     }
+  }, [workId])
+
+  useEffect(() => {
+    if (!workId) return
+    setActivityLoading(true)
+    setActivityError(null)
+
+    fetch(`/api/works/${workId}/collaborators/activity`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error('Failed to fetch activity log.')
+        const data = await res.json()
+        if (!Array.isArray(data.activity)) throw new Error('Unexpected activity response.')
+        setActivity(data.activity)
+      })
+      .catch((err) => {
+        setActivityError(err instanceof Error ? err.message : 'Failed to load activity log.')
+      })
+      .finally(() => setActivityLoading(false))
   }, [workId])
 
   const handleAddCollaborator = async (event: FormEvent<HTMLFormElement>) => {
@@ -389,6 +362,35 @@ function roleBadgeClass(role: string) {
   }
 
   return 'inline-flex items-center rounded-full border border-purple-500/20 bg-purple-500/10 px-3 py-1 text-xs font-semibold text-purple-300'
+}
+
+function formatActionLabel(action: string) {
+  switch (action) {
+    case 'added_collaborator':
+    case 'invited_collaborator':
+      return 'Added collaborator'
+    case 'removed_collaborator':
+      return 'Removed collaborator'
+    case 'changed_role':
+      return 'Changed role'
+    case 'published_chapter':
+      return 'Published chapter'
+    case 'edited_section':
+      return 'Edited section'
+    default:
+      return action.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+  }
+}
+
+function formatDateTime(iso: string) {
+  const date = new Date(iso)
+  return date.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 function EmptyState({
