@@ -135,17 +135,24 @@ export default function RoadmapPage() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <Clock className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
+              <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-900">Role Permissions Rollout</h3>
-                <p className="text-sm text-gray-600">Chapter edit/publish and glossary writes now enforce collaborator permissions. Remaining creator write paths are being aligned.</p>
+                <h3 className="font-semibold text-gray-900">Revenue Share Configuration</h3>
+                <p className="text-sm text-gray-600">Authors can now set per-collaborator revenue splits in the Creator Hub with inline editing.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <Clock className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
+              <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-900">Real-time Co-editing</h3>
-                <p className="text-sm text-gray-600">Chapter soft-locking is now live in the editor to prevent simultaneous edits. Live cursors and real-time merge flows are next.</p>
+                <h3 className="font-semibold text-gray-900">Role Permissions Enforcement</h3>
+                <p className="text-sm text-gray-600">Chapter edit/publish, glossary writes, and all creator write paths now enforce collaborator role permissions. Permission gates are fully rolled out.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-gray-900">Durable Chapter Locking</h3>
+                <p className="text-sm text-gray-600">Chapter soft-locking is now live with database persistence. Prevents simultaneous edits and survives across deployments. Multi-instance safe.</p>
               </div>
             </div>
           </div>

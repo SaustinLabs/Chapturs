@@ -141,9 +141,9 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 |---|------|--------|-------|
 | 35 | Co-author invite by username UI | ✅ | Creator hub invite flow is live at `/creator/works/[id]/collaborators`; API + UI wired, collaborator removal endpoint added |
 | 36 | Role-based permissions (owner / editor / contributor) | ✅ | Permission enforcement (`canEdit`, `canPublish`) now covers all creator write endpoints: sections, characters, import, schedule. Collaborator checks are live; see PR for details. |
-| 37 | Revenue share config per collaborator | ✅ | |
-| 37 | Revenue share config per collaborator | ✅ | PATCH endpoint for role/revenueShare; GET returns revenueShare |
-| 39 | Chapter locking (prevent simultaneous edits) | 🔶 | Soft-lock lease API live at `/api/works/[id]/sections/[sectionId]/lock` plus editor lock acquisition/renew/release + lock banner/disable state in `ChaptursEditor`. Next: durable multi-instance lock persistence. |
+| 37 | Revenue share config per collaborator | ✅ | PATCH endpoint for role/revenueShare; GET returns revenueShare. Inline editor in collaborators hub. |
+| 38 | Collaboration activity log | ✅ | Activity API at `GET /api/works/[id]/collaborators/activity` returning 50-item feed; UI panel live in Creator Hub showing actor, action, timestamp. |
+| 39 | Chapter locking (prevent simultaneous edits) | ✅ | Durable database-backed locking now live. `SectionLock` Prisma model created. Lock API (`GET/POST/DELETE /api/works/[id]/sections/[sectionId]/lock`) uses database queries. Handles multi-instance deployments. Editor lock lifecycle (acquire/renew/release) + UI blocks fully integrated. Locks survive across restarts. |
 | 40 | Change suggestion mode (propose edit → accept/reject) | ⬜ | |
 | 41 | Version history with per-author attribution | ⬜ | |
 | 42 | Real-time co-editing (WebSocket / Pusher / Ably) | ⬜ | |
