@@ -23,15 +23,41 @@ export async function POST(
   const requestId = generateRequestId()
   const { id: workId } = await params
 
+
   try {
     const session = await auth()
     if (!session?.user?.id) {
       throw new ApiError('Authentication required', 401, ApiErrorType.AUTHENTICATION_ERROR)
     }
-
+    const dbUserId = session.user.id
+    // Fetch work with author and active collaborator (if any)
+    const work = await prisma.work.findUnique({
+      where: { id: workId },
+      include: {
+        author: { select: { userId: true } },
+        collaborators: {
+          where: { userId: dbUserId, status: 'active' },
+          select: { permissions: true },
+          take: 1,
+        },
+      },
+    })
+    if (!work) {
+      throw new ApiError('Work not found', 404, ApiErrorType.NOT_FOUND)
+    }
+    const isOwner = work.author?.userId === dbUserId
+    let canEdit = false
+    if (!isOwner && work.collaborators.length > 0) {
+      try {
+        const perms = JSON.parse(work.collaborators[0].permissions || '{}')
+        canEdit = !!perms.canEdit
+      } catch { canEdit = false }
+    }
+    if (!isOwner && !canEdit) {
+      throw new ApiError('Forbidden: insufficient permissions', 403, ApiErrorType.AUTHORIZATION_ERROR)
+    }
     const body = await request.json()
     const { text, splitPattern } = body
-
     if (!text) {
       throw new ApiError('No text provided for import', 400, ApiErrorType.VALIDATION_ERROR)
     }
@@ -87,7 +113,14 @@ export async function POST(
     const created = await Promise.all(
       sectionsToCreate.map(data => prisma.section.create({ data }))
     )
-
+    // Log collaboration activity (fire-and-forget)
+    import { logCollaborationActivity } from '../../../../lib/collaborationActivity'
+    logCollaborationActivity({
+      workId,
+      userId: dbUserId,
+      action: 'imported_sections',
+      details: { count: created.length },
+    }).catch(() => {})
     return createSuccessResponse({ count: created.length }, `Successfully imported ${created.length} chapters`, requestId)
   } catch (error) {
     return createErrorResponse(error, requestId)

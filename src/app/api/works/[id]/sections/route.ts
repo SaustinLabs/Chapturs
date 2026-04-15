@@ -15,12 +15,40 @@ interface RouteParams {
 export async function POST(request: NextRequest, props: RouteParams) {
   const params = await props.params;
   try {
+
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
+    const dbUserId = session.user.id
     const workId = params.id
+    // Fetch work with author and active collaborator (if any)
+    const work = await prisma.work.findUnique({
+      where: { id: workId },
+      include: {
+        author: { select: { userId: true } },
+        collaborators: {
+          where: { userId: dbUserId, status: 'active' },
+          select: { permissions: true },
+          take: 1,
+        },
+      },
+    })
+    if (!work) {
+      return NextResponse.json({ error: 'Work not found' }, { status: 404 })
+    }
+    const isOwner = work.author?.userId === dbUserId
+    let canEdit = false
+    if (!isOwner && work.collaborators.length > 0) {
+      try {
+        const perms = JSON.parse(work.collaborators[0].permissions || '{}')
+        canEdit = !!perms.canEdit
+      } catch { canEdit = false }
+    }
+    if (!isOwner && !canEdit) {
+      return NextResponse.json({ error: 'Forbidden: insufficient permissions' }, { status: 403 })
+    }
+
     const body = await request.json()
     const {
       title,
@@ -120,6 +148,7 @@ export async function POST(request: NextRequest, props: RouteParams) {
       status
     }
 
+
     const section = await DatabaseService.createSection({
       workId,
       title,
@@ -127,6 +156,15 @@ export async function POST(request: NextRequest, props: RouteParams) {
       wordCount: wordCount || 0,
       status
     })
+
+    // Log collaboration activity (fire-and-forget)
+    import { logCollaborationActivity } from '../../../../../lib/collaborationActivity'
+    logCollaborationActivity({
+      workId,
+      userId: dbUserId,
+      action: 'created_section',
+      details: { sectionId: section.id, title },
+    }).catch(() => {})
 
     // If this is the first published chapter, update work status to published
     if (status === 'published') {

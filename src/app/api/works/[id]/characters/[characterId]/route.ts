@@ -16,12 +16,39 @@ interface RouteParams {
 export async function PUT(request: NextRequest, props: RouteParams) {
   const params = await props.params;
   try {
+
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
+    const dbUserId = await resolveDbUserId(session)
     const { id: workId, characterId } = params
+    // Fetch work with author and active collaborator (if any)
+    const work = await prisma.work.findUnique({
+      where: { id: workId },
+      include: {
+        author: { select: { userId: true } },
+        collaborators: {
+          where: { userId: dbUserId, status: 'active' },
+          select: { permissions: true },
+          take: 1,
+        },
+      },
+    })
+    if (!work) {
+      return NextResponse.json({ error: 'Work not found' }, { status: 404 })
+    }
+    const isOwner = work.author?.userId === dbUserId
+    let canEdit = false
+    if (!isOwner && work.collaborators.length > 0) {
+      try {
+        const perms = JSON.parse(work.collaborators[0].permissions || '{}')
+        canEdit = !!perms.canEdit
+      } catch { canEdit = false }
+    }
+    if (!isOwner && !canEdit) {
+      return NextResponse.json({ error: 'Forbidden: insufficient permissions' }, { status: 403 })
+    }
     const body = await request.json()
     const {
       name,
@@ -43,25 +70,6 @@ export async function PUT(request: NextRequest, props: RouteParams) {
       currentChapter // For creating a new version if data changed
     } = body
 
-    // Verify user owns this work
-    const work = await prisma.work.findUnique({
-      where: { id: workId },
-      select: { 
-        authorId: true,
-        author: {
-          select: { userId: true }
-        }
-      }
-    })
-
-    if (!work) {
-      return NextResponse.json({ error: 'Work not found' }, { status: 404 })
-    }
-
-    const dbUserId = await resolveDbUserId(session)
-    if (work.author.userId !== dbUserId) {
-      return NextResponse.json({ error: 'Unauthorized - You do not own this work' }, { status: 403 })
-    }
 
     // Update character profile using raw SQL
     await prisma.$executeRaw`
@@ -85,6 +93,14 @@ export async function PUT(request: NextRequest, props: RouteParams) {
         "updatedAt" = NOW()
       WHERE id = ${characterId} AND "workId" = ${workId}
     `
+    // Log collaboration activity (fire-and-forget)
+    import { logCollaborationActivity } from '../../../../../../lib/collaborationActivity'
+    logCollaborationActivity({
+      workId,
+      userId: dbUserId,
+      action: 'updated_character',
+      details: { characterId, name },
+    }).catch(() => {})
 
     // If currentChapter is provided and development data changed, create a new version
     if (currentChapter && (physicalDescription || backstory || personalityTraits || motivations)) {
@@ -132,39 +148,52 @@ export async function PUT(request: NextRequest, props: RouteParams) {
 export async function DELETE(request: NextRequest, props: RouteParams) {
   const params = await props.params;
   try {
+
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
+    const dbUserId = await resolveDbUserId(session)
     const { id: workId, characterId } = params
-
-    // Verify user owns this work
+    // Fetch work with author and active collaborator (if any)
     const work = await prisma.work.findUnique({
       where: { id: workId },
-      select: { 
-        authorId: true,
-        author: {
-          select: { userId: true }
-        }
-      }
+      include: {
+        author: { select: { userId: true } },
+        collaborators: {
+          where: { userId: dbUserId, status: 'active' },
+          select: { permissions: true },
+          take: 1,
+        },
+      },
     })
-
     if (!work) {
       return NextResponse.json({ error: 'Work not found' }, { status: 404 })
     }
-
-    const dbUserId2 = await resolveDbUserId(session)
-    if (work.author.userId !== dbUserId2) {
-      return NextResponse.json({ error: 'Unauthorized - You do not own this work' }, { status: 403 })
+    const isOwner = work.author?.userId === dbUserId
+    let canEdit = false
+    if (!isOwner && work.collaborators.length > 0) {
+      try {
+        const perms = JSON.parse(work.collaborators[0].permissions || '{}')
+        canEdit = !!perms.canEdit
+      } catch { canEdit = false }
     }
-
+    if (!isOwner && !canEdit) {
+      return NextResponse.json({ error: 'Forbidden: insufficient permissions' }, { status: 403 })
+    }
     // Delete character profile (cascade will handle versions and relationships)
     await prisma.$executeRaw`
       DELETE FROM character_profiles
       WHERE id = ${characterId} AND "workId" = ${workId}
     `
-
+    // Log collaboration activity (fire-and-forget)
+    import { logCollaborationActivity } from '../../../../../../lib/collaborationActivity'
+    logCollaborationActivity({
+      workId,
+      userId: dbUserId,
+      action: 'deleted_character',
+      details: { characterId },
+    }).catch(() => {})
     return NextResponse.json({
       success: true,
       message: 'Character profile deleted successfully'

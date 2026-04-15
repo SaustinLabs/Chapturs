@@ -271,26 +271,41 @@ export async function PATCH(request: NextRequest, props: RouteParams) {
 export async function DELETE(request: NextRequest, props: RouteParams) {
   const params = await props.params
   try {
+
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
+    const dbUserId = await resolveDbUserId(session)
     const workId = params.id
     const sectionId = params.sectionId
-
-    // Resolve canonical DB user ID (handles re-auth JWT mismatch)
-    const dbUserId = await resolveDbUserId(session)
-
-    // Verify the work belongs to the user
+    // Fetch work with author and active collaborator (if any)
     const work = await prisma.work.findUnique({
       where: { id: workId },
-      include: { author: true }
+      include: {
+        author: { select: { userId: true } },
+        collaborators: {
+          where: { userId: dbUserId, status: 'active' },
+          select: { permissions: true },
+          take: 1,
+        },
+      },
     })
-
-    if (!work || work.author.userId !== dbUserId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    if (!work) {
+      return NextResponse.json({ error: 'Work not found' }, { status: 404 })
     }
+    const isOwner = work.author?.userId === dbUserId
+    let canEdit = false
+    if (!isOwner && work.collaborators.length > 0) {
+      try {
+        const perms = JSON.parse(work.collaborators[0].permissions || '{}')
+        canEdit = !!perms.canEdit
+      } catch { canEdit = false }
+    }
+    if (!isOwner && !canEdit) {
+      return NextResponse.json({ error: 'Forbidden: insufficient permissions' }, { status: 403 })
+    }
+
 
     // Verify the section belongs to this work
     const section = await prisma.section.findFirst({
@@ -299,16 +314,21 @@ export async function DELETE(request: NextRequest, props: RouteParams) {
         workId: workId
       }
     })
-
     if (!section) {
       return NextResponse.json({ error: 'Section not found' }, { status: 404 })
     }
-
     // Delete the section
     await prisma.section.delete({
       where: { id: sectionId }
     })
-
+    // Log collaboration activity (fire-and-forget)
+    import { logCollaborationActivity } from '../../../../../../lib/collaborationActivity'
+    logCollaborationActivity({
+      workId,
+      userId: dbUserId,
+      action: 'deleted_section',
+      details: { sectionId, title: section.title },
+    }).catch(() => {})
     return NextResponse.json({
       success: true,
       message: 'Section deleted successfully'

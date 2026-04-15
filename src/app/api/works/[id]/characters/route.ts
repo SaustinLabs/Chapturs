@@ -17,17 +17,42 @@ interface RouteParams {
 export async function POST(request: NextRequest, props: RouteParams) {
   const params = await props.params;
   try {
+
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
+    const dbUserId = await resolveDbUserId(session)
     const workId = params.id
-    
+    // Fetch work with author and active collaborator (if any)
+    const work = await prisma.work.findUnique({
+      where: { id: workId },
+      include: {
+        author: { select: { userId: true } },
+        collaborators: {
+          where: { userId: dbUserId, status: 'active' },
+          select: { permissions: true },
+          take: 1,
+        },
+      },
+    })
+    if (!work) {
+      return NextResponse.json({ error: 'Work not found' }, { status: 404 })
+    }
+    const isOwner = work.author?.userId === dbUserId
+    let canEdit = false
+    if (!isOwner && work.collaborators.length > 0) {
+      try {
+        const perms = JSON.parse(work.collaborators[0].permissions || '{}')
+        canEdit = !!perms.canEdit
+      } catch { canEdit = false }
+    }
+    if (!isOwner && !canEdit) {
+      return NextResponse.json({ error: 'Forbidden: insufficient permissions' }, { status: 403 })
+    }
     // Parse and validate request body
     const body = await request.json()
     let validatedData
-    
     try {
       validatedData = createCharacterProfileSchema.parse(body)
     } catch (error) {
@@ -113,8 +138,8 @@ export async function POST(request: NextRequest, props: RouteParams) {
       RETURNING *
     ` as any[]
 
-    const characterProfile = result[0]
 
+    const characterProfile = result[0]
     // Create initial version if we have description
     if (firstAppearance && (physicalDescription || backstory)) {
       await prisma.$executeRaw`
@@ -132,7 +157,14 @@ export async function POST(request: NextRequest, props: RouteParams) {
         )
       `
     }
-
+    // Log collaboration activity (fire-and-forget)
+    import { logCollaborationActivity } from '../../../../lib/collaborationActivity'
+    logCollaborationActivity({
+      workId,
+      userId: dbUserId,
+      action: 'created_character',
+      details: { characterId: characterProfile.id, name },
+    }).catch(() => {})
     return NextResponse.json({
       success: true,
       character: characterProfile
