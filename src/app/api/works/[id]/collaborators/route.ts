@@ -1,3 +1,75 @@
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth()
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const dbUserId = await resolveDbUserId(session)
+    const { id: workId } = await params
+    const { userId, role, revenueShare } = await req.json()
+
+    if (!userId) {
+      return NextResponse.json({ error: 'userId is required' }, { status: 400 })
+    }
+
+    if (role !== undefined && !ALLOWED_ROLES.includes(role)) {
+      return NextResponse.json({ error: 'Invalid role. Allowed roles: editor, contributor' }, { status: 400 })
+    }
+    if (revenueShare !== undefined) {
+      if (typeof revenueShare !== 'number' || isNaN(revenueShare)) {
+        return NextResponse.json({ error: 'revenueShare must be a number' }, { status: 400 })
+      }
+      if (revenueShare < 0 || revenueShare > 100) {
+        return NextResponse.json({ error: 'revenueShare must be between 0 and 100' }, { status: 400 })
+      }
+    }
+
+    const work = await prisma.work.findUnique({ where: { id: workId } })
+    if (!work || work.authorId !== dbUserId) {
+      return NextResponse.json({ error: 'Only the author can update collaborators' }, { status: 403 })
+    }
+
+    const existing = await prisma.workCollaborator.findUnique({
+      where: { workId_userId: { workId, userId } },
+    })
+    if (!existing || existing.status === 'removed') {
+      return NextResponse.json({ error: 'Collaborator not found' }, { status: 404 })
+    }
+
+    const updateData: any = {}
+    if (role !== undefined) updateData.role = role
+    if (revenueShare !== undefined) updateData.revenueShare = revenueShare
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
+    }
+
+    const updated = await prisma.workCollaborator.update({
+      where: { workId_userId: { workId, userId } },
+      data: updateData,
+      include: {
+        user: { select: { id: true, username: true, displayName: true, avatar: true } }
+      }
+    })
+
+    await prisma.collaborationActivity.create({
+      data: {
+        workId,
+        userId: dbUserId,
+        action: 'updated_collaborator',
+        details: JSON.stringify({ updatedUserId: userId, ...updateData }),
+      },
+    })
+
+    return createSuccessResponse({ collaborator: updated }, 'Collaborator updated successfully')
+  } catch (error) {
+    console.error('[Update Collaborator Error]:', error)
+    return createErrorResponse(error, 'update-collaborator')
+  }
+}
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'

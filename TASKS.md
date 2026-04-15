@@ -142,7 +142,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | 35 | Co-author invite by username UI | ✅ | Creator hub invite flow is live at `/creator/works/[id]/collaborators`; API + UI wired, collaborator removal endpoint added |
 | 36 | Role-based permissions (owner / editor / contributor) | ✅ | Permission enforcement (`canEdit`, `canPublish`) now covers all creator write endpoints: sections, characters, import, schedule. Collaborator checks are live; see PR for details. |
 | 37 | Revenue share config per collaborator | ✅ | |
-| 38 | Collaboration activity log per work | ✅ | Activity log API (`GET /api/works/[id]/collaborators/activity`) and logging utility now live. All meaningful collaboration actions are logged and queryable. |
+| 37 | Revenue share config per collaborator | ✅ | PATCH endpoint for role/revenueShare; GET returns revenueShare |
 | 39 | Chapter locking (prevent simultaneous edits) | ⬜ | |
 | 40 | Change suggestion mode (propose edit → accept/reject) | ⬜ | |
 | 41 | Version history with per-author attribution | ⬜ | |
