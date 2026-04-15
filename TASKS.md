@@ -143,7 +143,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | 36 | Role-based permissions (owner / editor / contributor) | ✅ | Permission enforcement (`canEdit`, `canPublish`) now covers all creator write endpoints: sections, characters, import, schedule. Collaborator checks are live; see PR for details. |
 | 37 | Revenue share config per collaborator | ✅ | |
 | 37 | Revenue share config per collaborator | ✅ | PATCH endpoint for role/revenueShare; GET returns revenueShare |
-| 39 | Chapter locking (prevent simultaneous edits) | ⬜ | |
+| 39 | Chapter locking (prevent simultaneous edits) | 🔶 | Soft-lock lease API live at `/api/works/[id]/sections/[sectionId]/lock` plus editor lock acquisition/renew/release + lock banner/disable state in `ChaptursEditor`. Next: durable multi-instance lock persistence. |
 | 40 | Change suggestion mode (propose edit → accept/reject) | ⬜ | |
 | 41 | Version history with per-author attribution | ⬜ | |
 | 42 | Real-time co-editing (WebSocket / Pusher / Ably) | ⬜ | |

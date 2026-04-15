@@ -142,10 +142,10 @@ export default function RoadmapPage() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+              <Clock className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="font-semibold text-gray-900">Real-time Co-editing</h3>
-                <p className="text-sm text-gray-600">Live cursors and conflict-safe merges after foundations land.</p>
+                <p className="text-sm text-gray-600">Chapter soft-locking is now live in the editor to prevent simultaneous edits. Live cursors and real-time merge flows are next.</p>
               </div>
             </div>
           </div>

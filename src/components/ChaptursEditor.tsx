@@ -81,6 +81,8 @@ export default function ChaptursEditor({
   const [isSplitPreview, setIsSplitPreview] = useState(false)
   const [selectionPosition, setSelectionPosition] = useState({ top: 0, left: 0 })
   const previewPaneRef = useRef<HTMLDivElement | null>(null)
+  const [lockError, setLockError] = useState<string | null>(null)
+  const [hasChapterLock, setHasChapterLock] = useState(false)
 
   // Track text selection
   useEffect(() => {
@@ -114,6 +116,57 @@ export default function ChaptursEditor({
       }))
     }
   }, [initialDocument])
+
+  useEffect(() => {
+    if (!chapterId) return
+
+    let cancelled = false
+
+    const acquireOrRenew = async () => {
+      try {
+        const response = await fetch(`/api/works/${workId}/sections/${chapterId}/lock`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ttlMs: 90_000 }),
+        })
+
+        if (cancelled) return
+
+        if (response.status === 423) {
+          const data = await response.json().catch(() => null)
+          const holder = data?.lock?.displayName || data?.lock?.username || 'another collaborator'
+          setHasChapterLock(false)
+          setLockError(`This chapter is currently locked by ${holder}.`)
+          return
+        }
+
+        if (!response.ok) {
+          setHasChapterLock(false)
+          setLockError('Unable to acquire chapter lock right now.')
+          return
+        }
+
+        setHasChapterLock(true)
+        setLockError(null)
+      } catch {
+        if (cancelled) return
+        setHasChapterLock(false)
+        setLockError('Unable to acquire chapter lock right now.')
+      }
+    }
+
+    acquireOrRenew()
+    const interval = setInterval(acquireOrRenew, 30_000)
+
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+      fetch(`/api/works/${workId}/sections/${chapterId}/lock`, {
+        method: 'DELETE',
+        keepalive: true,
+      }).catch(() => {})
+    }
+  }, [chapterId, workId])
 
   // Glossary handlers
   const handleAddToGlossary = () => {
@@ -284,6 +337,10 @@ export default function ChaptursEditor({
   // Save handler
   const handleSave = useCallback(async () => {
     if (!onSave) return
+    if (chapterId && !hasChapterLock) {
+      toast.warning('Chapter lock not held. Please reload and try again.')
+      return
+    }
 
     try {
       // Update word count before saving
@@ -309,7 +366,7 @@ export default function ChaptursEditor({
       console.error('Failed to save:', error)
       toast.error('Failed to save. Please try again.')
     }
-  }, [editorState.document, onSave, toast])
+  }, [editorState.document, onSave, toast, chapterId, hasChapterLock])
 
   const handleRunQualityCheck = async () => {
     if (!chapterId) {
@@ -463,6 +520,7 @@ export default function ChaptursEditor({
           <input
             type="text"
             value={editorState.document.metadata.title}
+            disabled={Boolean(chapterId && !hasChapterLock)}
             onChange={(e) => setEditorState(prev => ({
               ...prev,
               document: {
@@ -517,7 +575,7 @@ export default function ChaptursEditor({
 
           <button
             onClick={handleSave}
-            disabled={!editorState.isDirty}
+            disabled={!editorState.isDirty || Boolean(chapterId && !hasChapterLock)}
             className="px-4 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <Save size={16} />
@@ -542,6 +600,7 @@ export default function ChaptursEditor({
                   setIsScheduling(false)
                   setShowChecklist(true)
                 }}
+                disabled={Boolean(chapterId && !hasChapterLock)}
                 className="px-4 py-1.5 text-sm bg-green-600 text-white rounded hover:bg-green-700 font-bold"
               >
                 Publish
@@ -550,6 +609,12 @@ export default function ChaptursEditor({
           )}
         </div>
       </div>
+
+      {chapterId && lockError && (
+        <div className="bg-amber-900/50 border-b border-amber-700 px-6 py-3 text-amber-200 text-sm">
+          {lockError} Editing is temporarily disabled for this chapter.
+        </div>
+      )}
 
       {/* Pre-Publish Checklist Modal */}
       <PrePublishChecklist
@@ -609,11 +674,14 @@ export default function ChaptursEditor({
                 <ChapterEditor
                   initialBlocks={editorState.document.content}
                   chapterKey={chapterId || 'new'}
-                  onChange={(blocks) => setEditorState(prev => ({
-                    ...prev,
-                    document: { ...prev.document, content: blocks },
-                    isDirty: true
-                  }))}
+                  onChange={(blocks) => {
+                    if (chapterId && !hasChapterLock) return
+                    setEditorState(prev => ({
+                      ...prev,
+                      document: { ...prev.document, content: blocks },
+                      isDirty: true
+                    }))
+                  }}
                 />
               </div>
 
@@ -649,11 +717,14 @@ export default function ChaptursEditor({
             <ChapterEditor
               initialBlocks={editorState.document.content}
               chapterKey={chapterId || 'new'}
-              onChange={(blocks) => setEditorState(prev => ({
-                ...prev,
-                document: { ...prev.document, content: blocks },
-                isDirty: true
-              }))}
+              onChange={(blocks) => {
+                if (chapterId && !hasChapterLock) return
+                setEditorState(prev => ({
+                  ...prev,
+                  document: { ...prev.document, content: blocks },
+                  isDirty: true
+                }))
+              }}
             />
           ) : (
             /* Preview mode: read-only block rendering with glossary highlights */
