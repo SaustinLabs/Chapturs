@@ -26,6 +26,7 @@ interface Collaborator {
   userId: string
   role: string
   status: string
+  revenueShare?: number // 0-1 (e.g., 0.125 = 12.5%)
   user: {
     id: string
     username: string
@@ -58,6 +59,9 @@ export default function CreatorCollaboratorsHub() {
   const [activityLoading, setActivityLoading] = useState(true)
   const [activityError, setActivityError] = useState<string | null>(null)
   const [collaborators, setCollaborators] = useState<Collaborator[]>([])
+  const [editing, setEditing] = useState<{ [userId: string]: boolean }>({})
+  const [editValues, setEditValues] = useState<{ [userId: string]: { role: string; revenueShare: string } }>({})
+  const [rowLoading, setRowLoading] = useState<{ [userId: string]: boolean }>({})
   const [username, setUsername] = useState('')
   const [role, setRole] = useState<(typeof roles)[number]>('editor')
 
@@ -252,38 +256,128 @@ export default function CreatorCollaboratorsHub() {
           />
         ) : (
           <div className="divide-y divide-gray-700">
-            {collaborators.map((collaborator) => (
-              <div
-                key={collaborator.id}
-                className="flex flex-col gap-4 px-6 py-5 md:flex-row md:items-center md:justify-between"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-white">
-                    {getInitials(collaborator.user.displayName || collaborator.user.username)}
-                  </div>
-                  <div>
-                    <div className="text-base font-semibold text-white">
-                      {collaborator.user.displayName || collaborator.user.username}
+            {collaborators.map((collaborator) => {
+              const isEditing = editing[collaborator.userId]
+              const isRowLoading = rowLoading[collaborator.userId]
+              const editValue = editValues[collaborator.userId] || {
+                role: collaborator.role,
+                revenueShare: collaborator.revenueShare != null ? (collaborator.revenueShare * 100).toFixed(2) : '',
+              }
+              // TODO: Replace with real owner check
+              const isOwner = true
+              return (
+                <div
+                  key={collaborator.id}
+                  className="flex flex-col gap-4 px-6 py-5 md:flex-row md:items-center md:justify-between"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-white">
+                      {getInitials(collaborator.user.displayName || collaborator.user.username)}
                     </div>
-                    <div className="text-sm text-gray-400">@{collaborator.user.username}</div>
+                    <div>
+                      <div className="text-base font-semibold text-white">
+                        {collaborator.user.displayName || collaborator.user.username}
+                      </div>
+                      <div className="text-sm text-gray-400">@{collaborator.user.username}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {isEditing ? (
+                      <>
+                        <select
+                          value={editValue.role}
+                          onChange={e => setEditValues(v => ({ ...v, [collaborator.userId]: { ...editValue, role: e.target.value } }))}
+                          className="rounded-xl border border-gray-700 bg-gray-900 px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
+                          disabled={isRowLoading}
+                        >
+                          {roles.map((roleOption) => (
+                            <option key={roleOption} value={roleOption}>{formatRole(roleOption)}</option>
+                          ))}
+                        </select>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.01"
+                          value={editValue.revenueShare}
+                          onChange={e => setEditValues(v => ({ ...v, [collaborator.userId]: { ...editValue, revenueShare: e.target.value } }))}
+                          className="w-20 rounded-xl border border-gray-700 bg-gray-900 px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
+                          disabled={isRowLoading}
+                        />
+                        <span className="text-gray-400">%</span>
+                        <button
+                          type="button"
+                          className="rounded-xl bg-blue-600 px-3 py-2 text-white font-semibold hover:bg-blue-500 disabled:opacity-50"
+                          disabled={isRowLoading}
+                          onClick={async () => {
+                            setRowLoading(v => ({ ...v, [collaborator.userId]: true }))
+                            try {
+                              const patchBody = {
+                                userId: collaborator.userId,
+                                role: editValue.role,
+                                revenueShare: parseFloat(editValue.revenueShare) / 100,
+                              }
+                              const response = await fetch(`/api/works/${workId}/collaborators`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(patchBody),
+                              })
+                              if (!response.ok) {
+                                const data = await response.json().catch(() => null)
+                                throw new Error(data?.error || 'Failed to update collaborator.')
+                              }
+                              setCollaborators(current => current.map(c => c.userId === collaborator.userId ? { ...c, ...patchBody } : c))
+                              setEditing(v => ({ ...v, [collaborator.userId]: false }))
+                              toast.success('Collaborator updated.')
+                            } catch (err) {
+                              toast.error(err instanceof Error ? err.message : 'Failed to update collaborator.')
+                            } finally {
+                              setRowLoading(v => ({ ...v, [collaborator.userId]: false }))
+                            }
+                          }}
+                        >Save</button>
+                        <button
+                          type="button"
+                          className="rounded-xl border border-gray-700 px-3 py-2 text-gray-300 hover:bg-gray-700 disabled:opacity-50"
+                          disabled={isRowLoading}
+                          onClick={() => setEditing(v => ({ ...v, [collaborator.userId]: false }))}
+                        >Cancel</button>
+                      </>
+                    ) : (
+                      <>
+                        <span className={roleBadgeClass(collaborator.role)}>{formatRole(collaborator.role)}</span>
+                        <span className="ml-2 text-sm text-gray-300 font-mono">
+                          {collaborator.revenueShare != null ? `${(collaborator.revenueShare * 100).toFixed(2)}%` : '--'}
+                        </span>
+                        {isOwner && (
+                          <button
+                            type="button"
+                            className="ml-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-blue-300 hover:bg-blue-500/20 disabled:opacity-50"
+                            onClick={() => {
+                              setEditing(v => ({ ...v, [collaborator.userId]: true }))
+                              setEditValues(v => ({ ...v, [collaborator.userId]: {
+                                role: collaborator.role,
+                                revenueShare: collaborator.revenueShare != null ? (collaborator.revenueShare * 100).toFixed(2) : '',
+                              }}))
+                            }}
+                            disabled={isRowLoading}
+                          >Edit</button>
+                        )}
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteCollaborator(collaborator.userId)}
+                      disabled={removingId === collaborator.userId || isRowLoading}
+                      className="inline-flex items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-red-300 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                      aria-label={`Remove ${collaborator.user.username}`}
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                    </button>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className={roleBadgeClass(collaborator.role)}>
-                    {formatRole(collaborator.role)}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteCollaborator(collaborator.userId)}
-                    disabled={removingId === collaborator.userId}
-                    className="inline-flex items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-red-300 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-                    aria-label={`Remove ${collaborator.user.username}`}
-                  >
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
