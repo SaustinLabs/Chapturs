@@ -110,6 +110,9 @@ model User {
   isContributor      Boolean             @default(false)
   contributorProfile ContributorProfile?
 
+  // Weekly digest opt-in (off by default — user must enable in settings)
+  weeklyDigestEnabled Boolean @default(false)
+
   @@map("users")
 }
 

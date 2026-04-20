@@ -27,6 +27,7 @@ export async function GET() {
         verified: true,
         preferredLanguage: true,
         isContributor: true,
+        weeklyDigestEnabled: true,
       }
     })
 
@@ -56,7 +57,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { preferredLanguage } = body
+    const { preferredLanguage, weeklyDigestEnabled } = body
 
     const update: Record<string, unknown> = {}
 
@@ -68,6 +69,10 @@ export async function PATCH(request: NextRequest) {
       update.preferredLanguage = preferredLanguage
     }
 
+    if (weeklyDigestEnabled !== undefined) {
+      update.weeklyDigestEnabled = Boolean(weeklyDigestEnabled)
+    }
+
     if (Object.keys(update).length === 0) {
       return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
     }
@@ -75,7 +80,7 @@ export async function PATCH(request: NextRequest) {
     const user = await prisma.user.update({
       where: { id: session.user.id },
       data: update,
-      select: { id: true, preferredLanguage: true },
+      select: { id: true, preferredLanguage: true, weeklyDigestEnabled: true },
     })
 
     return NextResponse.json(user)

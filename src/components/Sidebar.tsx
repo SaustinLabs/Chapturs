@@ -78,6 +78,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
     { icon: FireIcon, label: 'Trending', href: '/trending' },
     { icon: BookmarkIcon, label: 'Library', href: '/library' },
     { icon: BookOpenIcon, label: 'Subscriptions', href: '/subscriptions' },
+    { icon: ChartBarIcon, label: 'Reading Stats', href: '/reader/stats' },
     { icon: MagnifyingGlassIcon, label: 'Search', href: '/search' },
     { icon: CogIcon, label: 'Settings', href: '/reader/settings' },
     { icon: SparklesIcon, label: 'Features', href: '/features' },

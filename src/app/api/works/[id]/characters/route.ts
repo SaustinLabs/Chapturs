@@ -164,6 +164,8 @@ export async function POST(request: NextRequest, props: RouteParams) {
       userId: dbUserId,
       action: 'created_character',
       details: { characterId: characterProfile.id, name },
+    }).catch(() => {})
+    
     // Notify Fan Artists who have contributed to this work
     try {
       const fanArtists = await prisma.imageSubmission.findMany({
