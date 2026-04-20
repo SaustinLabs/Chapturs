@@ -227,3 +227,31 @@ export async function notifyNewChapter({
     `,
   })
 }
+
+export async function notifyAdminStorageAlert({
+  status,
+  storagePercent,
+  operationsPercent
+}: {
+  status: string
+  storagePercent: number
+  operationsPercent: number
+}) {
+  const adminEmail = process.env.ADMIN_EMAIL || 'support@chapturs.com'
+  await sendEmail({
+    to: adminEmail,
+    subject: `[ALERT] R2 Storage Capacity: ${status.toUpperCase()}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:24px;color:#111">
+        <h2 style="margin:0 0 8px">Action Required: R2 Limits Approach</h2>
+        <p style="color:#555;margin:0 0 16px">The Cloudflare R2 storage usage requires attention.</p>
+        <ul style="color:#333;margin:0 0 20px">
+          <li><strong>Status:</strong> ${status}</li>
+          <li><strong>Storage Used:</strong> ${storagePercent.toFixed(1)}%</li>
+          <li><strong>Operations Used:</strong> ${operationsPercent.toFixed(1)}%</li>
+        </ul>
+        <p style="font-size:12px;color:#999">Sent from the automated usage monitor.</p>
+      </div>
+    `,
+  })
+}

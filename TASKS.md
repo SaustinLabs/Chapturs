@@ -123,10 +123,10 @@ These are literal `// TODO` comments in the codebase:
 
 | # | File | Issue | Status | Notes |
 |---|------|-------|--------|-------|
-| 30 | `src/lib/r2-usage.ts:227` | Admin alert when R2 storage budget threshold hit | ⬜ | |
+| 30 | `src/lib/r2-usage.ts:227` | Admin alert when R2 storage budget threshold hit | ✅ | Added \`notifyAdminStorageAlert\` and implemented in \`r2-usage.ts\` |
 | 31 | `src/lib/ContentValidationService.ts:269` | Store content hashes for duplicate detection | ⬜ | |
 | 32 | `src/lib/ContentValidationService.ts:463` | Integrate image safety API (currently no-op) | ✅ | Google Cloud Vision SafeSearch — flags adult/violence/racy LIKELY+ images; graceful fallback to URL check if key absent |
-| 33 | `src/lib/analytics/view-counter.ts:187` | Add `viewCount` field to Section model in Prisma schema | ⬜ | |
+| 33 | `src/lib/analytics/view-counter.ts:187` | Add `viewCount` field to Section model in Prisma schema | ✅ | Implemented DB logic in \`view-counter.ts\` to use \`viewCount\` field which was already in schema |
 | 34 | `src/app/api/works/publish/route.ts` | Wire content validation checks into publish flow | ✅ | Validates ALL sections (not just first); removed auto-approve; mature content confirmation modal wired; PrePublishChecklist calls server validation; new `/api/works/[id]/validate` dry-run endpoint. |
 | 80 | `src/app/api/user/taste-profile/route.ts` | `workCount < 12` gate suppresses onboarding survey on sparse platform | ✅ | Lowered to `workCount < 3` — survey now fires with minimal seeded content |
 | 114 | `package.json` | `groq-sdk` is listed as a dependency but architecture decision bans it (use OpenRouter only) | ✅ | Removed; confirmed no call sites — all LLM calls use `openai` SDK via OpenRouter |

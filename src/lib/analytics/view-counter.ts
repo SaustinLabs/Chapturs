@@ -165,10 +165,8 @@ async function flushToDatabase(counters: Map<string, number>) {
       prisma.work.update({
         where: { id },
         data: {
-          statistics: {
-            // Parse JSON, increment views, stringify back
-            // This is a workaround since statistics is stored as String
-            // We'll handle this in the API layer
+          viewCount: {
+            increment: count
           }
         }
       }).catch(err => {
@@ -183,8 +181,9 @@ async function flushToDatabase(counters: Map<string, number>) {
       prisma.section.update({
         where: { id },
         data: {
-          // Increment view count field
-          // TODO: Add viewCount field to Section model
+          viewCount: {
+            increment: count
+          }
         }
       }).catch(err => {
         console.error(`Failed to update section ${id}:`, err)
@@ -262,11 +261,11 @@ export async function getViewStats(workId: string, sectionId?: string) {
   // Get DB stats
   const work = await prisma.work.findUnique({
     where: { id: workId },
-    select: { statistics: true }
+    select: { statistics: true, viewCount: true }
   })
 
-  let dbViews = 0
-  if (work?.statistics) {
+  let dbViews = work?.viewCount || 0
+  if (dbViews === 0 && work?.statistics) {
     try {
       const stats = JSON.parse(work.statistics)
       dbViews = stats.views || 0

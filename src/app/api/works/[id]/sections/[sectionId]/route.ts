@@ -9,6 +9,8 @@ import { maybeTriggerCumulativeReview } from '@/lib/quality-assessment/cumulativ
 import { notifyNewChapter } from '@/lib/email'
 import { createNotification } from '@/lib/notifications'
 import { awardPoints, checkAndAwardFoundingCreator, POINTS_EVENT_TYPE } from '@/lib/achievements/points'
+import { recordSectionVersion } from '@/lib/sectionVersioning'
+import { publishSectionEvent } from '@/lib/realtime'
 
 function parseCollaboratorPermissions(raw: string | null | undefined) {
   if (!raw) return { canEdit: false, canPublish: false }
@@ -20,6 +22,15 @@ function parseCollaboratorPermissions(raw: string | null | undefined) {
     }
   } catch {
     return { canEdit: false, canPublish: false }
+  }
+}
+
+function normalizeContentForStorage(value: unknown): string {
+  if (typeof value === 'string') return value
+  try {
+    return JSON.stringify(value ?? {})
+  } catch {
+    return '{}'
   }
 }
 
@@ -164,6 +175,11 @@ export async function PATCH(request: NextRequest, props: RouteParams) {
       return NextResponse.json({ error: 'Section not found' }, { status: 404 })
     }
 
+    const previousContent = section.content
+    const normalizedIncomingContent = content !== undefined ? normalizeContentForStorage(content) : null
+    const normalizedPreviousContent = normalizeContentForStorage(previousContent)
+    const contentChanged = normalizedIncomingContent !== null && normalizedIncomingContent !== normalizedPreviousContent
+
     // Update the section
     const updatedSection = await prisma.section.update({
       where: { id: sectionId },
@@ -175,6 +191,23 @@ export async function PATCH(request: NextRequest, props: RouteParams) {
         updatedAt: new Date()
       }
     })
+
+    if (contentChanged && normalizedIncomingContent) {
+      await recordSectionVersion({
+        workId,
+        sectionId,
+        content: normalizedIncomingContent,
+        createdById: dbUserId,
+        source: 'manual_save',
+        summary: title ? `Saved section: ${title}` : 'Saved section content',
+      })
+
+      await publishSectionEvent(workId, sectionId, 'section.content.updated', {
+        sectionId,
+        updatedById: dbUserId,
+        source: 'manual_save',
+      })
+    }
 
     // If section is being published, run quality assessment (first chapter only) + milestone review
     let assessment = null

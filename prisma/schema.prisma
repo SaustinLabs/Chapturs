@@ -1,4 +1,3 @@
-
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -93,6 +92,8 @@ model User {
   // Section edit suggestions (collaboration)
   sectionEditSuggestionsProposed SectionEditSuggestion[] @relation("SectionEditSuggestionProposer")
   sectionEditSuggestionsReviewed SectionEditSuggestion[] @relation("SectionEditSuggestionReviewer")
+  sectionVersions                SectionVersion[]
+  sectionPresences               SectionPresence[]
 
   // Community referral attribution (which /join/<slug> link brought this user)
   communityRef String?
@@ -101,9 +102,13 @@ model User {
   preferredLanguage String? @default("en")
 
   // Achievements & points
-  userAchievements  UserAchievement[]
-  pointsLedger      PointsLedger[]
-  showAchievements  Boolean @default(true) // Whether to show achievements on public profile
+  userAchievements UserAchievement[]
+  pointsLedger     PointsLedger[]
+  showAchievements Boolean           @default(true) // Whether to show achievements on public profile
+
+  // Contributor Hub
+  isContributor      Boolean             @default(false)
+  contributorProfile ContributorProfile?
 
   @@map("users")
 }
@@ -212,28 +217,53 @@ model ProfileBlock {
   @@map("profile_blocks")
 }
 
+// Contributor Profile model - For translators, fan-artists, audio narrators
+model ContributorProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  // Stats
+  reputationScore Int @default(0)
+
+  // Customization
+  languages      String @default("[]") // JSON array
+  skills         String @default("[]") // JSON array
+  portfolioLinks String @default("[]") // JSON array
+  badges         String @default("[]") // JSON array
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("contributor_profiles")
+}
+
 // Work model (main content - novels, articles, comics, etc.)
 model Work {
-  id             String   @id @default(cuid())
-  title          String
-  description    String
-  authorId       String
-  formatType     String // 'novel', 'article', 'comic', 'hybrid'
-  coverImage     String?
-  status         String   @default("draft") // 'draft', 'ongoing', 'completed', 'hiatus'
-  maturityRating    String   @default("PG") // 'G', 'PG', 'PG-13', 'R', 'NC-17'
-  aiUseDisclosure   String   @default("none") // 'none' | 'assisted' | 'generated'
-  genres         String // JSON array
-  tags           String // JSON array
-  statistics     String // JSON object
-  glossary       String? // JSON array
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  viewCount      Int      @default(0)
+  id              String   @id @default(cuid())
+  title           String
+  description     String
+  authorId        String
+  formatType      String // 'novel', 'article', 'comic', 'hybrid'
+  coverImage      String?
+  status          String   @default("draft") // 'draft', 'ongoing', 'completed', 'hiatus'
+  maturityRating  String   @default("PG") // 'G', 'PG', 'PG-13', 'R', 'NC-17'
+  aiUseDisclosure String   @default("none") // 'none' | 'assisted' | 'generated'
+  genres          String // JSON array
+  tags            String // JSON array
+  statistics      String // JSON object
+  glossary        String? // JSON array
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  viewCount       Int      @default(0)
 
   // Fan content tracking
-  defaultTranslationByLanguage String  @default("{}") // JSON: {"es": "tier1-id", "ja": "tier2-id"}
-  officialAudiobookId          String?
+  allowCrowdsourcedTranslations Boolean @default(true)
+  defaultTranslationByLanguage  String  @default("{}") // JSON: {"es": "tier1-id", "ja": "tier2-id"}
+  officialAudiobookId           String?
 
   // Relations
   author            Author             @relation(fields: [authorId], references: [id], onDelete: Cascade)
@@ -284,6 +314,7 @@ model Work {
 
   // Chapter reactions
   chapterReactions ChapterReaction[]
+  SectionVersion   SectionVersion[]
 
   @@map("works")
 }
@@ -333,27 +364,32 @@ model Section {
 
   // Section edit suggestions
   sectionEditSuggestions SectionEditSuggestion[]
+  sectionVersions        SectionVersion[]
+  sectionPresences       SectionPresence[]
 
   @@map("sections")
+}
+
 // SectionEditSuggestion model for collaborative editing proposals
 model SectionEditSuggestion {
-  id               String   @id @default(cuid())
-  workId           String
-  sectionId        String
-  proposedById     String
-  proposedContent  String
-  status           String   @default("pending") // 'pending', 'accepted', 'rejected', 'retracted'
-  authorComment    String?
-  proposerComment  String?
-  reviewedById     String?
-  reviewedAt       DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id              String    @id @default(cuid())
+  workId          String
+  sectionId       String
+  proposedById    String
+  proposedContent String
+  status          String    @default("pending") // 'pending', 'accepted', 'rejected', 'retracted'
+  authorComment   String?
+  proposerComment String?
+  reviewedById    String?
+  reviewedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   // Relations
-  section   Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  proposer  User    @relation("SectionEditSuggestionProposer", fields: [proposedById], references: [id], onDelete: Cascade)
-  reviewer  User?   @relation("SectionEditSuggestionReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  section        Section          @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  proposer       User             @relation("SectionEditSuggestionProposer", fields: [proposedById], references: [id], onDelete: Cascade)
+  reviewer       User?            @relation("SectionEditSuggestionReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  SectionVersion SectionVersion[]
 
   @@index([workId])
   @@index([sectionId])
@@ -361,17 +397,60 @@ model SectionEditSuggestion {
   @@index([proposedById])
 }
 
+// Immutable version history for each section with per-author attribution
+model SectionVersion {
+  id            String   @id @default(cuid())
+  workId        String
+  sectionId     String
+  versionNumber Int
+  content       String
+  source        String   @default("manual_save") // 'manual_save' | 'suggestion_accept' | 'restore' | 'realtime_sync'
+  summary       String?
+  createdById   String
+  suggestionId  String?
+  createdAt     DateTime @default(now())
+
+  work       Work                   @relation(fields: [workId], references: [id], onDelete: Cascade)
+  section    Section                @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  createdBy  User                   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  suggestion SectionEditSuggestion? @relation(fields: [suggestionId], references: [id], onDelete: SetNull)
+
+  @@unique([sectionId, versionNumber])
+  @@index([workId, sectionId, createdAt])
+  @@index([createdById])
+  @@map("section_versions")
+}
+
+// Ephemeral cursor/presence state for live collaboration UI
+model SectionPresence {
+  id           String   @id @default(cuid())
+  sectionId    String
+  userId       String
+  cursorAnchor Int?
+  cursorHead   Int?
+  selection    String?
+  updatedAt    DateTime @updatedAt
+  expiresAt    DateTime
+
+  section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sectionId, userId])
+  @@index([sectionId, expiresAt])
+  @@map("section_presence")
+}
+
 // Chapter lock model for edit collision prevention
 model SectionLock {
-  id        String   @id @default(cuid())
-  sectionId String   @unique
-  userId    String
+  id         String   @id @default(cuid())
+  sectionId  String   @unique
+  userId     String
   acquiredAt DateTime @default(now())
-  expiresAt DateTime
+  expiresAt  DateTime
 
   // Relations
   section Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("section_locks")
 }
@@ -784,13 +863,13 @@ model TrendingMetric {
 // Populated as a side-effect of quality assessment — zero extra LLM cost.
 model WorkSemanticProfile {
   workId      String   @id
-  tone        String   // JSON: string[] e.g. ["dark","hopeful"]
-  themes      String   // JSON: string[] e.g. ["redemption","found-family"]
-  tropes      String   // JSON: string[] e.g. ["enemies-to-lovers"]
-  pacing      String   // "slow-burn"|"action-packed"|"measured"|"episodic"
-  perspective String   // "first-person"|"third-limited"|"third-omniscient"|"second-person"
-  audience    String   // "young-adult"|"new-adult"|"adult"|"all-ages"
-  allTags     String   // JSON: merged flat tag set used for Jaccard scoring
+  tone        String // JSON: string[] e.g. ["dark","hopeful"]
+  themes      String // JSON: string[] e.g. ["redemption","found-family"]
+  tropes      String // JSON: string[] e.g. ["enemies-to-lovers"]
+  pacing      String // "slow-burn"|"action-packed"|"measured"|"episodic"
+  perspective String // "first-person"|"third-limited"|"third-omniscient"|"second-person"
+  audience    String // "young-adult"|"new-adult"|"adult"|"all-ages"
+  allTags     String // JSON: merged flat tag set used for Jaccard scoring
   computedAt  DateTime @default(now())
 
   work Work @relation(fields: [workId], references: [id], onDelete: Cascade)
@@ -802,8 +881,8 @@ model WorkSemanticProfile {
 // Authors can pin up to 4 works they believe readers of their story would enjoy.
 model AuthorRecommendation {
   id                String   @id @default(cuid())
-  workId            String   // The work whose sidebar this appears on
-  recommendedWorkId String   // The companion work being surfaced
+  workId            String // The work whose sidebar this appears on
+  recommendedWorkId String // The companion work being surfaced
   sortOrder         Int      @default(0) // 0–3 for up to 4 picks
   createdAt         DateTime @default(now())
 
@@ -1133,10 +1212,10 @@ model QualityAssessment {
   feedbackMessage String // Brief constructive feedback for author
 
   // Reader-facing AI Reviews
-  earlyReview               String?   // 1-2 sentence reader blurb generated on first-chapter publish
-  cumulativeReview          String?   // Amazon-style rolling AI summary, updated at chapter milestones
-  cumulativeReviewUpdatedAt DateTime?
-  cumulativeReviewChapterCount Int?   // Chapter count when cumulativeReview was last generated
+  earlyReview                  String? // 1-2 sentence reader blurb generated on first-chapter publish
+  cumulativeReview             String? // Amazon-style rolling AI summary, updated at chapter milestones
+  cumulativeReviewUpdatedAt    DateTime?
+  cumulativeReviewChapterCount Int? // Chapter count when cumulativeReview was last generated
 
   // Algorithm Boost Configuration
   boostMultiplier Float     @default(1.0) // 1.0 = no boost, >1.0 = boost, <1.0 = suppress
@@ -1436,12 +1515,12 @@ model Comment {
   textEnd         Int?
   highlightedText String? @db.Text
 
-  isEdited    Boolean   @default(false)
-  isPinned    Boolean   @default(false)
-  isHidden    Boolean   @default(false)
-  isFeatured  Boolean   @default(false)
-  editedAt    DateTime?
-  featuredAt  DateTime?
+  isEdited   Boolean   @default(false)
+  isPinned   Boolean   @default(false)
+  isHidden   Boolean   @default(false)
+  isFeatured Boolean   @default(false)
+  editedAt   DateTime?
+  featuredAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1727,7 +1806,7 @@ model CollaborationActivity {
 model Notification {
   id        String   @id @default(cuid())
   userId    String
-  type      String   // 'new_comment' | 'new_subscriber' | 'new_chapter' | 'new_like'
+  type      String // 'new_comment' | 'new_subscriber' | 'new_chapter' | 'new_like'
   title     String
   message   String
   url       String?
@@ -1793,7 +1872,7 @@ model WorkRating {
   id            String   @id @default(cuid())
   workId        String
   userId        String
-  overall       Int @default(0) // 1-5; default(0) is migration-only, API enforces >=1
+  overall       Int      @default(0) // 1-5; default(0) is migration-only, API enforces >=1
   writing       Int?
   plot          Int?
   characters    Int?
@@ -1895,24 +1974,24 @@ model PremiumRevenuePool {
 // ============================================================================
 
 model ContentReport {
-  id           String   @id @default(cuid())
-  reportedBy   String
+  id          String    @id @default(cuid())
+  reportedBy  String
   // What's being reported
-  targetType   String   // 'work' | 'chapter' | 'comment' | 'user'
-  targetId     String
+  targetType  String // 'work' | 'chapter' | 'comment' | 'user'
+  targetId    String
   // Why it's being reported
-  reason       String   // 'spam' | 'harassment' | 'explicit' | 'misinformation' | 'copyright' | 'other'
-  details      String?  @db.Text
+  reason      String // 'spam' | 'harassment' | 'explicit' | 'misinformation' | 'copyright' | 'other'
+  details     String?   @db.Text
   // Resolution
-  status       String   @default("pending") // 'pending' | 'reviewed' | 'actioned' | 'dismissed'
-  reviewedBy   String?
-  reviewedAt   DateTime?
-  reviewNotes  String?  @db.Text
+  status      String    @default("pending") // 'pending' | 'reviewed' | 'actioned' | 'dismissed'
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  reviewNotes String?   @db.Text
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  reporter     User     @relation("ContentReportReporter", fields: [reportedBy], references: [id], onDelete: Cascade)
+  reporter User @relation("ContentReportReporter", fields: [reportedBy], references: [id], onDelete: Cascade)
 
   @@index([targetType, targetId])
   @@index([reportedBy])
@@ -1944,8 +2023,8 @@ model ChapterReaction {
   id        String   @id @default(cuid())
   userId    String
   sectionId String
-  workId    String   // denormalized for fast author analytics queries
-  emoji     String   // one of: ❤️ 🔥 😂 😭 🤯
+  workId    String // denormalized for fast author analytics queries
+  emoji     String // one of: ❤️ 🔥 😂 😭 🤯
   createdAt DateTime @default(now())
 
   // Added note: ensure chapter_reactions table exists via prisma db push before use
@@ -1971,13 +2050,13 @@ model ChapterReaction {
 model CommunityLink {
   id          String   @id @default(cuid())
   slug        String   @unique // URL-safe label: "royalroad-litrpg"
-  label       String   // Human name: "Royal Road – LitRPG"
-  description String?  // Admin notes (not shown publicly)
-  genres      String?  // JSON: ["LitRPG","Progression Fantasy"]
+  label       String // Human name: "Royal Road – LitRPG"
+  description String? // Admin notes (not shown publicly)
+  genres      String? // JSON: ["LitRPG","Progression Fantasy"]
   clickCount  Int      @default(0)
   signupCount Int      @default(0) // users who registered while holding this referral cookie
   active      Boolean  @default(true)
-  createdBy   String?  // userId of admin who created it
+  createdBy   String? // userId of admin who created it
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -1990,10 +2069,10 @@ model CommunityLink {
 
 model Achievement {
   id          String   @id @default(cuid())
-  key         String   @unique  // e.g. "founding_creator", "first_chapter", "glossary_25"
+  key         String   @unique // e.g. "founding_creator", "first_chapter", "glossary_25"
   title       String
   description String
-  badgeIcon   String   // emoji or icon key
+  badgeIcon   String // emoji or icon key
   pointValue  Int      @default(0)
   tier        String   @default("bronze") // bronze | silver | gold | platinum
   category    String   @default("author") // author | reader | contributor
@@ -2006,12 +2085,12 @@ model Achievement {
 }
 
 model UserAchievement {
-  id            String      @id @default(cuid())
+  id            String   @id @default(cuid())
   userId        String
   achievementId String
-  awardedAt     DateTime    @default(now())
-  sourceId      String?     // chapterId, workId, etc. — what triggered it
-  isFeatured    Boolean     @default(false)
+  awardedAt     DateTime @default(now())
+  sourceId      String? // chapterId, workId, etc. — what triggered it
+  isFeatured    Boolean  @default(false)
 
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   achievement Achievement @relation(fields: [achievementId], references: [id])
@@ -2021,13 +2100,13 @@ model UserAchievement {
 }
 
 model PointsLedger {
-  id         String   @id @default(cuid())
-  userId     String
-  eventType  String   // enum-like: CHAPTER_PUBLISHED, FIRST_READ, GLOSSARY_ENTRY, etc.
-  points     Int
-  sourceId   String?  // what triggered this event
-  metadata   Json?    // extra context
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  eventType String // enum-like: CHAPTER_PUBLISHED, FIRST_READ, GLOSSARY_ENTRY, etc.
+  points    Int
+  sourceId  String? // what triggered this event
+  metadata  Json? // extra context
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

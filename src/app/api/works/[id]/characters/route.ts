@@ -164,7 +164,29 @@ export async function POST(request: NextRequest, props: RouteParams) {
       userId: dbUserId,
       action: 'created_character',
       details: { characterId: characterProfile.id, name },
-    }).catch(() => {})
+    // Notify Fan Artists who have contributed to this work
+    try {
+      const fanArtists = await prisma.imageSubmission.findMany({
+        where: { workId: workId, status: 'approved' },
+        select: { uploaderId: true },
+        distinct: ['uploaderId']
+      });
+
+      if (fanArtists.length > 0) {
+        await prisma.notification.createMany({
+          data: fanArtists.map(artist => ({
+            userId: artist.uploaderId,
+            type: 'new_character_alert',
+            title: `New Character Unveiled in ${work.title || 'a story you follow'}`,
+            message: `A new character profile for ${name} just dropped! Feel inspired? Upload some fan-art!`,
+            url: `/contributor/fanart/new`
+          }))
+        });
+      }
+    } catch(e) {
+      console.error('FanArtist Notification error:', e);
+    }
+
     return NextResponse.json({
       success: true,
       character: characterProfile

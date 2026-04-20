@@ -2,6 +2,7 @@
 // Track storage and operations to stay within limits
 
 import { prisma } from '@/lib/database/PrismaService'
+import { notifyAdminStorageAlert } from '@/lib/email'
 
 // Free tier limits from Cloudflare R2
 const FREE_TIER_LIMITS = {
@@ -224,12 +225,11 @@ export async function sendStorageAlert(usage: UsageStats): Promise<void> {
       operations: `${usage.operations.percent.toFixed(1)}%`,
     })
 
-    // TODO: Send email/notification to admin
-    // await sendEmail({
-    //   to: process.env.ALERT_EMAIL,
-    //   subject: `R2 Storage Alert: ${usage.status}`,
-    //   body: `Storage at ${usage.storage.percent}%...`
-    // })
+    await notifyAdminStorageAlert({
+      status: usage.status,
+      storagePercent: usage.storage.percent,
+      operationsPercent: usage.operations.percent
+    })
   }
 }
 

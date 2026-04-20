@@ -5,8 +5,8 @@ import { usePathname } from 'next/navigation'
 import Sidebar from './Sidebar'
 
 interface HubContextType {
-  currentHub: 'reader' | 'creator'
-  setCurrentHub: (hub: 'reader' | 'creator') => void
+  currentHub: 'reader' | 'creator' | 'contributor'
+  setCurrentHub: (hub: 'reader' | 'creator' | 'contributor') => void
 }
 
 const HubContext = createContext<HubContextType | undefined>(undefined)
@@ -27,11 +27,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname()
   
   // Dark mode is applied globally via className="dark" on <html> in layout.tsx
-  const currentHub: 'reader' | 'creator' = pathname.startsWith('/creator') ? 'creator' : 'reader'
+  const currentHub: 'reader' | 'creator' | 'contributor' = pathname.startsWith('/contributor') 
+    ? 'contributor' 
+    : pathname.startsWith('/creator') 
+      ? 'creator' 
+      : 'reader'
   const [isCollapsed, setIsCollapsed] = useState(false)
 
   // Stub kept for HubContext consumers
-  const setCurrentHub = (_hub: 'reader' | 'creator') => {}
+  const setCurrentHub = (_hub: 'reader' | 'creator' | 'contributor') => {}
 
   return (
     <HubContext.Provider value={{ currentHub, setCurrentHub }}>

@@ -26,6 +26,7 @@ export async function GET() {
         avatar: true,
         verified: true,
         preferredLanguage: true,
+        isContributor: true,
       }
     })
 

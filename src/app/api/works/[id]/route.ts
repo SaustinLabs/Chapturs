@@ -89,7 +89,8 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       maturityRating,
       aiUseDisclosure,
       status,
-      coverImage
+      coverImage,
+      allowCrowdsourcedTranslations
     } = body
 
     console.log(`Works API: Updating work with data:`, { title, description, status, genres, tags, maturityRating, aiUseDisclosure, coverImage })
@@ -121,6 +122,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
     if (aiUseDisclosure) updateData.aiUseDisclosure = aiUseDisclosure
     if (status) updateData.status = status
     if (coverImage !== undefined) updateData.coverImage = coverImage
+    if (allowCrowdsourcedTranslations !== undefined) updateData.allowCrowdsourcedTranslations = Boolean(allowCrowdsourcedTranslations)
 
     console.log(`Works API: Prepared update data:`, JSON.stringify(updateData, null, 2))
 

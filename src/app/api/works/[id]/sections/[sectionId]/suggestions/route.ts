@@ -42,7 +42,7 @@ async function logActivity(
   workId: string,
   userId: string,
   action: string,
-  details: Record<string, any>
+  details: Record<string, unknown>
 ) {
   prisma.collaborationActivity
     .create({
@@ -148,37 +148,54 @@ export async function GET(
 
   const url = new URL(request.url)
   const status = url.searchParams.get('status') || 'pending'
-  const take = Math.min(parseInt(url.searchParams.get('take') || '50'), 100)
-  const skip = Math.max(parseInt(url.searchParams.get('skip') || '0'), 0)
+  const takeParam = url.searchParams.get('take')
+  const skipParam = url.searchParams.get('skip')
+  const pageParam = url.searchParams.get('page')
+  const pageSizeParam = url.searchParams.get('pageSize')
+
+  const pageSize = Math.min(Math.max(parseInt(pageSizeParam || takeParam || '50', 10) || 50, 1), 100)
+  const page = Math.max(parseInt(pageParam || '1', 10) || 1, 1)
+  const skip = skipParam ? Math.max(parseInt(skipParam, 10) || 0, 0) : (page - 1) * pageSize
+  const take = pageSize
 
   try {
-    const suggestions = await prisma.sectionEditSuggestion.findMany({
-      where: {
-        sectionId,
-        status: status === 'all' ? undefined : status,
-      },
-      include: {
-        proposer: { select: { id: true, username: true, displayName: true } },
-        reviewer: { select: { id: true, username: true, displayName: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-      take,
-      skip,
-    })
+    const where = {
+      sectionId,
+      status: status === 'all' ? undefined : status,
+    }
+
+    const [total, suggestions] = await Promise.all([
+      prisma.sectionEditSuggestion.count({ where }),
+      prisma.sectionEditSuggestion.findMany({
+        where,
+        include: {
+          proposer: { select: { id: true, username: true, displayName: true } },
+          reviewer: { select: { id: true, username: true, displayName: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take,
+        skip,
+      }),
+    ])
+
+    const mappedSuggestions = suggestions.map((suggestion) => ({
+      id: suggestion.id,
+      sectionId: suggestion.sectionId,
+      proposedBy: suggestion.proposer,
+      reviewedBy: suggestion.reviewer,
+      proposedContent: suggestion.proposedContent,
+      proposerComment: suggestion.proposerComment,
+      authorComment: suggestion.authorComment,
+      status: suggestion.status,
+      createdAt: suggestion.createdAt,
+      reviewedAt: suggestion.reviewedAt,
+    }))
 
     return NextResponse.json({
-      suggestions: suggestions.map((s) => ({
-        id: s.id,
-        sectionId: s.sectionId,
-        proposedBy: s.proposer,
-        reviewedBy: s.reviewer,
-        proposedContent: s.proposedContent,
-        proposerComment: s.proposerComment,
-        authorComment: s.authorComment,
-        status: s.status,
-        createdAt: s.createdAt,
-        reviewedAt: s.reviewedAt,
-      })),
+      suggestions: mappedSuggestions,
+      total,
+      page,
+      pageSize,
     })
   } catch (error) {
     console.error('Failed to fetch suggestions:', error)

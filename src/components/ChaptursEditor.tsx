@@ -25,6 +25,7 @@ interface ChaptursEditorProps {
   onPublish?: (document: ChaptDocument) => Promise<void>
 }
 
+export default function ChaptursEditor({
   workId, 
   chapterId, 
   initialDocument,

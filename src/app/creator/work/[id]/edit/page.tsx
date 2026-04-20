@@ -45,6 +45,7 @@ export default function EditWorkPage() {
     tags: [] as string[],
     maturityRating: 'PG',
     aiUseDisclosure: 'none',
+    allowCrowdsourcedTranslations: true,
     status: 'draft',
     coverImage: ''
   })
@@ -65,6 +66,7 @@ export default function EditWorkPage() {
             tags: data.tags || [],
             maturityRating: data.maturityRating || 'PG',
             aiUseDisclosure: data.aiUseDisclosure || 'none',
+            allowCrowdsourcedTranslations: data.allowCrowdsourcedTranslations ?? true,
             status: data.status || 'draft',
             coverImage: data.coverImage || ''
           })
@@ -385,6 +387,26 @@ export default function EditWorkPage() {
                 </label>
               ))}
             </div>
+          </div>
+
+          {/* Crowdsourced Translations */}
+          <div>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.allowCrowdsourcedTranslations}
+                onChange={(e) => setFormData({ ...formData, allowCrowdsourcedTranslations: e.target.checked })}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+              />
+              <div>
+                <span className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Allow Crowdsourced Translations
+                </span>
+                <span className="block text-xs text-gray-500 dark:text-gray-400">
+                  Let the community submit and vote on translation improvements for this story.
+                </span>
+              </div>
+            </label>
           </div>
 
           {/* Status */}

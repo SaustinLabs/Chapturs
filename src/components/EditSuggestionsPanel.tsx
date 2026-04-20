@@ -25,9 +25,27 @@ interface EditSuggestionsPanelProps {
   workId: string;
   sectionId: string;
   currentContent: string; // JSON or plain text
+  sectionTitle?: string;
+  onSuggestionResolved?: () => void;
 }
 
-export default function EditSuggestionsPanel({ workId, sectionId, currentContent }: EditSuggestionsPanelProps) {
+function formatContentPreview(content: string) {
+  if (!content) return "";
+
+  try {
+    return JSON.stringify(JSON.parse(content), null, 2);
+  } catch {
+    return content;
+  }
+}
+
+export default function EditSuggestionsPanel({
+  workId,
+  sectionId,
+  currentContent,
+  sectionTitle,
+  onSuggestionResolved,
+}: EditSuggestionsPanelProps) {
   const { toast } = useToast();
   const [suggestions, setSuggestions] = useState<EditSuggestion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,10 +92,18 @@ export default function EditSuggestionsPanel({ workId, sectionId, currentContent
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: type === "accept" ? "accepted" : "rejected", authorComment }),
       });
-      if (!res.ok) throw new Error("Failed to update suggestion");
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        const message =
+          data && typeof data === "object" && "error" in data
+            ? String(data.error)
+            : "Failed to update suggestion";
+        throw new Error(message);
+      }
       // Optimistic update
       setSuggestions((prev) => prev.map((s) => (s.id === selected.id ? { ...s, status: type === "accept" ? "accepted" : "rejected", authorComment } : s)));
       toast.success(`Suggestion ${type === "accept" ? "accepted" : "rejected"}`);
+      onSuggestionResolved?.();
       setModalType(null);
       setSelected(null);
     } catch (err) {
@@ -95,15 +121,18 @@ export default function EditSuggestionsPanel({ workId, sectionId, currentContent
 
   // Simple diff: show current vs proposed (plain text for MVP)
   function renderDiff(current: string, proposed: string) {
+    const formattedCurrent = formatContentPreview(current);
+    const formattedProposed = formatContentPreview(proposed);
+
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
         <div className="bg-gray-900/60 border border-gray-700 rounded p-3">
           <div className="text-xs text-gray-400 mb-1">Current</div>
-          <pre className="whitespace-pre-wrap text-sm text-gray-200">{current}</pre>
+          <pre className="whitespace-pre-wrap text-sm text-gray-200">{formattedCurrent}</pre>
         </div>
         <div className="bg-green-900/30 border border-green-700 rounded p-3">
           <div className="text-xs text-green-400 mb-1">Proposed</div>
-          <pre className="whitespace-pre-wrap text-sm text-green-200">{proposed}</pre>
+          <pre className="whitespace-pre-wrap text-sm text-green-200">{formattedProposed}</pre>
         </div>
       </div>
     );
@@ -112,7 +141,10 @@ export default function EditSuggestionsPanel({ workId, sectionId, currentContent
   return (
     <div className="rounded-2xl border border-gray-700 bg-gray-800 p-6 mt-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-white">Edit Suggestions</h2>
+        <div>
+          <h2 className="text-lg font-semibold text-white">Edit Suggestions</h2>
+          {sectionTitle && <p className="mt-1 text-sm text-gray-400">{sectionTitle}</p>}
+        </div>
         {loading && <Loader2 className="animate-spin text-blue-400" size={20} />}
       </div>
       {error && <div className="text-red-400 mb-4">{error}</div>}

@@ -1,5 +1,6 @@
 import AppLayout from '@/components/AppLayout';
 import ReaderMonetizationSettings from '@/components/ReaderMonetizationSettings';
+import ContributorHubToggleSettings from '@/components/ContributorHubToggleSettings';
 
 export default async function ReaderSettingsPage({
   searchParams,
@@ -12,6 +13,7 @@ export default async function ReaderSettingsPage({
       <div className="max-w-2xl mx-auto py-10">
         <h1 className="text-3xl font-bold mb-6">Reader Settings</h1>
         <ReaderMonetizationSettings premiumStatus={premium as 'success' | 'canceled' | undefined} />
+        <ContributorHubToggleSettings />
       </div>
     </AppLayout>
   );

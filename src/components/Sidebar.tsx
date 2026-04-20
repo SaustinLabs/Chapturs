@@ -25,14 +25,15 @@ import { BellAlertIcon } from '@heroicons/react/24/solid'
 import NotificationBell from './NotificationBell'
 
 interface SidebarProps {
-  currentHub: 'reader' | 'creator'
-  onHubChange: (hub: 'reader' | 'creator') => void
+  currentHub: 'reader' | 'creator' | 'contributor'
+  onHubChange: (hub: 'reader' | 'creator' | 'contributor') => void
   isCollapsed: boolean
   onToggleCollapsed: () => void
 }
 
 export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggleCollapsed }: SidebarProps) {
   const [username, setUsername] = useState<string | null>(null)
+  const [isContributor, setIsContributor] = useState(false)
   const [mobileUnreadCount, setMobileUnreadCount] = useState(0)
   const { data: session, status } = useSession()
   const pathname = usePathname()
@@ -56,8 +57,11 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
     if (session?.user?.id) {
       fetch('/api/user/profile')
         .then(res => res.json())
-        .then(data => setUsername(data.username))
-        .catch(err => console.error('Failed to fetch username:', err))
+        .then(data => {
+          setUsername(data.username)
+          setIsContributor(Boolean(data.isContributor))
+        })
+        .catch(err => console.error('Failed to fetch user profile:', err))
     }
   }, [session?.user?.id])
 
@@ -90,7 +94,13 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
     { icon: CogIcon, label: 'Settings', href: '/creator/settings' },
   ]
 
-  const currentItems = currentHub === 'reader' ? readerItems : creatorItems
+  const contributorItems = [
+    { icon: ChartBarIcon, label: 'Dashboard', href: '/contributor/dashboard' },
+    { icon: BookOpenIcon, label: 'Translations', href: '/contributor/translations' },
+    { icon: PhotoIcon, label: 'Fanart', href: '/contributor/fanart' },
+  ]
+
+  const currentItems = currentHub === 'reader' ? readerItems : currentHub === 'creator' ? creatorItems : contributorItems
   const isReaderChapterRoute = /^\/story\/[^/]+\/chapter\/[^/]+/.test(pathname)
   const isCreatorEditorRoute = pathname.startsWith('/creator/editor')
   const shouldShowMobileNav = !isReaderChapterRoute && !isCreatorEditorRoute
@@ -136,22 +146,17 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
         {/* Hub Toggle */}
         <div className={`${isCollapsed ? 'px-1 py-3' : 'p-4'} border-b border-gray-800/60`}>
           {!isCollapsed ? (
-            <div className="flex bg-gray-800/50 rounded-lg p-1 gap-0.5">
+            <div className="flex flex-col bg-gray-800/50 rounded-lg p-1 gap-1">
               <button
                 onClick={() => {
                   onHubChange('reader')
-                  // Navigate to home page when switching to Reader Hub
-                  if (window.location.pathname !== '/') {
-                    window.location.href = '/'
-                  }
+                  if (window.location.pathname !== '/') window.location.href = '/'
                 }}
-                className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`w-full px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   currentHub === 'reader'
                     ? 'bg-gray-700 text-white shadow-sm'
                     : 'text-gray-400 hover:text-gray-200'
                 }`}
-                aria-pressed={currentHub === 'reader'}
-                aria-label="Switch to Reader Hub"
               >
                 Reader Hub
               </button>
@@ -162,50 +167,61 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
                     return
                   }
                   onHubChange('creator')
-                  // Navigate to creator dashboard when switching to Creator Hub
-                  if (window.location.pathname !== '/creator/dashboard') {
-                    window.location.href = '/creator/dashboard'
-                  }
+                  if (window.location.pathname !== '/creator/dashboard') window.location.href = '/creator/dashboard'
                 }}
-                className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`w-full px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   currentHub === 'creator'
                     ? 'bg-gray-700 text-white shadow-sm'
                     : 'text-gray-400 hover:text-gray-200'
                 } ${!session ? 'opacity-50' : ''}`}
-                title={!session ? 'Sign in to access Creator Hub' : undefined}
-                aria-pressed={currentHub === 'creator'}
-                aria-label="Switch to Creator Hub"
               >
-                Creator Hub
-                {!session && <span className="ml-1 text-xs">🔒</span>}
+                Creator Hub {!session && <span className="ml-1 text-xs">🔒</span>}
               </button>
+              {isContributor && (
+                <button
+                  onClick={() => {
+                    onHubChange('contributor')
+                    if (window.location.pathname !== '/contributor/dashboard') window.location.href = '/contributor/dashboard'
+                  }}
+                  className={`w-full px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    currentHub === 'contributor'
+                      ? 'bg-green-700/80 text-white shadow-sm'
+                      : 'text-green-500 hover:text-green-300'
+                  }`}
+                >
+                  Contributor Hub
+                </button>
+              )}
             </div>
           ) : (
-            <button
-              onClick={() => {
-                if (currentHub === 'creator' && !session) {
-                  handleSignIn()
-                  return
-                }
-                const newHub = currentHub === 'reader' ? 'creator' : 'reader'
-                onHubChange(newHub)
-                // Navigate to appropriate page
-                if (newHub === 'reader') {
-                  window.location.href = '/'
-                } else {
-                  window.location.href = '/creator/dashboard'
-                }
-              }}
-              className="w-full p-2 rounded-lg hover:bg-gray-800 text-gray-500 hover:text-gray-300"
-              title={`Switch to ${currentHub === 'reader' ? 'Creator' : 'Reader'} Hub`}
-              aria-label={`Switch to ${currentHub === 'reader' ? 'Creator' : 'Reader'} Hub`}
-            >
-              {currentHub === 'reader' ? (
-                <BookOpenIcon className="w-6 h-6 text-gray-500" />
-              ) : (
-                <PencilIcon className="w-6 h-6 text-gray-500" />
-              )}
-            </button>
+              <button
+                onClick={() => {
+                  if (currentHub === 'creator' && !session) {
+                    handleSignIn()
+                    return
+                  }
+                  
+                  let newHub: 'reader' | 'creator' | 'contributor' = 'reader'
+                  if (currentHub === 'reader') newHub = 'creator'
+                  else if (currentHub === 'creator' && isContributor) newHub = 'contributor'
+                  else if (currentHub === 'creator') newHub = 'reader'
+                  else if (currentHub === 'contributor') newHub = 'reader'
+                  
+                  onHubChange(newHub)
+                  if (newHub === 'reader') window.location.href = '/'
+                  else if (newHub === 'creator') window.location.href = '/creator/dashboard'
+                  else window.location.href = '/contributor/dashboard'
+                }}
+                className="w-full p-2 rounded-lg hover:bg-gray-800 text-gray-500 hover:text-gray-300"
+              >
+                {currentHub === 'reader' ? (
+                  <BookOpenIcon className="w-6 h-6 text-gray-500" />
+                ) : currentHub === 'creator' ? (
+                  <PencilIcon className="w-6 h-6 text-gray-500" />
+                ) : (
+                  <SparklesIcon className="w-6 h-6 text-green-500" />
+                )}
+              </button>
           )}
         </div>
 

@@ -4,45 +4,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/database/PrismaService'
 import { resolveDbUserId } from '@/lib/resolveDbUserId'
-
-function parsePermissions(raw: string | null | undefined) {
-  if (!raw) return { canEdit: false, canPublish: false }
-  try {
-    return JSON.parse(raw)
-  } catch {
-    return { canEdit: false, canPublish: false }
-  }
-}
-
-async function canEditSection(workId: string, dbUserId: string) {
-  const work = await prisma.work.findUnique({
-    where: { id: workId },
-    include: {
-      author: true,
-      collaborators: {
-        where: { userId: dbUserId, status: 'active' },
-        select: { permissions: true },
-        take: 1,
-      },
-    },
-  })
-
-  if (!work) return { allowed: false, isAuthor: false, canPublish: false }
-
-  const isAuthor = work.author.userId === dbUserId
-  if (isAuthor) return { allowed: true, isAuthor: true, canPublish: true }
-
-  const collaborator = work.collaborators[0]
-  const perms = parsePermissions(collaborator?.permissions)
-
-  return { allowed: perms.canEdit, isAuthor: false, canPublish: perms.canPublish }
-}
+import { getSectionCollaborationAccess } from '@/lib/collaborationAccess'
+import { getChapterLock } from '@/lib/chapterLockStore'
+import { recordSectionVersion } from '@/lib/sectionVersioning'
+import { publishSectionEvent } from '@/lib/realtime'
 
 async function logActivity(
   workId: string,
   userId: string,
   action: string,
-  details: Record<string, any>
+  details: Record<string, unknown>
 ) {
   prisma.collaborationActivity
     .create({
@@ -75,7 +46,7 @@ export async function PATCH(
   const dbUserId = await resolveDbUserId(session)
   const { id: workId, sectionId, suggestionId } = await params
 
-  const access = await canEditSection(workId, dbUserId)
+  const access = await getSectionCollaborationAccess(workId, dbUserId)
   if (!access.canPublish) {
     return NextResponse.json(
       { error: 'Only authors and publishers can review suggestions' },
@@ -111,9 +82,35 @@ export async function PATCH(
 
     // If accepting, update the section content
     if (status === 'accepted') {
+      // Accepting a suggestion mutates canonical content, so reviewer must hold current chapter lock.
+      const lock = await getChapterLock(sectionId)
+      if (!lock || lock.userId !== dbUserId) {
+        return NextResponse.json(
+          { error: 'Chapter lock required before accepting a suggestion' },
+          { status: 423 }
+        )
+      }
+
       await prisma.section.update({
         where: { id: sectionId },
         data: { content: suggestion.proposedContent, updatedAt: new Date() },
+      })
+
+      await recordSectionVersion({
+        workId,
+        sectionId,
+        content: suggestion.proposedContent,
+        createdById: suggestion.proposedById,
+        source: 'suggestion_accept',
+        summary: 'Accepted collaborator suggestion',
+        suggestionId: suggestion.id,
+      })
+
+      await publishSectionEvent(workId, sectionId, 'section.content.updated', {
+        sectionId,
+        updatedById: dbUserId,
+        source: 'suggestion_accept',
+        suggestionId: suggestion.id,
       })
     }
 
