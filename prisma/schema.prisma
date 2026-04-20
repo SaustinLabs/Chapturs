@@ -44,6 +44,8 @@ model User {
   creatorRecommendations CreatorRecommendation[]
   recommendedBy          CreatorRecommendation[] @relation("RecommendedAuthor")
   adImpressions          AdImpression[]
+  payoutRequests         Payout[]                @relation("PayoutRequestedBy")
+  payoutProcessActions   Payout[]                @relation("PayoutProcessedBy")
 
   // Reader monetization preferences
   adSupportLevel       String? @default("normal") // 'normal', 'boosted', 'video'
@@ -142,6 +144,9 @@ model Author {
   // Fan content settings
   fanContentSettings CreatorFanContentSettings?
   tier3Deals         Tier3Deal[]                @relation("CreatorTier3Deals")
+
+  // Series
+  series Series[]
 
   @@map("authors")
 }
@@ -318,6 +323,9 @@ model Work {
   // Chapter reactions
   chapterReactions ChapterReaction[]
   SectionVersion   SectionVersion[]
+
+  // Series memberships
+  seriesMemberships SeriesWork[]
 
   @@map("works")
 }
@@ -1765,6 +1773,60 @@ model Tier3Deal {
   @@map("tier3_deals")
 }
 
+// ─── Series / Volume System ───────────────────────────────────────────────────
+
+model Series {
+  id          String   @id @default(cuid())
+  authorId    String
+  title       String
+  description String?
+  coverImage  String?
+  status      String   @default("ongoing") // 'ongoing' | 'completed' | 'hiatus'
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  author  Author       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  volumes SeriesVolume[]
+  works   SeriesWork[]
+
+  @@index([authorId])
+  @@map("series")
+}
+
+model SeriesVolume {
+  id          String   @id @default(cuid())
+  seriesId    String
+  title       String
+  description String?
+  orderIndex  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  series Series     @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  works  SeriesWork[]
+
+  @@index([seriesId, orderIndex])
+  @@map("series_volumes")
+}
+
+model SeriesWork {
+  id           String   @id @default(cuid())
+  seriesId     String
+  workId       String
+  volumeId     String?
+  orderIndex   Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  series Series        @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  work   Work          @relation(fields: [workId], references: [id], onDelete: Cascade)
+  volume SeriesVolume? @relation(fields: [volumeId], references: [id], onDelete: SetNull)
+
+  @@unique([seriesId, workId])
+  @@index([seriesId, orderIndex])
+  @@index([workId])
+  @@map("series_works")
+}
+
 // ============================================================================
 // JOINT OWNERSHIP SYSTEM
 // ============================================================================
@@ -1946,16 +2008,39 @@ model Payout {
   status        String    @default("pending") // 'pending' | 'processing' | 'completed' | 'failed'
   method        String? // 'stripe' | 'paypal' | 'bank'
   transactionId String? // External payment processor ID
+  requestedById String?
+  requestedAt   DateTime?
+  processedById String?
+  failureReason String?
+  idempotencyKey String?  @unique
   processedAt   DateTime?
   createdAt     DateTime  @default(now())
 
   // Relations
   author   Author         @relation(fields: [authorId], references: [id], onDelete: Cascade)
   earnings AuthorEarnings @relation(fields: [earningsId], references: [id], onDelete: Cascade)
+  requestedBy User?       @relation("PayoutRequestedBy", fields: [requestedById], references: [id], onDelete: SetNull)
+  processedBy User?       @relation("PayoutProcessedBy", fields: [processedById], references: [id], onDelete: SetNull)
 
   @@index([authorId])
   @@index([status])
   @@map("payouts")
+}
+
+// Stripe webhook event audit log (idempotency + debugging)
+model StripeEventLog {
+  id           String    @id @default(cuid())
+  eventId      String    @unique
+  eventType    String
+  status       String    @default("running") // 'running' | 'completed' | 'failed'
+  errorMessage String?
+  processedAt  DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([eventType])
+  @@index([status])
+  @@index([createdAt])
+  @@map("stripe_event_logs")
 }
 
 // Premium subscription pool (tracks revenue to distribute to authors)

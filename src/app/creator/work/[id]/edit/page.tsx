@@ -81,10 +81,10 @@ export default function EditWorkPage() {
 
     const fetchPendingSuggestions = async () => {
       try {
-        const res = await fetch(`/api/edit-suggestions?workId=${workId}&status=pending`)
+        const res = await fetch(`/api/creator/suggestions/queue?workId=${workId}&status=pending&page=1&pageSize=1`)
         if (res.ok) {
           const data = await res.json()
-          setPendingSuggestions((data.suggestions || []).length)
+          setPendingSuggestions(Number(data?.pagination?.total || 0))
         }
       } catch {
         // non-critical — ignore

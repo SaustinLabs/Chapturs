@@ -255,3 +255,54 @@ export async function notifyAdminStorageAlert({
     `,
   })
 }
+
+export async function notifyPayoutStatus({
+  creatorEmail,
+  creatorName,
+  amount,
+  status,
+  method,
+  reason,
+}: {
+  creatorEmail: string
+  creatorName: string
+  amount: number
+  status: 'approved' | 'failed' | 'completed'
+  method?: string | null
+  reason?: string | null
+}) {
+  const statusTitle =
+    status === 'approved'
+      ? 'Payout approved'
+      : status === 'completed'
+        ? 'Payout completed'
+        : 'Payout failed'
+
+  const statusBody =
+    status === 'approved'
+      ? 'Your payout request has been approved and is now being processed.'
+      : status === 'completed'
+        ? 'Your payout has been completed successfully.'
+        : 'Your payout request could not be completed at this time.'
+
+  await sendEmail({
+    to: creatorEmail,
+    subject: `${statusTitle} - ${amount.toFixed(2)} USD`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:24px;color:#111">
+        <h2 style="margin:0 0 8px">${statusTitle}</h2>
+        <p style="color:#555;margin:0 0 12px">Hi ${creatorName},</p>
+        <p style="color:#555;margin:0 0 16px">${statusBody}</p>
+        <ul style="color:#333;margin:0 0 20px">
+          <li><strong>Amount:</strong> $${amount.toFixed(2)}</li>
+          <li><strong>Status:</strong> ${status}</li>
+          <li><strong>Method:</strong> ${method || 'not specified'}</li>
+          ${reason ? `<li><strong>Reason:</strong> ${reason}</li>` : ''}
+        </ul>
+        <a href="${APP_URL}/creator/monetization" style="display:inline-block;padding:10px 20px;background:#3b82f6;color:#fff;text-decoration:none;border-radius:6px;font-weight:600">
+          View Monetization
+        </a>
+      </div>
+    `,
+  })
+}

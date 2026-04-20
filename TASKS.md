@@ -155,14 +155,14 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 44 | Reader highlight → suggest typo/wording fix | ⬜ | |
-| 45 | Creator accept/reject queue for reader suggestions | ⬜ | |
-| 46 | Series and Volumes grouping | ⬜ | |
-| 47 | Series subscription (one click covers all works in a set) | ⬜ | |
-| 48 | Reader-to-reader recommendation ("finished X → also loved Y") | ⬜ | |
-| 49 | "Readers Also Enjoyed" block on story pages | ✅ | Smart cascade: author picks → collaborative signals → semantic LLM Jaccard → trending → popular. `WorkSemanticProfile` + `AuthorRecommendation` schema, `similarity.ts` service, `/api/works/[id]/related`. |
+| 44 | Reader highlight → suggest typo/wording fix | 🔶 | Suggestion submission route hardened with canonical transitions/validation + shared permission guards. Existing chapter reader selection flow submits to edit-suggestions; remaining refinement is dedicated ChapterBlockRenderer-native popover wiring. |
+| 45 | Creator accept/reject queue for reader suggestions | ✅ | Added grouped moderation queue API (`/api/creator/suggestions/queue`) + new `CreatorSuggestionQueue` UI and updated creator suggestion page integration. |
+| 46 | Series and Volumes grouping | ✅ | `Series`, `SeriesVolume`, `SeriesWork` Prisma models + migration SQL. API CRUD (`/api/series`, `/api/series/[id]`, `/api/series/[id]/works`). `SeriesManager` creator UI at `/creator/series`. Public reader page at `/series/[id]`. Series badges on story pages. |
+| 47 | Series subscription (one click covers all works in a set) | ✅ | `/api/series/[id]/subscribe` (POST idempotent bulk-bookmark, DELETE removes). `SeriesSubscribeButton` client component with session-aware CTA. |
+| 48 | Reader-to-reader recommendation ("finished X → also loved Y") | ✅ | `UserSignal(signalType='work_complete')` completion events via `POST /api/works/[id]/complete`. `src/lib/recommendations/reader-signals.ts` computes co-completion scores → `ContentSimilarity(similarityType='reader_to_reader')`. Integrated into `getRelatedWorks` cascade (layer 2b). Admin trigger extended; `reasonLabel` displayed on story pages. |
+| 49 | "Readers Also Enjoyed" block on story pages | ✅ | Smart cascade: author picks → collaborative signals → reader-to-reader co-completion → semantic LLM Jaccard → trending → popular. `WorkSemanticProfile` + `AuthorRecommendation` schema, `similarity.ts` service, `/api/works/[id]/related` (now returns `reasonCode` + `reasonLabel`). |
 | 49a | Author-curated "Readers Also Enjoyed" picks — Creator Hub UI | ✅ | Work-search autocomplete + pick list (max 4) added to `/creator/work/[id]/edit`. Auto-saves on add/remove. |
-| 49b | Collaborative signal cron/trigger — periodically call `computeCollaborativeSignals` | 🔶 | Admin POST `/api/admin/collaborative-signals` created and tested; ready to wire to a cron schedule (Cloud Tasks, AWS EventBridge, or GitHub Actions). Manual trigger available in Admin panel. |
+| 49b | Collaborative signal cron/trigger — periodically call `computeCollaborativeSignals` | ✅ | `.github/workflows/recommendation-refresh.yml` cron `0 */6 * * *` → `POST /api/admin/collaborative-signals` with `x-scheduler-secret` header. Runs collaborative + reader-to-reader together. Add `ADMIN_SCHEDULER_SECRET` to GitHub Actions Secrets. |
 
 ---
 
@@ -197,6 +197,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | 63 | Scheduling / cron job for cadenced publishing | ⬜ | |
 | 64 | Feed weight decay as real content accumulates | ⬜ | |
 | 65 | "AI Author" label on story page and in feed | ⬜ | |
+| 115 | External AI storytelling runtime concept spec (sleep/wake bots, chapter generation, critique, story-plan memory updates) | ✅ | Added architecture contract doc at `docs/architecture/ai-storytelling-external-bot-runtime-concept.md` for separate Hermes/OpenClaw-style builder agent |
 
 ---
 
@@ -205,8 +206,8 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 66 | Enable Stripe integration (currently `premium_enabled: false`) | 🔶 | `premium_enabled` moved to SiteSettings (monetization group); `getPremiumEnabled()` helper in `src/lib/settings.ts`; checkout route gated. Flip to `'true'` in Admin → Settings to go live (zero redeploy). |
-| 67 | Test Stripe webhook end-to-end on staging | ⬜ | `STRIPE_WEBHOOK_SECRET` is set but webhook flow is untested |
-| 68 | Creator payout flow (currently disabled) | ⬜ | Revenue sharing schema exists, payout UX needs building |
+| 67 | Test Stripe webhook end-to-end on staging | 🔶 | Webhook idempotency + `StripeEventLog` audit table implemented; admin event log API (`/api/admin/stripe/events`) and local verification script (`scripts/verify-stripe-webhook.ps1`) added. Pending: staging Stripe CLI replay + production endpoint verification. |
+| 68 | Creator payout flow (currently disabled) | 🔶 | Implemented creator payout request API (`/api/creator/payouts/request`), payout audit schema fields, admin payout state machine (`approve`/`complete`/`fail`), admin payouts UI (`/admin/payouts`), and payout status emails (approved/failed/completed). Pending: end-to-end staging payout ops run and creator-facing hardening polish. |
 | 69 | AdSense slots audit — confirm they're rendering in prod (not blank) | ✅ | Fixed false-positive adblock detection: removed proactive fetch probe (false positives on Firefox ETP / Brave Shields); now relies on Script onError callback |
 
 ---

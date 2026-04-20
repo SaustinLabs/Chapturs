@@ -192,7 +192,7 @@ export interface RelatedWork {
   status: string
   genres: string[]
   author: { username: string; displayName: string | null }
-  signalSource: 'author' | 'collaborative' | 'semantic' | 'trending' | 'popular'
+  signalSource: 'author' | 'collaborative' | 'reader_to_reader' | 'semantic' | 'trending' | 'popular'
 }
 
 const WORK_SELECT = {
@@ -285,6 +285,21 @@ export async function getRelatedWorks(
     select: { work2: { select: WORK_SELECT } },
   })
   fill(collaborative.map((r: any) => parseRelatedWork(r.work2 as any, 'collaborative')))
+
+  if (results.length >= limit) return results.slice(0, limit)
+
+  // ── 2b. Reader-to-reader (completion co-occurrence) ─────────────────────
+  const readerToReader = await prisma.contentSimilarity.findMany({
+    where: {
+      workId1: workId,
+      similarityType: 'reader_to_reader',
+      work2: { status: { not: 'draft' } },
+    },
+    orderBy: { similarityScore: 'desc' },
+    take: limit * 2,
+    select: { work2: { select: WORK_SELECT } },
+  })
+  fill(readerToReader.map((r: any) => parseRelatedWork(r.work2 as any, 'reader_to_reader' as RelatedWork['signalSource'])))
 
   if (results.length >= limit) return results.slice(0, limit)
 

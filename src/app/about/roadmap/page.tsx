@@ -164,23 +164,23 @@ export default function RoadmapPage() {
             <Trophy className="w-8 h-8 text-yellow-600" />
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Phase 4: Ecosystem Expansion</h2>
-              <p className="text-sm text-gray-500 font-semibold">PLANNED</p>
+              <p className="text-sm text-blue-600 font-semibold">IN PROGRESS</p>
             </div>
           </div>
 
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+              <Clock className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="font-semibold text-gray-900">Reader Contribution Tools</h3>
-                <p className="text-sm text-gray-600">Reader highlight suggestions and creator accept/reject queues.</p>
+                <p className="text-sm text-gray-600">In progress: creator suggestion queue API and grouped moderation UI are live; chapter-level popover refinement is ongoing.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+              <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="font-semibold text-gray-900">Series and Volumes</h3>
-                <p className="text-sm text-gray-600">Grouped works, automatic progression, series-level subscriptions.</p>
+                <p className="text-sm text-gray-600">Live: creators can group works into multi-volume series. Readers can follow an entire series in one click from the series page. Series badges appear on story pages.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -229,7 +229,7 @@ export default function RoadmapPage() {
               <Circle className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="font-semibold text-gray-900">Monetization Hardening</h3>
-                <p className="text-sm text-gray-600">Stripe enablement, webhook verification, payout UX, and safeguards.</p>
+                <p className="text-sm text-gray-600">In progress: webhook idempotency and event audit logs are live, creator payout requests and admin payout ops UI are live, and staging verification/ops hardening is underway.</p>
               </div>
             </div>
           </div>

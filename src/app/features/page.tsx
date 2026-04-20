@@ -269,9 +269,27 @@ export default function FeaturesPage() {
             description="Pin important comments to the top of a chapter's thread, hide inappropriate ones without deleting them, and keep your community space exactly how you want it — you're always in control."
           />
           <FeatureCard
+            icon={<DocumentTextIcon className="w-5 h-5" />}
+            title="Reader Edit Suggestion Queue"
+            description="Readers can submit typo and wording fixes from chapter reading, and creators get a grouped review queue by chapter to approve or reject each suggestion."
+            badge="In Progress"
+          />
+          <FeatureCard
+            icon={<DocumentTextIcon className="w-5 h-5" />}
+            title="Series & Volume Manager"
+            description="Group your works into named multi-volume series. Readers can follow an entire series in one click, and each story page shows which series it belongs to."
+            badge="New"
+          />
+          <FeatureCard
             icon={<ChartBarIcon className="w-5 h-5" />}
             title="Analytics Dashboard"
             description="Track views, reads, chapter completion rates, subscriber growth, and reaction breakdowns. Understand which chapters land hardest and where readers drop off."
+          />
+          <FeatureCard
+            icon={<ChartBarIcon className="w-5 h-5" />}
+            title="Creator Payout Requests"
+            description="Creators can now submit payout requests from monetization, and admins process them through approve, complete, or fail workflows with audit logging and status emails."
+            badge="In Progress"
           />
           <FeatureCard
             icon={<PhotoIcon className="w-5 h-5" />}

@@ -1,10 +1,10 @@
 import AppLayout from '@/components/AppLayout'
-import CreatorSuggestionsHub from '@/components/CreatorSuggestionsHub'
+import CreatorSuggestionQueue from '@/components/CreatorSuggestionQueue'
 
 export default function SuggestionsPage() {
   return (
     <AppLayout>
-      <CreatorSuggestionsHub />
+      <CreatorSuggestionQueue />
     </AppLayout>
   )
 }

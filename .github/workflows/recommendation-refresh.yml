@@ -1,0 +1,29 @@
+name: Recommendation Signal Refresh
+
+on:
+  schedule:
+    # Run every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Allow manual trigger from GitHub Actions UI
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Trigger collaborative + reader-to-reader signal computation
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST "https://chapturs.com/api/admin/collaborative-signals" \
+            -H "Content-Type: application/json" \
+            -H "x-scheduler-secret: ${{ secrets.ADMIN_SCHEDULER_SECRET }}")
+
+          echo "Response status: $response"
+
+          if [ "$response" != "200" ]; then
+            echo "ERROR: Expected 200 but got $response"
+            exit 1
+          fi
+
+          echo "Recommendation signals refreshed successfully."

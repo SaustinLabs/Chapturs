@@ -17,3 +17,11 @@ export async function getPremiumEnabled(): Promise<boolean> {
   const value = await getSetting('premium_enabled')
   return value === 'true'
 }
+
+/**
+ * Returns true when creator payouts are enabled in SiteSettings.
+ */
+export async function getCreatorPayoutsEnabled(): Promise<boolean> {
+  const value = await getSetting('creator_payouts')
+  return value === 'true'
+}

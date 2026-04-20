@@ -90,6 +90,18 @@ export default async function StoryPage({ params }: Props) {
   // Fetch "Readers Also Enjoyed" — uses cascade: author picks → collaborative → semantic → trending → popular
   const relatedWorks = await getRelatedWorks(id, genres, 4).catch(() => [])
 
+  // Fetch series memberships for badge display
+  const seriesMembershipsRaw = await prisma.seriesWork.findMany({
+    where: { workId: id },
+    include: { series: { select: { id: true, title: true } } },
+    orderBy: { orderIndex: 'asc' },
+  })
+  const seriesMemberships = seriesMembershipsRaw.map((sm) => ({
+    seriesId: sm.series.id,
+    seriesTitle: sm.series.title,
+    orderIndex: sm.orderIndex,
+  }))
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Book',
@@ -122,7 +134,7 @@ export default async function StoryPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <MaturityGate maturityRating={maturityRating}>
-        <StoryPageClient initialWork={work as any} aiReview={aiReview} featuredComments={featuredComments as any} relatedWorks={relatedWorks} />
+        <StoryPageClient initialWork={work as any} aiReview={aiReview} featuredComments={featuredComments as any} relatedWorks={relatedWorks} seriesMemberships={seriesMemberships} />
       </MaturityGate>
     </AppLayout>
   )

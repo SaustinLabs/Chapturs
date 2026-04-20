@@ -55,6 +55,7 @@ export default function AdminHubPage() {
   const tools = [
     { title: 'User Management', desc: 'Manage roles and permissions.', link: '/admin/users', icon: UsersIcon },
     { title: 'Moderation Queue', desc: 'Review reported content.', link: '/admin/reports', icon: ShieldCheckIcon },
+    { title: 'Payout Operations', desc: 'Approve and process creator payouts.', link: '/admin/payouts', icon: ShieldCheckIcon },
     { title: 'Contest Control', desc: 'Create and end contests.', link: '/admin/contests', icon: TrophyIcon },
     { title: 'Validation Rules', desc: 'AI safety & quality rules.', link: '/admin/validation-rules', icon: Cog6ToothIcon },
     { title: 'Community Links', desc: 'Generate named invite links for Discord, Reddit & more.', link: '/admin/community-links', icon: LinkIcon },

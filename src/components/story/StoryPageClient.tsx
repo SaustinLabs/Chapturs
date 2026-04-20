@@ -33,6 +33,8 @@ interface StoryPageClientProps {
   featuredComments?: FeaturedComment[]
   /** Works in the same genre(s), pre-fetched server-side, shown as 'Readers Also Enjoyed'. */
   relatedWorks?: RelatedWork[]
+  /** Series this work belongs to, if any. */
+  seriesMemberships?: SeriesMembership[]
 }
 
 interface RelatedWork {
@@ -42,7 +44,9 @@ interface RelatedWork {
   author: { username: string; displayName: string | null }
   genres: string[]
   status: string
-  signalSource?: 'author' | 'collaborative' | 'semantic' | 'trending' | 'popular'
+  signalSource?: 'author' | 'collaborative' | 'reader_to_reader' | 'semantic' | 'trending' | 'popular'
+  reasonCode?: string
+  reasonLabel?: string
 }
 
 interface FeaturedComment {
@@ -53,7 +57,13 @@ interface FeaturedComment {
   featuredAt: string | null
 }
 
-export default function StoryPageClient({ initialWork, aiReview, featuredComments: initialFeaturedComments = [], relatedWorks = [] }: StoryPageClientProps) {
+interface SeriesMembership {
+  seriesId: string
+  seriesTitle: string
+  orderIndex: number
+}
+
+export default function StoryPageClient({ initialWork, aiReview, featuredComments: initialFeaturedComments = [], relatedWorks = [], seriesMemberships = [] }: StoryPageClientProps) {
   const params = useParams()
   const router = useRouter()
   const storyId = params?.id as string
@@ -325,6 +335,20 @@ export default function StoryPageClient({ initialWork, aiReview, featuredComment
                       }`}>
                         {story.status.charAt(0).toUpperCase() + story.status.slice(1)}
                       </span>
+                      {seriesMemberships.length > 0 && (
+                        <>
+                          <span>•</span>
+                          {seriesMemberships.map((sm) => (
+                            <a
+                              key={sm.seriesId}
+                              href={`/series/${sm.seriesId}`}
+                              className="px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/60 transition-colors"
+                            >
+                              📚 {sm.seriesTitle}
+                            </a>
+                          ))}
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -620,6 +644,11 @@ export default function StoryPageClient({ initialWork, aiReview, featuredComment
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     {w.author.displayName || w.author.username}
                   </p>
+                  {w.reasonLabel && (
+                    <p className="text-[10px] text-indigo-500 dark:text-indigo-400 mt-0.5 font-medium">
+                      {w.reasonLabel}
+                    </p>
+                  )}
                 </Link>
               ))}
             </div>

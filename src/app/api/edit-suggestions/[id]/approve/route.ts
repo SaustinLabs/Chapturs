@@ -3,6 +3,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
 import { auth } from '@/auth-edge'
+import { canApplySuggestion } from '@/lib/suggestions/suggestion-permissions'
 
 // POST /api/edit-suggestions/[id]/approve - Approve an edit suggestion
 export async function POST(
@@ -32,15 +33,18 @@ export async function POST(
       )
     }
 
-    // Verify the requesting user is the work's author
-    const work = await prisma.work.findUnique({
-      where: { id: suggestion.workId },
-      select: { authorId: true }
-    })
-    if (!work || work.authorId !== session.user.id) {
+    const permission = await canApplySuggestion(session.user.id, suggestion.workId)
+    if (!permission.allowed) {
       return NextResponse.json(
-        { error: 'Forbidden: only the work author can approve suggestions' },
+        { error: permission.reason || 'Forbidden' },
         { status: 403 }
+      )
+    }
+
+    if (suggestion.status !== 'pending') {
+      return NextResponse.json(
+        { error: 'Only pending suggestions can be approved' },
+        { status: 409 }
       )
     }
     

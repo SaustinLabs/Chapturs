@@ -43,6 +43,8 @@ export default function CreatorMonetizationHub() {
   const [earnings, setEarnings] = useState<EarningsPayload | null>(null)
   const [isPremium, setIsPremium] = useState(false)
   const [page, setPage] = useState(1)
+  const [requestingPayout, setRequestingPayout] = useState(false)
+  const [requestMessage, setRequestMessage] = useState<string | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -115,6 +117,34 @@ export default function CreatorMonetizationHub() {
   }, [page, payoutRows])
 
   const pageCount = Math.max(1, Math.ceil(payoutRows.length / rowsPerPage))
+  const hasOpenRequest = payoutRows.some((row) => row.status === 'pending' || row.status === 'processing')
+
+  async function requestPayout() {
+    setRequestMessage(null)
+    setRequestingPayout(true)
+    try {
+      const res = await fetch('/api/creator/payouts/request', { method: 'POST' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setRequestMessage(data?.error || 'Failed to request payout.')
+        return
+      }
+
+      setRequestMessage(data?.alreadyRequested ? 'Payout already requested and awaiting processing.' : 'Payout request submitted successfully.')
+
+      const earningsResponse = await fetch('/api/creator/earnings')
+      if (earningsResponse.ok) {
+        const earningsData = await earningsResponse.json()
+        if (earningsData && typeof earningsData === 'object' && 'earnings' in earningsData && 'payouts' in earningsData) {
+          setEarnings(earningsData as EarningsPayload)
+        }
+      }
+    } catch {
+      setRequestMessage('Failed to request payout.')
+    } finally {
+      setRequestingPayout(false)
+    }
+  }
 
   useEffect(() => {
     if (page > pageCount) {
@@ -192,6 +222,24 @@ export default function CreatorMonetizationHub() {
           hint="Total creator earnings to date"
           icon={<CreditCardIcon className="h-6 w-6 text-blue-300" />}
         />
+      </div>
+
+      <div className="rounded-2xl border border-gray-700 bg-gray-800 p-4 md:p-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="text-sm font-semibold text-white">Payout Requests</p>
+          <p className="text-sm text-gray-400">
+            Minimum request amount is {currencyFormatter.format(10)}. Open requests are processed by admins.
+          </p>
+          {requestMessage && <p className="mt-2 text-sm text-blue-300">{requestMessage}</p>}
+        </div>
+        <button
+          type="button"
+          disabled={requestingPayout || pendingPayout < 10 || hasOpenRequest}
+          onClick={requestPayout}
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {hasOpenRequest ? 'Request Already Open' : requestingPayout ? 'Requesting...' : 'Request Payout'}
+        </button>
       </div>
 
       <div className="rounded-2xl border border-gray-700 bg-gray-800">

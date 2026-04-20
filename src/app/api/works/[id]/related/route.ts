@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getRelatedWorks } from '@/lib/recommendations/similarity'
+import { getRelatedWorks, RelatedWork } from '@/lib/recommendations/similarity'
 import PrismaService from '@/lib/database/PrismaService'
+
+const REASON_LABELS: Record<RelatedWork['signalSource'], string> = {
+  author: 'Author Pick',
+  collaborative: 'Readers Also Enjoyed',
+  reader_to_reader: 'Finished by the Same Readers',
+  semantic: 'Similar Themes',
+  trending: 'Trending Now',
+  popular: 'Popular',
+}
 
 export async function GET(
   _req: NextRequest,
@@ -24,5 +33,11 @@ export async function GET(
 
   const related = await getRelatedWorks(id, genres, 4)
 
-  return NextResponse.json({ data: related })
+  const data = related.map((w) => ({
+    ...w,
+    reasonCode: w.signalSource,
+    reasonLabel: REASON_LABELS[w.signalSource] ?? 'Recommended',
+  }))
+
+  return NextResponse.json({ data })
 }

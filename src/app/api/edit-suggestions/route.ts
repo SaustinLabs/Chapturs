@@ -3,10 +3,21 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
 import { auth } from '@/auth-edge'
+import { canModerateSuggestion, canSubmitSuggestion } from '@/lib/suggestions/suggestion-permissions'
+
+const VALID_SUGGESTION_STATUSES = new Set(['pending', 'approved', 'rejected'])
 
 // GET /api/edit-suggestions?workId=xxx&sectionId=xxx&status=pending
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const workId = searchParams.get('workId')
     const sectionId = searchParams.get('sectionId')
@@ -17,6 +28,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: 'workId is required' },
         { status: 400 }
+      )
+    }
+
+    if (status && !VALID_SUGGESTION_STATUSES.has(status)) {
+      return NextResponse.json(
+        { error: 'Invalid status. Allowed values: pending, approved, rejected' },
+        { status: 400 }
+      )
+    }
+
+    const moderationPermission = await canModerateSuggestion(session.user.id, workId)
+    if (!moderationPermission.allowed) {
+      return NextResponse.json(
+        { error: moderationPermission.reason || 'Forbidden' },
+        { status: 403 }
       )
     }
 
@@ -71,6 +97,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const submitPermission = await canSubmitSuggestion(session.user.id, workId, sectionId)
+    if (!submitPermission.allowed) {
+      return NextResponse.json(
+        { error: submitPermission.reason || 'Forbidden' },
+        { status: 403 }
+      )
+    }
+
     const suggestion = await prisma.editSuggestion.create({
       data: {
         workId,
@@ -107,13 +141,13 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    const url = new URL(request.url)
-    const id = url.pathname.split('/').pop()
     const body = await request.json()
+
+    const id = typeof body?.id === 'string' ? body.id : ''
 
     if (!id) {
       return NextResponse.json(
-        { error: 'Suggestion ID required' },
+        { error: 'Suggestion id is required in request body' },
         { status: 400 }
       )
     }
@@ -146,19 +180,18 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    // Only the work author or moderators can approve/reject
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true }
-    })
-
-    const isAuthor = suggestion.work?.author?.userId === session.user.id
-    const isModerator = user?.role === 'moderator' || user?.role === 'admin'
-
-    if (!isAuthor && !isModerator) {
+    const moderationPermission = await canModerateSuggestion(session.user.id, suggestion.workId)
+    if (!moderationPermission.allowed) {
       return NextResponse.json(
-        { error: 'Only the author or moderators can review suggestions' },
+        { error: moderationPermission.reason || 'Forbidden' },
         { status: 403 }
+      )
+    }
+
+    if (suggestion.status !== 'pending') {
+      return NextResponse.json(
+        { error: 'Only pending suggestions can be reviewed' },
+        { status: 409 }
       )
     }
 
