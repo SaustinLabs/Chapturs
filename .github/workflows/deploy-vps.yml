@@ -116,6 +116,237 @@ jobs:
             echo "✓ .env.production synced ($(wc -l < "$ENV_FILE") lines)"
 
       # -------------------------------------------------------------------
+      # Step 2: Build on the GitHub Actions runner (fast multi-core machine)
+      # No build happens on the VPS — the compiled .next/ is shipped instead.
+      # -------------------------------------------------------------------
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js
+        run: npm run build
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+          NEXT_TELEMETRY_DISABLED: 1
+          # Runtime secrets (some pages may need these at build time for static generation)
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          AUTH_URL: ${{ secrets.AUTH_URL }}
+          AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
+          AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          R2_PUBLIC_URL: ${{ secrets.R2_PUBLIC_URL }}
+          # NEXT_PUBLIC_ vars are baked into the bundle at build time
+          NEXT_PUBLIC_ADSENSE_PUB_ID: ${{ secrets.NEXT_PUBLIC_ADSENSE_PUB_ID }}
+          NEXT_PUBLIC_ADSENSE_SLOT_ID: ${{ secrets.NEXT_PUBLIC_ADSENSE_SLOT_ID }}
+          NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ${{ secrets.NEXT_PUBLIC_RECAPTCHA_SITE_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_PRICE_ID: ${{ secrets.STRIPE_PRICE_ID }}
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+          ADMIN_BOOTSTRAP_PIN: ${{ secrets.ADMIN_BOOTSTRAP_PIN }}
+
+      # -------------------------------------------------------------------
+      # Step 3: Set up SSH on the runner for rsync
+      # -------------------------------------------------------------------
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/vps_key
+          chmod 600 ~/.ssh/vps_key
+          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+
+      # -------------------------------------------------------------------
+      # Step 4: Rsync the built output to the VPS
+      # Only ships what the server needs to run — no source files, no devDeps.
+      # -------------------------------------------------------------------
+      - name: Rsync build to VPS
+        run: |
+          APP_DIR="${{ secrets.VPS_APP_DIR }}"
+          [ -z "$APP_DIR" ] && APP_DIR="/opt/chapturs"
+
+          rsync -az --delete \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='.env*' \
+            --exclude='src' \
+            --exclude='plan' \
+            --exclude='docs' \
+            -e "ssh -i ~/.ssh/vps_key -p 22 -o StrictHostKeyChecking=no" \
+            .next/ package.json package-lock.json prisma/ public/ next.config.js \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:$APP_DIR/"
+
+      # -------------------------------------------------------------------
+      # Step 5: On the VPS — install prod deps, run prisma db push, restart
+      # The build is already done. This step is just minutes, not 20-45 min.
+      # -------------------------------------------------------------------
+      - name: Finalize on VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          command_timeout: 10m
+          timeout: 15m
+          script: |
+            APP_DIR="${{ secrets.VPS_APP_DIR }}"
+            [ -z "$APP_DIR" ] && APP_DIR="/opt/chapturs"
+            PM2_APP="${{ secrets.PM2_APP_NAME }}"
+            [ -z "$PM2_APP" ] && PM2_APP="chapturs"
+
+            cd "$APP_DIR"
+
+            # Install production dependencies only (devDeps not needed at runtime)
+            echo "Installing production dependencies..."
+            npm ci --omit=dev --ignore-scripts
+            echo "✓ npm ci complete"
+
+            # Run Prisma schema sync against the production DB
+            if [ -f ".env.production" ]; then
+              set -a; source .env.production; set +a
+            fi
+
+            if [ -n "$DIRECT_URL" ]; then
+              export DATABASE_URL="$DIRECT_URL"
+            fi
+
+            if [ -n "$DATABASE_URL" ]; then
+              echo "Syncing Prisma schema..."
+              npx prisma db push --skip-generate --accept-data-loss --schema prisma/schema.prisma && \
+                echo "✓ Prisma sync complete" || \
+                echo "⚠ Prisma sync failed (app will still restart)"
+            else
+              echo "⚠ DATABASE_URL not set, skipping Prisma sync"
+            fi
+
+            # Reload the PM2 process (zero-downtime)
+            echo "Reloading PM2 app: $PM2_APP"
+            if pm2 reload "$PM2_APP" --update-env; then
+              echo "✓ PM2 reload successful"
+            else
+              echo "PM2 reload failed, attempting fresh start..."
+              pm2 start npm --name "$PM2_APP" -- start
+            fi
+            pm2 save || true
+            echo "✓ Deployment complete"
+
+      - name: Deployment Status
+        if: success()
+        run: echo "✓ Deployment successful! Running on ${{ secrets.VPS_HOST }}"
+
+      - name: Deployment Failed
+        if: failure()
+        run: echo "✗ Deployment failed — check logs above"
+
+        uses: appleboy/ssh-action@master
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          AUTH_URL: ${{ secrets.AUTH_URL }}
+          AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
+          AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          R2_PUBLIC_URL: ${{ secrets.R2_PUBLIC_URL }}
+          NEXT_PUBLIC_ADSENSE_PUB_ID: ${{ secrets.NEXT_PUBLIC_ADSENSE_PUB_ID }}
+          NEXT_PUBLIC_ADSENSE_SLOT_ID: ${{ secrets.NEXT_PUBLIC_ADSENSE_SLOT_ID }}
+          NEXT_PUBLIC_RECAPTCHA_SITE_KEY: ${{ secrets.NEXT_PUBLIC_RECAPTCHA_SITE_KEY }}
+          RECAPTCHA_SECRET_KEY: ${{ secrets.RECAPTCHA_SECRET_KEY }}
+          GOOGLE_BOOKS_API_KEY: ${{ secrets.GOOGLE_BOOKS_API_KEY }}
+          GOOGLE_CLOUD_VISION_API_KEY: ${{ secrets.GOOGLE_CLOUD_VISION_API_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_PRICE_ID: ${{ secrets.STRIPE_PRICE_ID }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_BOOTSTRAP_PIN: ${{ secrets.ADMIN_BOOTSTRAP_PIN }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          envs: DATABASE_URL,DIRECT_URL,AUTH_SECRET,AUTH_URL,AUTH_GOOGLE_ID,AUTH_GOOGLE_SECRET,R2_ACCOUNT_ID,R2_ACCESS_KEY_ID,R2_SECRET_ACCESS_KEY,R2_BUCKET_NAME,R2_PUBLIC_URL,NEXT_PUBLIC_ADSENSE_PUB_ID,NEXT_PUBLIC_ADSENSE_SLOT_ID,NEXT_PUBLIC_RECAPTCHA_SITE_KEY,RECAPTCHA_SECRET_KEY,GOOGLE_BOOKS_API_KEY,GOOGLE_CLOUD_VISION_API_KEY,STRIPE_SECRET_KEY,STRIPE_PRICE_ID,STRIPE_WEBHOOK_SECRET,OPENROUTER_API_KEY,RESEND_API_KEY,EMAIL_FROM,UPSTASH_REDIS_REST_URL,UPSTASH_REDIS_REST_TOKEN,ADMIN_EMAIL,ADMIN_BOOTSTRAP_PIN
+          script: |
+            APP_DIR="${{ secrets.VPS_APP_DIR }}"
+            [ -z "$APP_DIR" ] && APP_DIR="/opt/chapturs"
+            ENV_FILE="$APP_DIR/.env.production"
+            TMP_FILE="$APP_DIR/.env.production.new"
+
+            # Keys managed by GitHub Secrets (will be updated/added on every deploy)
+            MANAGED_KEYS="DATABASE_URL|DIRECT_URL|AUTH_SECRET|AUTH_URL|AUTH_GOOGLE_ID|AUTH_GOOGLE_SECRET|R2_ACCOUNT_ID|R2_ACCESS_KEY_ID|R2_SECRET_ACCESS_KEY|R2_BUCKET_NAME|R2_PUBLIC_URL|NEXT_PUBLIC_ADSENSE_PUB_ID|NEXT_PUBLIC_ADSENSE_SLOT_ID|NEXT_PUBLIC_RECAPTCHA_SITE_KEY|RECAPTCHA_SECRET_KEY|GOOGLE_BOOKS_API_KEY|GOOGLE_CLOUD_VISION_API_KEY|STRIPE_SECRET_KEY|STRIPE_PRICE_ID|STRIPE_WEBHOOK_SECRET|OPENROUTER_API_KEY|RESEND_API_KEY|EMAIL_FROM|UPSTASH_REDIS_REST_URL|UPSTASH_REDIS_REST_TOKEN|ADMIN_EMAIL|ADMIN_BOOTSTRAP_PIN|NODE_ENV"
+
+            # Start from existing file, stripping any managed keys (they'll be re-added below)
+            if [ -f "$ENV_FILE" ]; then
+              grep -vE "^($MANAGED_KEYS)=" "$ENV_FILE" > "$TMP_FILE" || true
+            else
+              > "$TMP_FILE"
+            fi
+
+            # Append each managed secret only if GitHub provided a value
+            # Values are single-quoted to safely handle special characters (<, >, @, spaces, etc.)
+            write_if_set() {
+              if [ -n "$2" ]; then
+                # Escape any single quotes inside the value, then wrap in single quotes
+                local safe_val
+                safe_val=$(printf '%s' "$2" | sed "s/'/'\''/g")
+                printf "%s='%s'\n" "$1" "$safe_val" >> "$TMP_FILE"
+              fi
+            }
+
+            write_if_set "DATABASE_URL"                  "$DATABASE_URL"
+            write_if_set "DIRECT_URL"                    "$DIRECT_URL"
+            write_if_set "AUTH_SECRET"                   "$AUTH_SECRET"
+            write_if_set "AUTH_URL"                      "$AUTH_URL"
+            write_if_set "AUTH_GOOGLE_ID"                "$AUTH_GOOGLE_ID"
+            write_if_set "AUTH_GOOGLE_SECRET"            "$AUTH_GOOGLE_SECRET"
+            write_if_set "R2_ACCOUNT_ID"                 "$R2_ACCOUNT_ID"
+            write_if_set "R2_ACCESS_KEY_ID"              "$R2_ACCESS_KEY_ID"
+            write_if_set "R2_SECRET_ACCESS_KEY"          "$R2_SECRET_ACCESS_KEY"
+            write_if_set "R2_BUCKET_NAME"                "$R2_BUCKET_NAME"
+            write_if_set "R2_PUBLIC_URL"                 "$R2_PUBLIC_URL"
+            write_if_set "NEXT_PUBLIC_ADSENSE_PUB_ID"         "$NEXT_PUBLIC_ADSENSE_PUB_ID"
+            write_if_set "NEXT_PUBLIC_ADSENSE_SLOT_ID"        "$NEXT_PUBLIC_ADSENSE_SLOT_ID"
+            write_if_set "NEXT_PUBLIC_RECAPTCHA_SITE_KEY"     "$NEXT_PUBLIC_RECAPTCHA_SITE_KEY"
+            write_if_set "RECAPTCHA_SECRET_KEY"               "$RECAPTCHA_SECRET_KEY"
+            write_if_set "GOOGLE_BOOKS_API_KEY"               "$GOOGLE_BOOKS_API_KEY"
+            write_if_set "GOOGLE_CLOUD_VISION_API_KEY"        "$GOOGLE_CLOUD_VISION_API_KEY"
+            write_if_set "STRIPE_SECRET_KEY"             "$STRIPE_SECRET_KEY"
+            write_if_set "STRIPE_PRICE_ID"               "$STRIPE_PRICE_ID"
+            write_if_set "STRIPE_WEBHOOK_SECRET"         "$STRIPE_WEBHOOK_SECRET"
+            write_if_set "OPENROUTER_API_KEY"            "$OPENROUTER_API_KEY"
+            write_if_set "RESEND_API_KEY"                "$RESEND_API_KEY"
+            write_if_set "EMAIL_FROM"                    "$EMAIL_FROM"
+            write_if_set "UPSTASH_REDIS_REST_URL"         "$UPSTASH_REDIS_REST_URL"
+            write_if_set "UPSTASH_REDIS_REST_TOKEN"        "$UPSTASH_REDIS_REST_TOKEN"
+            write_if_set "ADMIN_EMAIL"                     "$ADMIN_EMAIL"
+            write_if_set "ADMIN_BOOTSTRAP_PIN"             "$ADMIN_BOOTSTRAP_PIN"
+            printf 'NODE_ENV=production\n'              >> "$TMP_FILE"
+
+            mv "$TMP_FILE" "$ENV_FILE"
+            chmod 600 "$ENV_FILE"
+            echo "✓ .env.production synced ($(wc -l < "$ENV_FILE") lines)"
+
+      # -------------------------------------------------------------------
       # Step 2: Pull code, build, prisma db push, restart PM2
       # -------------------------------------------------------------------
       - name: Deploy to VPS
