@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import localFont from 'next/font/local'
 import './globals.css'
 import { AuthProvider } from '@/components/AuthProvider'
 import { ToastProvider } from '@/components/ui/Toast'
@@ -7,7 +7,13 @@ import { validateEnvironment } from '@/lib/config'
 import { auth } from '@/auth-edge'
 import ChunkRecovery from '@/components/ChunkRecovery'
 
-const inter = Inter({ subsets: ['latin'], display: 'swap' })
+// Self-hosted Inter via npm — no outbound Google Fonts request at build time
+const inter = localFont({
+  src: '../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2',
+  variable: '--font-inter',
+  display: 'swap',
+  weight: '100 900',
+})
 
 
 export const metadata: Metadata = {
