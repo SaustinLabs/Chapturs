@@ -6,6 +6,7 @@ import { prisma } from '@/lib/database/PrismaService'
 import { resolveDbUserId } from '@/lib/resolveDbUserId'
 import { createCharacterProfileSchema } from '@/lib/api/schemas'
 import { ZodError } from 'zod'
+import { logCollaborationActivity } from '../../../../lib/collaborationActivity'
 
 interface RouteParams {
   params: Promise<{
@@ -158,7 +159,6 @@ export async function POST(request: NextRequest, props: RouteParams) {
       `
     }
     // Log collaboration activity (fire-and-forget)
-    import { logCollaborationActivity } from '../../../../lib/collaborationActivity'
     logCollaborationActivity({
       workId,
       userId: dbUserId,

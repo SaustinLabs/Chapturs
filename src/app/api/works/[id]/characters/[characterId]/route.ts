@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '../../../../../../../auth'
 import { prisma } from '@/lib/database/PrismaService'
 import { resolveDbUserId } from '@/lib/resolveDbUserId'
+import { logCollaborationActivity } from '../../../../../../lib/collaborationActivity'
 
 interface RouteParams {
   params: Promise<{
@@ -94,7 +95,6 @@ export async function PUT(request: NextRequest, props: RouteParams) {
       WHERE id = ${characterId} AND "workId" = ${workId}
     `
     // Log collaboration activity (fire-and-forget)
-    import { logCollaborationActivity } from '../../../../../../lib/collaborationActivity'
     logCollaborationActivity({
       workId,
       userId: dbUserId,
@@ -187,7 +187,6 @@ export async function DELETE(request: NextRequest, props: RouteParams) {
       WHERE id = ${characterId} AND "workId" = ${workId}
     `
     // Log collaboration activity (fire-and-forget)
-    import { logCollaborationActivity } from '../../../../../../lib/collaborationActivity'
     logCollaborationActivity({
       workId,
       userId: dbUserId,

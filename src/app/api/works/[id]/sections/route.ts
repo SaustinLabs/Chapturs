@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '../../../../../../auth'
 import DatabaseService, { prisma } from '../../../../../lib/database/PrismaService'
 import { ContentValidationService } from '../../../../../lib/ContentValidationService'
+import { logCollaborationActivity } from '../../../../../lib/collaborationActivity'
 
 interface RouteParams {
   params: Promise<{
@@ -158,7 +159,6 @@ export async function POST(request: NextRequest, props: RouteParams) {
     })
 
     // Log collaboration activity (fire-and-forget)
-    import { logCollaborationActivity } from '../../../../../lib/collaborationActivity'
     logCollaborationActivity({
       workId,
       userId: dbUserId,

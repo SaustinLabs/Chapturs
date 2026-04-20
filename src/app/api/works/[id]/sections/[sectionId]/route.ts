@@ -11,6 +11,7 @@ import { createNotification } from '@/lib/notifications'
 import { awardPoints, checkAndAwardFoundingCreator, POINTS_EVENT_TYPE } from '@/lib/achievements/points'
 import { recordSectionVersion } from '@/lib/sectionVersioning'
 import { publishSectionEvent } from '@/lib/realtime'
+import { logCollaborationActivity } from '../../../../../../lib/collaborationActivity'
 
 function parseCollaboratorPermissions(raw: string | null | undefined) {
   if (!raw) return { canEdit: false, canPublish: false }
@@ -355,7 +356,6 @@ export async function DELETE(request: NextRequest, props: RouteParams) {
       where: { id: sectionId }
     })
     // Log collaboration activity (fire-and-forget)
-    import { logCollaborationActivity } from '../../../../../../lib/collaborationActivity'
     logCollaborationActivity({
       workId,
       userId: dbUserId,

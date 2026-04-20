@@ -3,6 +3,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
 import { auth } from '@/auth'
+import { logCollaborationActivity } from '../../../../lib/collaborationActivity'
 import { 
   createErrorResponse, 
   createSuccessResponse, 
@@ -114,7 +115,6 @@ export async function POST(
       sectionsToCreate.map(data => prisma.section.create({ data }))
     )
     // Log collaboration activity (fire-and-forget)
-    import { logCollaborationActivity } from '../../../../lib/collaborationActivity'
     logCollaborationActivity({
       workId,
       userId: dbUserId,
