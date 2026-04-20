@@ -14,7 +14,8 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:mobile": "playwright test tests/mobile-smoke.spec.ts",
     "db:seed": "tsx prisma/seed.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "verify:monetization": "npx jest --testPathPattern='stripe-webhook|stripe-checkout|payouts-flow' --no-coverage"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

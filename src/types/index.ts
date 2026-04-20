@@ -66,6 +66,9 @@ export interface Work {
   
   // Stats
   statistics: WorkStatistics
+
+  // Living World affiliation
+  livingWorld?: { id: string; slug: string; title: string } | null
   
   // Timestamps
   createdAt: Date

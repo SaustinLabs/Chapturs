@@ -55,7 +55,7 @@ This master plan defines the execution order, gating, and integration checkpoint
 | TASK-009 | Implement core backend APIs per plan after each schema merge: monetization APIs, ecosystem APIs, living world APIs, then AI bot admin APIs. |  |  |
 | TASK-010 | Add shared authorization helper module `src/lib/auth/feature-access.ts` to centralize admin/collaborator/world-council checks. | ✅ | 2026-04-20 |
 | TASK-011 | Add shared scheduler execution helper `src/lib/scheduler/run-lock.ts` for replay-safe cron-triggered endpoints. | ✅ | 2026-04-20 |
-| TASK-012 | Add shared observability layer for new endpoints in `src/lib/observability` and require structured logs for all scheduler/payment/world mutation operations. |  |  |
+| TASK-012 | Add shared observability layer for new endpoints in `src/lib/observability` and require structured logs for all scheduler/payment/world mutation operations. | ✅ | 2026-04-20 |
 
 ### Implementation Phase 3
 

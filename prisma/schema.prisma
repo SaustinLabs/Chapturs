@@ -115,6 +115,14 @@ model User {
   // Weekly digest opt-in (off by default — user must enable in settings)
   weeklyDigestEnabled Boolean @default(false)
 
+  // Living World relations
+  foundedWorlds        LivingWorld[]          @relation("WorldFounder")
+  canonEntriesCreated  CanonEntry[]           @relation("CanonEntryCreator")
+  canonCharactersCreated CanonCharacter[]     @relation("CanonCharacterCreator")
+  contradictionsResolved LoreContradictionFlag[] @relation("ContradictionResolver")
+  worldCouncilMemberships WorldCouncilMember[] @relation("WorldCouncilMember")
+  worldCouncilVotes    WorldCouncilVote[]     @relation("WorldCouncilVoter")
+
   @@map("users")
 }
 
@@ -327,6 +335,14 @@ model Work {
   // Series memberships
   seriesMemberships SeriesWork[]
 
+  // Living World affiliation
+  livingWorldId String?
+  livingWorld   LivingWorld? @relation(fields: [livingWorldId], references: [id], onDelete: SetNull)
+
+  // Living World back-relations
+  canonEntriesSourced   CanonEntry[]            @relation("CanonEntryWork")
+  contradictionsSourced LoreContradictionFlag[] @relation("ContradictionWork")
+
   @@map("works")
 }
 
@@ -377,6 +393,10 @@ model Section {
   sectionEditSuggestions SectionEditSuggestion[]
   sectionVersions        SectionVersion[]
   sectionPresences       SectionPresence[]
+
+  // Living World back-relations
+  canonEntriesSourced      CanonEntry[]            @relation("CanonEntrySection")
+  contradictionsSourced    LoreContradictionFlag[] @relation("ContradictionSection")
 
   @@map("sections")
 }
@@ -2210,4 +2230,146 @@ model LevelTier {
   badge     String // emoji
 
   @@map("level_tiers")
+}
+
+// ============================================================================
+// LIVING WORLD SYSTEM
+// ============================================================================
+
+// A shared universe that one or more Works belong to.
+// Founded by an Author; governed by a World Council.
+model LivingWorld {
+  id           String  @id @default(cuid())
+  slug         String  @unique
+  title        String
+  description  String?
+  theBeginning String? // Canonical universe starting point / origin event
+  theEnd       String? // How the universe may end (if known)
+  coverImage   String?
+  status       String  @default("active") // 'active' | 'archived'
+  founderId    String  // References User.id
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  founder        User                  @relation("WorldFounder", fields: [founderId], references: [id], onDelete: Cascade)
+  works          Work[]
+  canonEntries   CanonEntry[]
+  characters     CanonCharacter[]
+  contradictions LoreContradictionFlag[]
+  councilVotes   WorldCouncilVote[]
+  councilMembers WorldCouncilMember[]
+
+  @@index([founderId])
+  @@map("living_worlds")
+}
+
+// A fact, event, location, or rule that has been canonically established.
+model CanonEntry {
+  id               String   @id @default(cuid())
+  worldId          String
+  entryType        String   // 'fact' | 'event' | 'location' | 'rule' | 'character_fact'
+  title            String
+  content          String
+  sourceWorkId     String?
+  sourceSectionId  String?
+  status           String   @default("proposed") // 'proposed' | 'canon' | 'disputed' | 'retconned'
+  createdById      String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  world          LivingWorld           @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  sourceWork     Work?                 @relation("CanonEntryWork", fields: [sourceWorkId], references: [id], onDelete: SetNull)
+  sourceSection  Section?              @relation("CanonEntrySection", fields: [sourceSectionId], references: [id], onDelete: SetNull)
+  createdBy      User                  @relation("CanonEntryCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  contradictions LoreContradictionFlag[]
+
+  @@index([worldId, entryType])
+  @@index([worldId, status])
+  @@map("canon_entries")
+}
+
+// A named character within a Living World with canonical traits.
+model CanonCharacter {
+  id                       String  @id @default(cuid())
+  worldId                  String
+  name                     String
+  aliases                  String? // JSON array of alternate names
+  description              String?
+  traits                   String? // JSON array
+  firstAppearanceWorkId    String?
+  firstAppearanceSectionId String?
+  status                   String  @default("active") // 'active' | 'deceased' | 'unknown'
+  createdById              String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  world     LivingWorld @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  createdBy User        @relation("CanonCharacterCreator", fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@unique([worldId, name])
+  @@index([worldId])
+  @@map("canon_characters")
+}
+
+// A flagged contradiction between canon entries or between canon and published content.
+model LoreContradictionFlag {
+  id              String    @id @default(cuid())
+  worldId         String
+  canonEntryId    String?
+  description     String
+  sourceWorkId    String?
+  sourceSectionId String?
+  status          String    @default("open") // 'open' | 'resolved' | 'dismissed'
+  resolvedById    String?
+  resolvedAt      DateTime?
+  resolution      String?   // How/why it was resolved
+
+  createdAt DateTime @default(now())
+
+  world         LivingWorld @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  canonEntry    CanonEntry? @relation(fields: [canonEntryId], references: [id], onDelete: SetNull)
+  sourceWork    Work?       @relation("ContradictionWork", fields: [sourceWorkId], references: [id], onDelete: SetNull)
+  sourceSection Section?    @relation("ContradictionSection", fields: [sourceSectionId], references: [id], onDelete: SetNull)
+  resolvedBy    User?       @relation("ContradictionResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@index([worldId, status])
+  @@map("lore_contradiction_flags")
+}
+
+// World Council membership — council members can vote and veto canon decisions.
+model WorldCouncilMember {
+  worldId  String
+  userId   String
+  role     String   @default("member") // 'founder' | 'council' | 'contributor'
+  joinedAt DateTime @default(now())
+
+  world LivingWorld @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  user  User        @relation("WorldCouncilMember", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([worldId, userId])
+  @@index([userId])
+  @@map("world_council_members")
+}
+
+// A vote by a World Council member on a canon entry, contradiction, or membership change.
+model WorldCouncilVote {
+  id         String   @id @default(cuid())
+  worldId    String
+  voterId    String
+  targetType String   // 'canon_entry' | 'contradiction' | 'membership'
+  targetId   String
+  vote       String   @default("approve") // 'approve' | 'reject' | 'veto'
+  comment    String?
+
+  createdAt DateTime @default(now())
+
+  world LivingWorld @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  voter User        @relation("WorldCouncilVoter", fields: [voterId], references: [id], onDelete: Cascade)
+
+  @@unique([worldId, voterId, targetType, targetId])
+  @@index([worldId, targetType, targetId])
+  @@map("world_council_votes")
 }

@@ -344,6 +344,17 @@ export default function FeedCard({ item, onClick, recommendationRank = 0 }: Feed
                 +{item.work.genres.length - 3}
               </span>
             )}
+            {/* Living World badge */}
+            {item.work.livingWorld && (
+              <a
+                href={`/worlds/${item.work.livingWorld.slug}`}
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-300 text-xs rounded border border-indigo-200 dark:border-indigo-700 hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-colors"
+                title={`Part of the ${item.work.livingWorld.title} Living World`}
+              >
+                🌍 {item.work.livingWorld.title}
+              </a>
+            )}
           </div>
         </div>
 

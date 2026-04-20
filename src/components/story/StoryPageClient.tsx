@@ -473,6 +473,16 @@ export default function StoryPageClient({ initialWork, aiReview, featuredComment
                         {(story as any).aiUseDisclosure === 'generated' ? '🤖 AI-Generated' : '✨ AI-Assisted'}
                       </span>
                     )}
+                    {/* Living World badge */}
+                    {(story as any).livingWorld && (
+                      <a
+                        href={`/worlds/${(story as any).livingWorld.slug}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-100 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-300 text-sm rounded-full border border-indigo-200 dark:border-indigo-700 hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-colors"
+                        title={`Part of the ${(story as any).livingWorld.title} Living World`}
+                      >
+                        🌍 {(story as any).livingWorld.title}
+                      </a>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {story.tags.map((tag) => (

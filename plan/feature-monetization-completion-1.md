@@ -62,12 +62,12 @@ This plan implements the remaining monetization tasks in TASKS.md (67 and 68) an
 
 | Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---------- |
-| TASK-013 | Add launch checklist doc `docs/operations/monetization-launch-checklist.md` covering secrets, webhook endpoint config, and rollback steps. |  |  |
-| TASK-014 | Add regression test suite for checkout and webhook flows in `src/__tests__/stripe-webhook.test.ts` and `src/__tests__/stripe-checkout.test.ts`. |  |  |
-| TASK-015 | Add integration tests for payout request and admin processing in `src/__tests__/payouts-flow.test.ts`. |  |  |
-| TASK-016 | Add task runner entry in `package.json` scripts for monetization verification (`verify:monetization`). |  |  |
-| TASK-017 | Update public status pages `src/app/about/roadmap/page.tsx` and `src/app/features/page.tsx` to reflect true monetization rollout stage after deployment validation. |  |  |
-| TASK-018 | Update `TASKS.md` statuses for tasks 66, 67, 68 within the same implementation commit. |  |  |
+| TASK-013 | Add launch checklist doc `docs/operations/monetization-launch-checklist.md` covering secrets, webhook endpoint config, and rollback steps. | ✅ | 2026-04-20 |
+| TASK-014 | Add regression test suite for checkout and webhook flows in `src/__tests__/stripe-webhook.test.ts` and `src/__tests__/stripe-checkout.test.ts`. | ✅ | 2026-04-20 |
+| TASK-015 | Add integration tests for payout request and admin processing in `src/__tests__/payouts-flow.test.ts`. | ✅ | 2026-04-20 |
+| TASK-016 | Add task runner entry in `package.json` scripts for monetization verification (`verify:monetization`). | ✅ | 2026-04-20 |
+| TASK-017 | Update public status pages `src/app/about/roadmap/page.tsx` and `src/app/features/page.tsx` to reflect true monetization rollout stage after deployment validation. | ✅ | 2026-04-20 |
+| TASK-018 | Update `TASKS.md` statuses for tasks 66, 67, 68 within the same implementation commit. | ✅ | 2026-04-20 |
 
 ## 3. Alternatives
 

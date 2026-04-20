@@ -172,16 +172,16 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 50 | `LivingWorld`, `CanonEntry`, `CanonCharacter`, `LoreContradictionFlag`, `WorldCouncilVote` Prisma models | ⬜ | |
-| 51 | World definition UI (founder sets The Beginning + The End, canon characters) | ⬜ | |
-| 52 | Lore Master AI — OpenRouter agent for writer queries + contradiction scanning | ⬜ | |
-| 53 | Canon graph (lore facts cite source chapters, spider-web model) | ⬜ | |
-| 54 | Vector-indexed lore store (pgvector or Pinecone) | ⬜ | |
-| 55 | World Council (admin group with veto on canon disputes) | ⬜ | |
-| 56 | World Atlas — browsable map for readers | ⬜ | |
-| 57 | Lore Index — cross-story character/location cards | ⬜ | |
-| 58 | Timeline View — all stories plotted on world history | ⬜ | |
-| 59 | Feed badge tagging stories as part of a Living World | ⬜ | |
+| 50 | `LivingWorld`, `CanonEntry`, `CanonCharacter`, `LoreContradictionFlag`, `WorldCouncilVote` Prisma models | ✅ | Schema + migration + world/canon repos + CRUD APIs |
+| 51 | World definition UI (founder sets The Beginning + The End, canon characters) | ✅ | `WorldDefinitionForm.tsx` + `WritersRoomConsole.tsx` (creator hub) |
+| 52 | Lore Master AI — OpenRouter agent for writer queries + contradiction scanning | ✅ | `lore-master-client.ts` + `contradiction-scanner.ts` + `/api/living-world/[worldId]/lore-master` |
+| 53 | Canon graph (lore facts cite source chapters, spider-web model) | ✅ | `CanonGraph.tsx` — browse/add/filter canon entries by type |
+| 54 | Vector-indexed lore store (pgvector or Pinecone) | ⬜ | Planned: `src/lib/living-world/vector-search.ts` — postgres LIKE fallback available |
+| 55 | World Council (admin group with veto on canon disputes) | ✅ | Council model + votes API + CouncilPanel in WritersRoomConsole + admin page |
+| 56 | World Atlas — browsable map for readers | ✅ | `WorldAtlas.tsx` — story cards grid at `/worlds/[slug]` |
+| 57 | Lore Index — cross-story character/location cards | ✅ | `LoreIndex.tsx` — searchable, filterable entries + character cards |
+| 58 | Timeline View — all stories plotted on world history | ✅ | `TimelineView.tsx` — chronological event list |
+| 59 | Feed badge tagging stories as part of a Living World | ✅ | Living World badge in `FeedCard.tsx` + `StoryPageClient.tsx`; admin panel at `/admin/living-world` |
 
 ---
 
@@ -205,9 +205,9 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 66 | Enable Stripe integration (currently `premium_enabled: false`) | 🔶 | `premium_enabled` moved to SiteSettings (monetization group); `getPremiumEnabled()` helper in `src/lib/settings.ts`; checkout route gated. Flip to `'true'` in Admin → Settings to go live (zero redeploy). |
-| 67 | Test Stripe webhook end-to-end on staging | 🔶 | Webhook idempotency + `StripeEventLog` audit table implemented; admin event log API (`/api/admin/stripe/events`) and local verification script (`scripts/verify-stripe-webhook.ps1`) added. Pending: staging Stripe CLI replay + production endpoint verification. |
-| 68 | Creator payout flow (currently disabled) | 🔶 | Implemented creator payout request API (`/api/creator/payouts/request`), payout audit schema fields, admin payout state machine (`approve`/`complete`/`fail`), admin payouts UI (`/admin/payouts`), and payout status emails (approved/failed/completed). Pending: end-to-end staging payout ops run and creator-facing hardening polish. |
+| 66 | Enable Stripe integration (currently `premium_enabled: false`) | 🔶 | `premium_enabled` in SiteSettings; checkout gated. Flip to `'true'` in Admin → Settings to go live (zero redeploy). See `docs/operations/monetization-launch-checklist.md` for go-live steps. |
+| 67 | Test Stripe webhook end-to-end on staging | 🔶 | Webhook idempotency + `StripeEventLog` implemented; admin event log API; local verification script. Test scaffolds in `src/__tests__/stripe-webhook.test.ts`, `stripe-checkout.test.ts`. Run `npm run verify:monetization`. Pending: live Stripe CLI replay on staging. |
+| 68 | Creator payout flow (currently disabled) | 🔶 | Full payout state machine + admin UI + emails implemented. Test scaffold in `src/__tests__/payouts-flow.test.ts`. Pending: end-to-end staging payout ops run. |
 | 69 | AdSense slots audit — confirm they're rendering in prod (not blank) | ✅ | Fixed false-positive adblock detection: removed proactive fetch probe (false positives on Firefox ETP / Brave Shields); now relies on Script onError callback |
 
 ---
