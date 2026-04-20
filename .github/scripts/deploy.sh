@@ -105,11 +105,11 @@ fi
 # 2. Pull latest from GitHub main
 echo -e "${YELLOW}Pulling latest changes from GitHub...${NC}"
 
-# Ensure deployment script itself is not blocking pull if it was modified locally
-if ! git diff --quiet -- .github/scripts/deploy.sh; then
-    echo -e "${YELLOW}Resetting local changes in .github/scripts/deploy.sh before pull${NC}"
-    git restore -- .github/scripts/deploy.sh || true
-fi
+# Hard-reset any locally modified tracked files (e.g. package-lock.json rebuilt
+# by npm install on a previous deploy) so git pull never aborts with "would be
+# overwritten". The VPS is a pure deploy target — no manual edits to preserve.
+git checkout -- . || true
+echo -e "${YELLOW}Cleaned working tree before pull${NC}"
 
 if git pull origin main; then
     echo -e "${GREEN}✓ Git pull successful${NC}"
