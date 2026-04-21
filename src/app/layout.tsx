@@ -6,6 +6,7 @@ import { ToastProvider } from '@/components/ui/Toast'
 import { validateEnvironment } from '@/lib/config'
 import { auth } from '@/auth-edge'
 import ChunkRecovery from '@/components/ChunkRecovery'
+import PageViewTracker from '@/components/PageViewTracker'
 
 // Self-hosted Inter via npm — no outbound Google Fonts request at build time
 const inter = localFont({
@@ -96,6 +97,7 @@ export default async function RootLayout({
       </head>
       <body className={`font-sans h-full ${inter.className}`}>
         <ChunkRecovery />
+        <PageViewTracker />
         <AuthProvider session={session}>
           <ToastProvider>
             {children}

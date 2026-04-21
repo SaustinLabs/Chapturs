@@ -50,10 +50,7 @@ export default function BuildingInPublicStats() {
   const [stats, setStats] = useState<SiteStats | null>(null)
 
   useEffect(() => {
-    // Fire-and-forget: count this page view
-    fetch('/api/analytics/pageview', { method: 'POST' }).catch(() => {})
-
-    // Fetch current stats
+    // Fetch current stats (page view increment is handled by PageViewTracker in root layout)
     fetch('/api/analytics/site-stats')
       .then((r) => r.json())
       .then((data: SiteStats) => setStats(data))
