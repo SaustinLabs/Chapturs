@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { CheckCircle2, Circle, Clock, Rocket, DollarSign, Trophy, Sparkles } from 'lucide-react'
+import BuildingInPublicStats from '@/components/BuildingInPublicStats'
 
 export default function RoadmapPage() {
   return (
@@ -17,6 +18,8 @@ export default function RoadmapPage() {
             This page is synced with TASKS tracking and the public features guide.
           </p>
         </div>
+
+        <BuildingInPublicStats />
 
         {/* Phase 1: Foundation */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
