@@ -5,6 +5,10 @@ module.exports = {
       // standalone output: Next.js copies everything needed into .next/standalone/.
       // Run server.js directly instead of 'next start' — lower memory, faster startup.
       script: '.next/standalone/server.js',
+      // Explicit CWD so standalone server.js finds .env.production at /opt/chapturs/.env.production.
+      // Without this, PM2 may use the script directory (.next/standalone/) as CWD and miss the env file,
+      // causing DATABASE_URL and all other secrets to be undefined — empty DB results, broken auth.
+      cwd: '/opt/chapturs',
       instances: 1, // single core — cluster mode does nothing useful here
       exec_mode: 'fork',
       node_args: '--max-old-space-size=1400', // hard cap Node.js heap at 1.4GB
