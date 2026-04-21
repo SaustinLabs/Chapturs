@@ -184,10 +184,17 @@ jobs:
             --exclude='.git' \
             --exclude='node_modules' \
             --exclude='.env*' \
-            --exclude='.prisma' \
             -e "ssh -i ~/.ssh/vps_key -p 22 -o StrictHostKeyChecking=no" \
             .next package.json package-lock.json prisma public next.config.js \
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:$APP_DIR/"
+
+          # Rsync the Prisma generated client to a staging dir outside node_modules.
+          # The runner builds with 'prisma generate'; VPS uses --ignore-scripts so it doesn't.
+          # We stage it here and restore it after npm install (which wipes node_modules).
+          rsync -az \
+            -e "ssh -i ~/.ssh/vps_key -p 22 -o StrictHostKeyChecking=no" \
+            node_modules/.prisma/ \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:$APP_DIR/.prisma-client/"
 
       # -------------------------------------------------------------------
       # Step 5: VPS finalize — prod deps + prisma db push + pm2 reload
@@ -217,6 +224,17 @@ jobs:
             echo "Installing production dependencies..."
             npm install --omit=dev --ignore-scripts
             echo "npm install complete"
+
+            # Restore the Prisma generated client (built on runner, staged in .prisma-client).
+            # --ignore-scripts skips 'prisma generate' postinstall; we ship it from the runner instead.
+            if [ -d ".prisma-client" ]; then
+              echo "Restoring Prisma generated client from runner build..."
+              mkdir -p node_modules/.prisma
+              cp -a .prisma-client/. node_modules/.prisma/
+              echo "Prisma client restored"
+            else
+              echo "WARNING: .prisma-client not found — Prisma queries will fail"
+            fi
 
             echo "Reloading PM2 app: $PM2_APP"
             if pm2 reload "$PM2_APP" --update-env; then
