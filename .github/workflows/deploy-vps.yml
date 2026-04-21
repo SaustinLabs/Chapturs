@@ -125,6 +125,7 @@ jobs:
         env:
           NODE_OPTIONS: --max-old-space-size=4096
           NEXT_TELEMETRY_DISABLED: 1
+          # Build script runs 'prisma generate' already; db push runs in next step
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
           AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
@@ -147,6 +148,16 @@ jobs:
           UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
           UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
           ADMIN_BOOTSTRAP_PIN: ${{ secrets.ADMIN_BOOTSTRAP_PIN }}
+
+      # -------------------------------------------------------------------
+      # Step 2b: Run prisma db push on the runner (correct version already installed)
+      # The VPS uses --omit=dev so prisma isn't installed there.
+      # -------------------------------------------------------------------
+      - name: Prisma db push
+        run: npx prisma db push --skip-generate --accept-data-loss
+        env:
+          # Prefer DIRECT_URL (bypasses Prisma Accelerate/pgBouncer for DDL)
+          DATABASE_URL: ${{ secrets.DIRECT_URL != '' && secrets.DIRECT_URL || secrets.DATABASE_URL }}
 
       # -------------------------------------------------------------------
       # Step 3: Set up SSH on the runner for rsync
@@ -201,19 +212,6 @@ jobs:
             echo "Installing production dependencies..."
             npm ci --omit=dev --ignore-scripts
             echo "npm ci complete"
-
-            if [ -f ".env.production" ]; then
-              set -a; source .env.production; set +a
-            fi
-            if [ -n "$DIRECT_URL" ]; then
-              export DATABASE_URL="$DIRECT_URL"
-            fi
-            if [ -n "$DATABASE_URL" ]; then
-              echo "Syncing Prisma schema..."
-              npx prisma db push --skip-generate --accept-data-loss --schema prisma/schema.prisma && \
-                echo "Prisma sync complete" || \
-                echo "Prisma sync failed (app will still restart)"
-            fi
 
             echo "Reloading PM2 app: $PM2_APP"
             if pm2 reload "$PM2_APP" --update-env; then
