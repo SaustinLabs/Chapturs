@@ -224,16 +224,10 @@ jobs:
 
             cd "$APP_DIR"
 
-            echo "Cleaning npm cache and node_modules..."
-            npm cache clean --force || true
-            rm -rf node_modules
-
-            echo "Installing production dependencies..."
-            npm install --omit=dev --ignore-scripts
-            echo "npm install complete"
-
             # Restore the Prisma generated client (built on runner, staged in .prisma-client).
             # --ignore-scripts skips 'prisma generate' postinstall; we ship it from the runner instead.
+            # The app runs from .next/standalone/server.js which uses .next/standalone/node_modules/
+            # so root node_modules is not needed — standalone bundles all runtime deps.
             if [ -d ".prisma-client" ]; then
               echo "Restoring Prisma generated client from runner build..."
               mkdir -p node_modules/.prisma
