@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { Redis } from '@upstash/redis'
 
 const SITE_PAGEVIEWS_KEY = 'chapturs:site:pageviews'
 
@@ -12,29 +11,28 @@ const BUILD_STATS = {
   hoursBuilding: 600,
 }
 
-function getRedis(): Redis | null {
-  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-    return null
-  }
-  return new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
-  })
-}
+// Use raw fetch against the Upstash REST API — no SDK, no package bundling issues.
+// Works in Next.js standalone mode since fetch is built into Node.js 18+.
+async function redisGet(key: string): Promise<number> {
+  const url = process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+  if (!url || !token) return 0
 
-export const revalidate = 60 // cache for 60 seconds
+  const res = await fetch(`${url}/get/${encodeURIComponent(key)}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    next: { revalidate: 60 },
+  })
+  const data = await res.json() as { result: string | number | null }
+  return parseInt(String(data.result ?? '0'), 10) || 0
+}
 
 export async function GET() {
   let pageviews = 0
 
-  const redis = getRedis()
-  if (redis) {
-    try {
-      const raw = await redis.get<number>(SITE_PAGEVIEWS_KEY)
-      pageviews = typeof raw === 'number' ? raw : parseInt(String(raw ?? '0'), 10) || 0
-    } catch {
-      // Return 0 rather than error
-    }
+  try {
+    pageviews = await redisGet(SITE_PAGEVIEWS_KEY)
+  } catch {
+    // Return 0 rather than error
   }
 
   return NextResponse.json({

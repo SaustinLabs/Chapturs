@@ -1,30 +1,25 @@
 import { NextResponse } from 'next/server'
-import { Redis } from '@upstash/redis'
 
 const SITE_PAGEVIEWS_KEY = 'chapturs:site:pageviews'
 
-function getRedis(): Redis | null {
-  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-    return null
-  }
-  return new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+// Use raw fetch against the Upstash REST API — no SDK, no package bundling issues.
+// Works in Next.js standalone mode since fetch is built into Node.js 18+.
+async function redisIncr(key: string): Promise<void> {
+  const url = process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+  if (!url || !token) return
+
+  await fetch(`${url}/incr/${encodeURIComponent(key)}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
   })
 }
 
 export async function POST() {
-  const redis = getRedis()
-  if (!redis) {
-    // Redis not configured — silently succeed
-    return new NextResponse(null, { status: 204 })
-  }
-
   try {
-    await redis.incr(SITE_PAGEVIEWS_KEY)
+    await redisIncr(SITE_PAGEVIEWS_KEY)
   } catch {
     // Never fail a user request over a stats write
   }
-
   return new NextResponse(null, { status: 204 })
 }
