@@ -6,7 +6,7 @@ import { prisma } from '@/lib/database/PrismaService'
 import { resolveDbUserId } from '@/lib/resolveDbUserId'
 import { createCharacterProfileSchema } from '@/lib/api/schemas'
 import { ZodError } from 'zod'
-import { logCollaborationActivity } from '../../../../lib/collaborationActivity'
+import { logCollaborationActivity } from '@/lib/collaborationActivity'
 
 interface RouteParams {
   params: Promise<{
