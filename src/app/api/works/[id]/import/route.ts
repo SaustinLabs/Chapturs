@@ -3,7 +3,7 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
 import { auth } from '@/auth'
-import { logCollaborationActivity } from '../../../../lib/collaborationActivity'
+import { logCollaborationActivity } from '@/lib/collaborationActivity'
 import { 
   createErrorResponse, 
   createSuccessResponse, 

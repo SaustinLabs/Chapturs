@@ -95,26 +95,6 @@ export async function POST(request: NextRequest, props: RouteParams) {
       allowUserSubmissions = false
     } = validatedData
 
-    // Verify user owns this work
-    const work = await prisma.work.findUnique({
-      where: { id: workId },
-      select: { 
-        authorId: true,
-        author: {
-          select: { userId: true }
-        }
-      }
-    })
-
-    if (!work) {
-      return NextResponse.json({ error: 'Work not found' }, { status: 404 })
-    }
-
-    const dbUserId = await resolveDbUserId(session)
-    if (work.author.userId !== dbUserId) {
-      return NextResponse.json({ error: 'Unauthorized - You do not own this work' }, { status: 403 })
-    }
-
     // Create character profile using raw SQL to avoid Prisma client conflicts
     const result = await prisma.$queryRaw`
       INSERT INTO character_profiles (
