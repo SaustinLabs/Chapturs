@@ -248,14 +248,12 @@ jobs:
               echo "WARNING: .prisma-client not found — Prisma queries will fail"
             fi
 
-            echo "Reloading PM2 app: $PM2_APP"
-            if pm2 reload "$PM2_APP" --update-env; then
-              echo "PM2 reload successful"
-            elif [ -f ecosystem.config.js ]; then
-              pm2 start ecosystem.config.js --env production
-            else
-              pm2 start npm --name "$PM2_APP" -- start
-            fi
+            # Always reload from ecosystem.config.js so the script/node_args/env
+            # are picked up correctly. 'pm2 reload <name>' reuses the saved config
+            # and ignores changes in ecosystem.config.js — so we use startOrReload
+            # which reads the file whether the app is running or not.
+            echo "Starting/reloading PM2 from ecosystem.config.js..."
+            pm2 startOrReload ecosystem.config.js --env production
             pm2 save || true
 
             # ---------------------------------------------------------------
