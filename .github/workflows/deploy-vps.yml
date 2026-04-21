@@ -185,7 +185,7 @@ jobs:
             --exclude='node_modules' \
             --exclude='.env*' \
             -e "ssh -i ~/.ssh/vps_key -p 22 -o StrictHostKeyChecking=no" \
-            .next package.json package-lock.json prisma public next.config.js ecosystem.config.js \
+            .next package.json package-lock.json prisma public next.config.js ecosystem.config.js nginx \
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:$APP_DIR/"
 
           # standalone output includes a copy of the public/ dir inside .next/standalone/
@@ -257,6 +257,24 @@ jobs:
               pm2 start npm --name "$PM2_APP" -- start
             fi
             pm2 save || true
+
+            # ---------------------------------------------------------------
+            # Update Nginx config if present and nginx is installed
+            # ---------------------------------------------------------------
+            if [ -f "$APP_DIR/nginx/chapturs.conf" ] && command -v nginx >/dev/null 2>&1; then
+              echo "Updating Nginx configuration..."
+              sudo cp "$APP_DIR/nginx/chapturs.conf" /etc/nginx/sites-available/chapturs
+              sudo ln -sf /etc/nginx/sites-available/chapturs /etc/nginx/sites-enabled/chapturs
+              if sudo nginx -t; then
+                sudo systemctl reload nginx
+                echo "Nginx reloaded"
+              else
+                echo "WARNING: Nginx config test failed — keeping old config, not reloading"
+              fi
+            else
+              echo "Nginx not present or config missing — skipping"
+            fi
+
             echo "Deployment complete"
 
       - name: Deployment Status
