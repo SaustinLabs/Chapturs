@@ -154,10 +154,13 @@ jobs:
       # The VPS uses --omit=dev so prisma isn't installed there.
       # -------------------------------------------------------------------
       - name: Prisma db push
-        run: npx prisma db push --skip-generate --accept-data-loss
-        env:
-          # Prefer DIRECT_URL (bypasses Prisma Accelerate/pgBouncer for DDL)
-          DATABASE_URL: ${{ secrets.DIRECT_URL != '' && secrets.DIRECT_URL || secrets.DATABASE_URL }}
+        run: |
+          # Use DIRECT_URL if set, otherwise fall back to DATABASE_URL for both vars
+          PUSH_URL="${{ secrets.DIRECT_URL }}"
+          [ -z "$PUSH_URL" ] && PUSH_URL="${{ secrets.DATABASE_URL }}"
+          export DATABASE_URL="$PUSH_URL"
+          export DIRECT_URL="$PUSH_URL"
+          npx prisma db push --skip-generate --accept-data-loss
 
       # -------------------------------------------------------------------
       # Step 3: Set up SSH on the runner for rsync
