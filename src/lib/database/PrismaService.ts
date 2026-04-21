@@ -25,7 +25,11 @@ function getPrismaClient() {
       log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
       datasources: {
         db: {
-          url: dbUrl || 'postgresql://placeholder:5432/placeholder', // Fallback for build time
+          // connection_limit=3: Supabase free tier has ~20 total connections.
+          // A single Next.js process with default pool (10) can exhaust it under load.
+          // 3 connections is enough for a single-process server; raise if you upgrade.
+          // pool_timeout=10: fail fast if all connections are busy rather than queuing forever.
+          url: (dbUrl || 'postgresql://placeholder:5432/placeholder') + '?connection_limit=3&pool_timeout=10',
         },
       },
     })

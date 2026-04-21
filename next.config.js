@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Standalone output: Next.js copies only the files needed to run the app into
+  // .next/standalone/. This reduces the deployed footprint and cuts startup memory
+  // because Node.js doesn't load the full node_modules tree at boot.
+  output: 'standalone',
   eslint: {
     // The repo currently has many lint warnings/errors that block production builds.
     // Allow building while we iteratively fix lint issues.
@@ -102,13 +106,7 @@ const nextConfig = {
   },
 };
 
-const { withSentryConfig } = require("@sentry/nextjs");
-module.exports = withSentryConfig(nextConfig, {
-  silent: true,
-  org: "",
-  project: "",
-  // Disable source map upload — no org/project configured yet.
-  // Prevents ETIMEDOUT retries during build and reduces memory pressure.
-  sourcemaps: { disable: true },
-  disableLogger: true,
-});
+// Sentry is not configured yet (no org/project). Wrapping is skipped to
+// avoid per-request instrumentation overhead on a constrained VPS.
+// Re-enable once Sentry org/project are set up.
+module.exports = nextConfig;

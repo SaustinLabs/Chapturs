@@ -185,8 +185,15 @@ jobs:
             --exclude='node_modules' \
             --exclude='.env*' \
             -e "ssh -i ~/.ssh/vps_key -p 22 -o StrictHostKeyChecking=no" \
-            .next package.json package-lock.json prisma public next.config.js \
+            .next package.json package-lock.json prisma public next.config.js ecosystem.config.js \
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:$APP_DIR/"
+
+          # standalone output includes a copy of the public/ dir inside .next/standalone/
+          # but NOT the static assets — those must be copied in manually.
+          rsync -az \
+            -e "ssh -i ~/.ssh/vps_key -p 22 -o StrictHostKeyChecking=no" \
+            .next/static/ \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:$APP_DIR/.next/standalone/.next/static/"
 
           # Rsync the Prisma generated client to a staging dir outside node_modules.
           # The runner builds with 'prisma generate'; VPS uses --ignore-scripts so it doesn't.
@@ -231,6 +238,11 @@ jobs:
               echo "Restoring Prisma generated client from runner build..."
               mkdir -p node_modules/.prisma
               cp -a .prisma-client/. node_modules/.prisma/
+              # standalone output also needs the Prisma client
+              if [ -d ".next/standalone/node_modules" ]; then
+                mkdir -p .next/standalone/node_modules/.prisma
+                cp -a .prisma-client/. .next/standalone/node_modules/.prisma/
+              fi
               echo "Prisma client restored"
             else
               echo "WARNING: .prisma-client not found — Prisma queries will fail"
@@ -239,6 +251,8 @@ jobs:
             echo "Reloading PM2 app: $PM2_APP"
             if pm2 reload "$PM2_APP" --update-env; then
               echo "PM2 reload successful"
+            elif [ -f ecosystem.config.js ]; then
+              pm2 start ecosystem.config.js --env production
             else
               pm2 start npm --name "$PM2_APP" -- start
             fi
