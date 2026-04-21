@@ -200,8 +200,8 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: 22
-          command_timeout: 10m
-          timeout: 15m
+          command_timeout: 20m
+          timeout: 25m
           script: |
             APP_DIR="${{ secrets.VPS_APP_DIR }}"
             [ -z "$APP_DIR" ] && APP_DIR="/opt/chapturs"
@@ -210,12 +210,13 @@ jobs:
 
             cd "$APP_DIR"
 
+            echo "Cleaning npm cache and node_modules..."
+            npm cache clean --force || true
+            rm -rf node_modules
+
             echo "Installing production dependencies..."
-            npm ci --omit=dev --ignore-scripts || {
-              echo "npm ci --omit=dev failed, trying full install..."
-              npm ci --ignore-scripts
-            }
-            echo "npm ci complete"
+            npm install --omit=dev --ignore-scripts
+            echo "npm install complete"
 
             echo "Reloading PM2 app: $PM2_APP"
             if pm2 reload "$PM2_APP" --update-env; then
