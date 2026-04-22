@@ -182,7 +182,7 @@ jobs:
 
           rsync -az \
             --exclude='.git' \
-            --exclude='node_modules' \
+            --exclude='/node_modules' \
             --exclude='.env*' \
             -e "ssh -i ~/.ssh/vps_key -p 22 -o StrictHostKeyChecking=no" \
             .next package.json package-lock.json prisma public next.config.js ecosystem.config.js nginx \
