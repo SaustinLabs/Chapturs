@@ -38,6 +38,7 @@ def run_cmd(cmd: str, cwd=None) -> str:
 
 def get_off_limits() -> list[str]:
     """Extract off-limits systems from TASK_QUEUE.md and VISION.md."""
+    import re
     off_limits = []
     
     # Read TASK_QUEUE.md for explicit off-limits section
@@ -70,16 +71,15 @@ def get_off_limits() -> list[str]:
                 continue
             if in_section and (stripped.startswith('##') or stripped == ''):
                 in_section = False
-            if in_section and stripped.startswith('- [0-9]'):
-                import re
-                match = re.search(r'\d+\.\s*\**\s*(.+?)\s*—', stripped)
+            # Match numbered items like "1. **Living World system** —"
+            if in_section:
+                match = re.search(r'\d+\.\s*\*{2,3}(.+?)\*{2,3}\s*[—-]', stripped)
                 if match:
                     off_limits.append(match.group(1).lower())
     except FileNotFoundError:
         pass
     
     return list(set(off_limits))
-
 
 def is_off_limits(task_name: str, description: str = '') -> tuple[bool, str]:
     """Check if a task touches an off-limits system."""

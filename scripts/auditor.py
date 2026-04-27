@@ -115,6 +115,7 @@ def run_build_tests() -> dict:
 
 def get_off_limits() -> list[str]:
     """Extract off-limits systems from TASK_QUEUE.md and VISION.md."""
+    import re
     off_limits = []
     
     # Read TASK_QUEUE.md for explicit off-limits section
@@ -148,10 +149,9 @@ def get_off_limits() -> list[str]:
                 continue
             if in_section and (stripped.startswith('##') or stripped == ''):
                 in_section = False
-            if in_section and stripped.startswith('- [0-9]'):
-                # Parse system name from bullet point
-                import re
-                match = re.search(r'\d+\.\s*\**\s*(.+?)\s*—', stripped)
+            # Match numbered items like "1. **Living World system** —"
+            if in_section:
+                match = re.search(r'\d+\.\s*\*{2,3}(.+?)\*{2,3}\s*[—-]', stripped)
                 if match:
                     off_limits.append(match.group(1).lower())
     except FileNotFoundError:
