@@ -106,3 +106,16 @@
 - Don't use inline styles; prefer Tailwind classes
 - Don't add pay-per-read features (violates VISION.md principle #1)
 - Don't over-engineer author-facing tools (principle: "if it's hard for an author, don't build it")
+
+## Off-Limits Systems — DO NOT TOUCH
+
+These systems are too complex or premature. Workers must skip any task that touches them:
+
+1. **Living World system** (`src/lib/living-world/`, `src/app/api/living-world/`, `src/components/living-world/`)
+   - Lore master, canon graph, contradiction scanner, world atlas, lore index, timeline view
+   - Writers room console, lore index, world definition forms
+   - Do NOT modify, extend, refactor, or add to any living-world code
+
+2. **AI story writer bots** (any AI-generated content systems)
+   - Author bots, AI writing assistants, AI content generation tools
+   - Leave alone until explicitly requested by Sam
