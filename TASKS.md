@@ -9,9 +9,6 @@
 ## ID Normalization Note
 
 Two duplicate IDs were resolved. No tasks were deleted or merged.
-## ID Normalization Note
-
-Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 | Old ID | New ID | Task | Reason |
 |--------|--------|------|--------|

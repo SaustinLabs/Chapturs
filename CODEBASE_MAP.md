@@ -11,10 +11,10 @@
 Chapturs/
 ├── src/                          # Application source code (507 files)
 │   ├── app/                      # Next.js App Router pages & API routes
-│   │   ├── api/                  # 173 route files across 52 namespaces
+│   │   ├── api/                  # 173 route files across 50 namespaces
 │   │   └── *.tsx/*.ts            # 75 page components (flat under src/app/)
 │   ├── components/               # 159 .tsx/.ts component files (+ subdirectories)
-│   └── lib/                      # 74 library/utility modules
+│   └── lib/                      # 71 library/utility modules
 ├── prisma/                       # Prisma schema + migrations + seed
 ├── docs/                         # Documentation source & summaries
 ├── public/                       # Static assets (images, logos, OG images)
@@ -251,8 +251,9 @@ Chapturs/
 ### Feed API (1 route)
 - `feed` — Discovery feed with community_genres cookie cold-start seeding
 
-### Health APIs (2 routes)
-- `health` / `health-edge` — Health check endpoints
+### Health APIs (3 routes)
+- `health` — Health check endpoint
+- `health-edge` — Edge runtime health check endpoint
 
 ### Image APIs (1 route)
 - `image/cover/[id]` — Cover image serving
@@ -384,7 +385,7 @@ Chapturs/
 ## Components (`src/components/`) — 159 .tsx/.ts files (+ subdirectories)
 
 ### Component Directory Breakdown
-- `src/components/` (root) — 92 component files
+|- `src/components/` (root) — 83 component files
 - `src/components/admin/` — 1 file: `GutenbergImportForm.tsx`
 - `src/components/ads/` — 7 files
 - `src/components/auth/` — 2 files
