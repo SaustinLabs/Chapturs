@@ -79,6 +79,14 @@ Workers automatically sync between `TASKS.md` (master task list in repo) and `TA
 
 This means workers always have fresh priorities from your master list without manual intervention.
 
+## Squad Multi-Agent Team
+
+The repo uses the Squad framework for multi-agent development:
+- `.squad/` directory contains team configuration and orchestration files
+- Agents are cast as characters (Danny Lead, Linus Frontend, Rusty Backend, Basher Tester)
+- Team identity: Ocean's Eleven heist crew
+- Decisions, routing rules, and wisdom are tracked in `.squad/decisions.md`, `.squad/routing.md`, `.squad/wisdom.md`
+
 ## No Off-Limits Restrictions
 
 **Nothing is off-limits.** Workers may build, modify, or improve any system in the codebase including:

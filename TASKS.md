@@ -23,7 +23,7 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 |---|------|--------|-------|
 | 1 | Run bootstrap flow: sign in → `/admin/bootstrap` → enter PIN → sign out → sign back in | ✅ | Confirmed done by user |
 | 2 | Verify `RESEND_API_KEY` + `EMAIL_FROM` are in GitHub Secrets | ✅ | Confirmed set by user |
-| 3 | Run `npx prisma db push` on the production DB | ⬜ | Schema has fields that aren't pushed yet (CommunityLink.signupCount, User.communityRef) |
+| 3 | Run `npx prisma db push` on the production DB | ⬜ | Schema has fields that aren't pushed yet (CommunityLink.signupCount, User.communityRef) — both exist in schema.prisma; verify against live DB |
 | 4 | Set up Admin → Settings → Email Addresses in the admin panel | ✅ | Defaults to `@chapturs.com` values which are functional; no blocking issue confirmed |
 | 108 | Add `GOOGLE_BOOKS_API_KEY`, `GOOGLE_CLOUD_VISION_API_KEY`, `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY` to GitHub Secrets + VPS env | ⬜ | Documented in `.env.example`; Vision + reCAPTCHA code is live but keys must be set for them to activate |
 | 112 | Install and configure Squad multi-agent dev team in repo | ✅ | `squad init` run; `.squad/` scaffold created; decisions.md, routing.md, wisdom.md, identity files seeded with Chapturs context; team cast via VS Code Squad agent mode |

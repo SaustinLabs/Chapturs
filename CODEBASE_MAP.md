@@ -113,7 +113,7 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 | Route | Purpose |
 |-------|---------|
 || `api/admin/users`, `admin/stats`, `admin/settings` | User and system admin |
-|| `api/admin/payouts` | Financial administration |
+|| `api/admin/payouts`, `admin/ad-revenue` | Financial administration |
 || `api/admin/contests`, `admin/community-links` | Community management |
 
 ### Fan Content & Translations
@@ -213,7 +213,8 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 
 ### Core Services
 - **api/DataService.ts** — Central data access layer (abstraction over Prisma)
-- **database/PrismaService.ts** — Singleton Prisma client with connection pooling
+- **database/PrismaService.ts** — Prisma client singleton + connection pooling
+- **database/schema.sql** — Raw SQL schema definitions
 - **ContentValidationService.ts** — Content moderation and validation
 - **config.ts** / **settings.ts** — Application configuration
 
@@ -223,6 +224,7 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 - **SignalTracker.ts** — Tracks reader signals (reading time, completion, skips)
 - **reader-signals.ts** — Reader behavior signal extraction
 - **similarity.ts** — Content similarity calculations
+- **recommendation_schema.sql** — SQL schema for recommendation tables
 
 ### Living World (`src/lib/living-world/`)
 - **canon-repository.ts** — Canon entry management
@@ -243,7 +245,7 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 ### Collaboration (`src/lib/collaboration*`, `chapterLockStore.ts`)
 - **collaborationAccess.ts** — Co-authoring permissions
 - **collaborationActivity.ts** — Activity tracking for collaborators
-- **collaborationPatchValidation.ts** — Real-time edit conflict resolution
+- **collaborationPatchValidation.js** — Real-time edit conflict resolution (JS file)
 - **chapterLockStore.ts** — Chapter-level locking mechanism
 
 ### Additional Libraries
@@ -253,7 +255,7 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 - **api/** — API helpers: errorHandling, schemas, twitch/x/youtube integrations
 - **auth/feature-access.ts** — Feature flag and access control checks
 - **cache/social-cache.ts** — Social media cache (Discord, YouTube, Twitch)
-- **database/PrismaService.ts** — Prisma client singleton + schema.sql
+- **database/PrismaService.ts** — Prisma client singleton + connection pooling (also listed under Core Services)
 - **digest/weeklyDigest.ts** — Weekly email digest batching
 - **email.ts** — Email sending service (Resend integration)
 - **emoji/** — Custom emoji system (`customEmojis.ts`, `emojiData.ts`)
@@ -366,6 +368,7 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 - **CreatorSuggestionsHub.tsx** — Reader edit suggestions moderation hub
 - **FanContentHub.tsx** — Fan content submission and browsing hub
 - **WorkCharactersPage.tsx**, **WorkCollaboratorsPage.tsx**, **WorkGlossaryPage.tsx** — Work-specific management pages
+- **CreatorCharactersPage.tsx** — Creator character management page
 - **GlossarySystem.tsx** — Glossary system component for works
 - **GlossaryTermModal.tsx** — Glossary term detail modal
 - **WeeklyDigestToggle.tsx** — Weekly email digest opt-in toggle for creators
@@ -429,8 +432,8 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 - **TasteProfileSurvey.tsx** — Google Books taste discovery survey
 
 ### Profile Sub-components (`src/components/profile/`)
-- **profile/blocks/** — Block types: TextBox, ExternalLink, FavoriteAuthor, Support, DiscordInvite, TwitterFeed, TwitchChannel, YouTubeChannel, YouTubeVideo, WorkCard (12 block variants)
-- **profile/config/** — Configuration editors for each block type (10 config components)
+|- **profile/blocks/** — Block types: TextBox, ExternalLink, FavoriteAuthor, Support, DiscordInvite, TwitterFeed, TwitchChannel, YouTubeChannel, YouTubeVideo, WorkCard (10 block variants + BaseBlock base class)
+|- **profile/config/** — Configuration editors for each block type (10 config components)
 - **profile/editor/** — Profile editor UI (BlockPicker, EditableBlockGrid, etc.)
 
 ### Story Page Components (`src/components/story/`)
@@ -457,7 +460,7 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 `creator/dashboard`, `creator/analytics`, `creator/characters`, `creator/editor`, `creator/fan-content-settings`, `creator/fanart`, `creator/glossary`, `creator/living-world/[worldId]`, `creator/moderation`, `creator/monetization`, `creator/profile/edit`, `creator/series`, `creator/settings`, `creator/upload`, `creator/work/[id]/chapters`, `creator/work/[id]/edit`, `creator/work/[id]/suggestions`, `creator/works`, `creator/works/[id]/characters`, `creator/works/[id]/collaborators`, `creator/works/[id]/glossary`, `creator/works/[id]/import` — Full creator hub with work management, editor, series, glossary, fan content, and moderation
 
 ### Admin Panel
-`admin/*` — Full admin panel (users, payouts, settings, contests, living world management, validation rules, bootstrap, reports)
+`admin/*` — Full admin panel (users, payouts, settings, contests, living world management, validation rules, bootstrap, reports, ad-revenue)
 
 ### Living World & Worlds
 `worlds/[worldSlug]`, `creator/living-world/[worldId]` — Shared universe browsing and creation

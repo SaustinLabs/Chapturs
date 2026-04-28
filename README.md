@@ -42,9 +42,9 @@ Summaries and indexes live under:
 | API Routes | 172 ||
 | Prisma Models | 89 ||
 | Schema Lines | 2375 ||
-| Source Files (src/) | 511 ||
+| Source Files (src/) | 507 TS/TSX, 4 non-TS (CSS/JS/SQL) ||
 | Components | 158 ||
-| Libraries | 66 ||
+| Libraries | 63 ||
 
 ## Notes
 - Many documents include dates inside the files; filesystem timestamps may not reflect real chronology.
