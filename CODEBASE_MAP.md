@@ -112,9 +112,9 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 ### Admin Panel
 | Route | Purpose |
 |-------|---------|
-| `api/admin/users`, `admin/stats`, `admin/settings` | User and system admin |
-| `api/admin/payouts`, `admin/ad-revenue` | Financial administration |
-| `api/admin/contests`, `admin/community-links` | Community management |
+|| `api/admin/users`, `admin/stats`, `admin/settings` | User and system admin |
+|| `api/admin/payouts` | Financial administration |
+|| `api/admin/contests`, `admin/community-links` | Community management |
 
 ### Fan Content & Translations
 | Route | Purpose |
@@ -300,6 +300,7 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 - **ChapterReactionBar.tsx** — Chapter-level reactions/comments toggle
 - **ChapterTopBar.tsx** — Navigation and chapter controls
 - **InfiniteFeed.tsx** — Infinite scroll feed with caching
+- **BrowsePageClient.tsx** — Client-side browse page wrapper with genre/status filters
 - **NewAndPromisingSection.tsx** — Horizontal strip of recent works on homepage
 - **TrendingPageClient.tsx** — Trending page client component with time filters
 - **MaturityGate.tsx** — R/NC-17 content interstitial gate
@@ -318,10 +319,11 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 
 ### Editor & Creator Tools
 - **ChaptursEditor.tsx** — Block-based writing editor (8 block types)
+- **CreatorEditor.tsx** — Creator-specific editor interface
 - **ExperimentalEditor.tsx** — Experimental/legacy editor variant
 - **AdvancedUploader.tsx** — Story import/upload with parsing
 - **BlockEditors.tsx** — Individual block type editors
-- **ChapterEditor.tsx** — TipTap-based chapter editor with extensions
+- **editor/ChapterEditor.tsx** — TipTap-based chapter editor with extensions (under `src/components/editor/`)
 - **RichTextEditor.tsx** — Rich text editing wrapper
 - **PrePublishChecklist.tsx** — Server-side validation checklist UI
 - **CoverUploadField.tsx** — Dedicated cover upload field for works
@@ -330,12 +332,21 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 ### Community Features
 - **CommentSection.tsx**, **CommentItem.tsx**, **CommentForm.tsx** — Commenting system
 - **CharacterCard.tsx**, **CharacterModal.tsx** — Character management UI
+- **CharacterTooltip.tsx** — Inline character tooltip for glossary-style highlights
+- **CharacterProfileModal.tsx** — Detailed character profile modal
+- **CharacterProfileViewModal.tsx** — Read-only character profile view modal
 - **AchievementBadge.tsx**, **AchievementsBlock.tsx** — Gamification display
 - **FeaturedAchievements.tsx** — Star-pin featured achievements
 - **FeedCard.tsx** — Core discovery card component (cover, title, genre badges)
 - **TranslationPanel.tsx** — Translation banner with language selector and original toggle
+- **AudiobookSubmissionForm.tsx** — Fan audiobook submission form
+- **TranslationSubmissionForm.tsx** — Community translation suggestion form
 - **ReportButton.tsx**, **ReportModal.tsx** — Content reporting UI
+- **ConfirmMatureModal.tsx** — Mature content confirmation modal for publishing
+- **EditSuggestionModal.tsx** — Edit suggestion submission modal
+- **EditSuggestionsPanel.tsx** — Inline edit suggestions display panel
 - **RateWorkModal.tsx** — Work rating modal for readers
+- **WorkRatingSystem.tsx** — Inline work rating system component
 - **QualityCelebration.tsx** — Quality assessment celebration UI
 - **QualityReportModal.tsx**, **QualityVoteModal.tsx** — QA voting/reporting UI
 - **ReviewQueue.tsx** — Review queue management component
@@ -351,8 +362,14 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 - **CreatorFanartPage.tsx** — Fan art review dashboard
 - **CreatorGlossaryPage.tsx** — Work-specific glossary management
 - **CreatorMonetizationHub.tsx** — Monetization settings and earnings view
+- **AdSupportSettings.tsx** — Reader ad support level configuration UI
 - **CreatorSuggestionsHub.tsx** — Reader edit suggestions moderation hub
+- **FanContentHub.tsx** — Fan content submission and browsing hub
 - **WorkCharactersPage.tsx**, **WorkCollaboratorsPage.tsx**, **WorkGlossaryPage.tsx** — Work-specific management pages
+- **GlossarySystem.tsx** — Glossary system component for works
+- **GlossaryTermModal.tsx** — Glossary term detail modal
+- **WeeklyDigestToggle.tsx** — Weekly email digest opt-in toggle for creators
+- **PretextClampText.tsx** — Text clamping utility with expand/collapse for long descriptions
 - **StoryManagement.tsx** — Story-level management tools
 - **PremiumSubscriptionSettings.tsx** — Premium subscription configuration UI
 - **ReaderMonetizationSettings.tsx** — Reader-side monetization preferences
@@ -365,8 +382,8 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 - **ModerationDashboard.tsx** — Global moderation dashboard
 
 ### Profile & Social
-- **ProfileLayout.tsx**, **ProfileSidebar.tsx** — User profile layout system
-- **BlockGrid.tsx**, **FeaturedSpace.tsx** — Profile block grid and featured content area
+- **profile/ProfileLayout.tsx**, **profile/ProfileSidebar.tsx** — User profile layout system (under `src/components/profile/`)
+- **profile/BlockGrid.tsx**, **profile/FeaturedSpace.tsx** — Profile block grid and featured content area (under `src/components/profile/`)
 - **WorkViewer.tsx** — Story detail page viewer
 - **BetaWelcome.tsx** — Beta welcome banner component
 - **BuildingInPublicStats.tsx** — Building-in-public statistics display
@@ -374,13 +391,12 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 ### UI Primitives & Layout
 - **AppLayout.tsx** — Main application shell with sidebar + content area
 - **Sidebar.tsx** — Navigation sidebar (collapsible on mobile)
-- **Modal.tsx**, **Tooltip.tsx**, **Toast.tsx** — Shared UI primitives
-- **ErrorBoundary.tsx**, **FeedCardSkeleton.tsx**, **StoryPageSkeleton.tsx** — Loading/error states
-- **Footer.tsx** — Site footer component
-- **FeatureHint.tsx** — Feature hint/guide component
+- **ui/Modal.tsx**, **ui/Tooltip.tsx**, **ui/Toast.tsx** — Shared UI primitives (under `src/components/ui/`)
+- **ui/ErrorBoundary.tsx**, **ui/FeedCardSkeleton.tsx**, **ui/StoryPageSkeleton.tsx** — Loading/error states (under `src/components/ui/`)
+- **ui/Footer.tsx** — Site footer component (under `src/components/ui/`)
+- **ui/FeatureHint.tsx** — Feature hint/guide component (under `src/components/ui/`)
 
 ### Editor Extensions & Tools
-- **editor/ChapterEditor.tsx** — TipTap-based chapter editor with extensions
 - **editor/extensions.tsx** — TipTap extension definitions (font family, etc.)
 - **editor/convert.ts** — HTML/Tiptap content conversion utilities
 - **SelectionActionToolbar.tsx** — Reader text selection action toolbar
@@ -429,7 +445,7 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 ## App Pages (`src/app/`)
 
 ### Public Pages
-`about`, `about/roadmap`, `browse`, `contact`, `content-policy`, `dmca`, `features`, `join`, `legal`, `library`, `not-found`, `page` (home), `privacy`, `robots.ts`, `terms`, `contests`, `fan-content`, `search`, `trending`, `subscriptions`
+`about`, `about/roadmap`, `browse`, `contact`, `content-policy`, `dmca`, `features`, `join/[slug]`, `legal`, `library`, `not-found`, `page` (home), `privacy`, `robots.ts`, `terms`, `contests`, `fan-content`, `search`, `trending`, `subscriptions`
 
 ### Auth & Onboarding
 `auth/signin`, `onboarding` — username selection, profile setup flow with Google Books taste discovery
@@ -441,7 +457,7 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 `creator/dashboard`, `creator/analytics`, `creator/characters`, `creator/editor`, `creator/fan-content-settings`, `creator/fanart`, `creator/glossary`, `creator/living-world/[worldId]`, `creator/moderation`, `creator/monetization`, `creator/profile/edit`, `creator/series`, `creator/settings`, `creator/upload`, `creator/work/[id]/chapters`, `creator/work/[id]/edit`, `creator/work/[id]/suggestions`, `creator/works`, `creator/works/[id]/characters`, `creator/works/[id]/collaborators`, `creator/works/[id]/glossary`, `creator/works/[id]/import` — Full creator hub with work management, editor, series, glossary, fan content, and moderation
 
 ### Admin Panel
-`admin/*` — Full admin panel (users, payouts, settings, contests, living world management, validation rules, bootstrap, reports, ad-revenue)
+`admin/*` — Full admin panel (users, payouts, settings, contests, living world management, validation rules, bootstrap, reports)
 
 ### Living World & Worlds
 `worlds/[worldSlug]`, `creator/living-world/[worldId]` — Shared universe browsing and creation

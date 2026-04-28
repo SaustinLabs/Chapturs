@@ -124,7 +124,7 @@ These are literal `// TODO` comments in the codebase:
 | # | File | Issue | Status | Notes |
 |---|------|-------|--------|-------|
 | 30 | `src/lib/r2-usage.ts:227` | Admin alert when R2 storage budget threshold hit | ✅ | Added \`notifyAdminStorageAlert\` and implemented in \`r2-usage.ts\` |
-| 31 | `src/lib/ContentValidationService.ts:269` | Store content hashes for duplicate detection | ⬜ | ContentValidationService.ts exists at 45KB; hash storage not yet implemented. |
+| 31 | `src/lib/ContentValidationService.ts:269` | Store content hashes for duplicate detection | ⬜ | ContentValidationService.ts exists at ~17KB (526 lines); hash storage not yet implemented. |
 | 32 | `src/lib/ContentValidationService.ts:463` | Integrate image safety API (currently no-op) | ✅ | Google Cloud Vision SafeSearch — flags adult/violence/racy LIKELY+ images; graceful fallback to URL check if key absent |
 | 33 | `src/lib/analytics/view-counter.ts:187` | Add `viewCount` field to Section model in Prisma schema | ✅ | Implemented DB logic in \`view-counter.ts\` to use \`viewCount\` field which was already in schema |
 | 34 | `src/app/api/works/publish/route.ts` | Wire content validation checks into publish flow | ✅ | Validates ALL sections (not just first); removed auto-approve; mature content confirmation modal wired; PrePublishChecklist calls server validation; new `/api/works/[id]/validate` dry-run endpoint. |
