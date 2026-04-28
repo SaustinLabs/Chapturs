@@ -28,88 +28,26 @@
 │   ├── admin/              # Admin panel pages
 │   ├── contributor/        # Contributor profiles & boards
 │   └── ...                 # Other route groups (auth, browse, etc.)
-├── components/             # React components (.tsx) — 155+ files
-│   ├── ui/                 # Shared UI primitives (7 files)
-│   ├── ads/                # Ad-related components (7 files)
-│   ├── editor/             # TipTap editor extensions & converters (3 files)
-│   ├── living-world/       # Living World UI (off-limits for workers, 6 files)
-│   ├── profile/            # Profile blocks, configs, editors (7 files)
-│   ├── auth/               # Auth components (2 files)
-│   ├── experimental/       # Experimental features: branching stories, visual novels, worldbuilding (4 files)
-│   ├── onboarding/         # Onboarding UI components (2 files)
-│   ├── story/              # Story page components (1 file)
-│   └── upload/             # Upload components (1 file)
+├── components/             # React components (.tsx) — 100+ files
+│   ├── ui/                 # Shared UI primitives
+│   ├── ads/                # Ad-related components
+│   ├── editor/             # TipTap editor extensions & converters
+│   └── profile/            # Profile blocks, configs, editors
 ├── hooks/                  # Custom React hooks (.ts/.tsx) — 4 files
-├── lib/                    # Business logic & utilities — 63+ files
-│   ├── api/                # API helpers (errorHandling, schemas, DataService) — 6 files
-│   ├── database/           # PrismaService singleton + schema.sql — 2 files
-│   ├── recommendations/    # Recommendation engine (ML-based) — 6 files
-│   ├── living-world/       # Canon, contradiction scanner, lore master — 4 files
-│   ├── quality-assessment/ # LLM-powered QA pipeline — 5 files
-│   ├── achievements/       # Points system & achievement logic — 1 file
-│   ├── ads/                # Ad eligibility & density calculator — 2 files
-│   ├── analytics/          # Analytics utilities (view-counter) — 1 file
-│   ├── auth/               # Auth helpers — 1 file
-│   ├── cache/              # Caching utilities — 1 file
-│   ├── digest/             # Weekly email digest batching — 1 file
-│   ├── emoji/              # Custom emoji system — 2 files
-│   └── observability/      # Monitoring logs (monetization, scheduler, world) — 3 files
-│   └── suggestions/        # Edit suggestion utilities — 1 file
+├── lib/                    # Business logic & utilities — 50+ files
+│   ├── api/                # API helpers (errorHandling, schemas, DataService)
+│   ├── database/           # PrismaService singleton + schema.sql
+│   ├── recommendations/    # Recommendation engine (ML-based)
+│   ├── living-world/       # Canon, contradiction scanner, lore master
+│   ├── quality-assessment/ # LLM-powered QA pipeline
+│   ├── achievements/       # Points system & achievement logic
+│   ├── ads/                # Ad eligibility & density calculator
+│   ├── digest/             # Weekly email digest batching
+│   ├── emoji/              # Custom emoji system
+│   └── observability/      # Monitoring logs (monetization, scheduler, world)
 ├── types/                  # TypeScript type definitions — 7 files
 └── auth.ts                 # NextAuth config
 ```
-
-## Conventions
-
-### API Routes (`src/app/api/[...]/route.ts`)
-- Use `GET`, `POST`, `PUT`, `DELETE` exports (not `app.get()` Express style)
-- Always import from `@/lib/api/errorHandling` for standardized responses:
-  - `createSuccessResponse(data)` — `{ success: true, data }`
-  - `createErrorResponse(code, message)` — `{ error, message, code }`
-- Validate all input with Zod schemas before processing
-- Use shared Prisma via `@/lib/database/PrismaService` (never create new instances)
-- Rate limiting via `checkRateLimitAsync(key, limit, windowMs)` from errorHandling
-- Auth via `import { auth } from '@/auth'` or edge variant
-
-### Components
-- Named exports only (no default exports)
-- File naming: PascalCase (`FeedCard.tsx`, `ChapterReader.tsx`)
-- Props interface before component definition
-- Use Tailwind classes directly; avoid arbitrary values unless necessary
-- Import from `@/components/ui` for shared primitives
-
-### Database (Prisma)
-- Models defined in `/prisma/schema.prisma`
-- Always use the singleton: `import { prisma } from '@/lib/database/PrismaService'`
-- Use Prisma's generated types from `@prisma/client`
-- For raw queries, prefer Prisma's query builder over raw SQL
-
-### Types (`src/types/index.ts`)
-- Domain types live here (Work, FeedItem, Author, User, etc.)
-- Extend or add new types alongside existing ones
-- Don't duplicate types that already exist in Prisma client
-
-### Environment Variables
-- `DATABASE_URL` — PostgreSQL connection string (Supabase)
-- `REDIS_URL` / `REDIS_HOST` — Redis connection
-- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` — Stripe integration
-- `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` — Storage
-- `NEXTAUTH_SECRET` — NextAuth signing key
-
-## How to Add New Features
-
-1. **New API endpoint**: Create `src/app/api/[path]/route.ts` with Zod validation, Prisma queries, and standardized error handling.
-2. **New page/route**: Create folder under `src/app/` with `page.tsx`. Use server components by default; add `'use client'` only when needed.
-3. **New component**: Add to `src/components/`, export from index if shared.
-4. **New database field**: Update `schema.prisma`, run migration, then update relevant types in `src/types/`.
-5. **New hook**: Add to `src/hooks/`, follow naming convention (`useXxx`).
-
-## Testing & Quality
-
-- **Unit tests**: Jest (`npm run verify:monetization` runs stripe-webhook, stripe-checkout, payouts-flow tests) — 13 test files in `src/__tests__/` covering achievements, points, payouts, Stripe, collaborators, and edit suggestions
-- **E2E tests**: Playwright (`npm run test:e2e`) — includes mobile smoke suite (`test:e2e:mobile`)
-- **Linting**: Next.js built-in lint (`npm run lint`)
-- **Build**: `npm run build` (Prisma generate + Next.js build)
 
 ## Key Files to Reference
 
@@ -128,29 +66,6 @@
 - Don't add pay-per-read features (violates VISION.md principle #1)
 - Don't over-engineer author-facing tools (principle: "if it's hard for an author, don't build it")
 
-## Off-Limits Systems — DO NOT TOUCH
-
-These systems are too complex or premature. Workers must skip any task that touches them:
-
-1. **Living World system** (`src/lib/living-world/`, `src/app/api/living-world/`, `src/components/living-world/`)
-   - Lore master, canon graph, contradiction scanner, world atlas, lore index, timeline view
-   - Writers room console, lore index, world definition forms
-   - Do NOT modify, extend, refactor, or add to any living-world code
-
-## Allowed Systems — Workers May Build These
-
-Workers are encouraged to build and improve the following systems if they see value:
-
-1. **AI story writer bots** (any AI-generated content systems)
-   - Author bots, AI writing assistants, AI content generation tools
-   - Workers can design, implement, and iterate on these freely
-   - No restrictions — build what makes sense for the platform
-
-2. **Living World system** (`src/lib/living-world/`, `src/app/api/living-world/`, `src/components/living-world/`)
-   - Lore master, canon graph, contradiction scanner, world atlas, lore index, timeline view
-   - Writers room console, lore index, world definition forms
-   - Workers can improve, extend, and build new features for these systems
-
 ## Task Sync with TASKS.md
 
 Workers automatically sync between `TASKS.md` (master task list in repo) and `TASK_QUEUE.md` (worker queue):
@@ -161,3 +76,12 @@ Workers automatically sync between `TASKS.md` (master task list in repo) and `TA
 - The auditor syncs completion status back: when a worker completes a TASKS.md task, its ✅ status is updated
 
 This means workers always have fresh priorities from your master list without manual intervention.
+
+## No Off-Limits Restrictions
+
+**Nothing is off-limits.** Workers may build, modify, or improve any system in the codebase including:
+- Living World system (lore master, canon graph, contradiction scanner, etc.)
+- AI story writer bots and content generation tools
+- Any other feature or subsystem
+
+Workers have full autonomy to explore and implement whatever they think would benefit the platform.
