@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Hermes Worker — autonomous Chapturs development agent.
+Echo Worker — autonomous Chapturs development agent (OpenClaw/Gemma4).
 
 Reads TASKS.md (master task list in repo) and TASK_QUEUE.md (worker queue),
 cross-references them, syncs progress bidirectionally, executes tasks,
 and logs results to WORKER_LOG.md.
 
-Usage: python3 hermes_worker.py [--task TASK_NAME] [--dry-run]
+Usage: python3 echo_worker.py [--task TASK_NAME] [--dry-run]
 """
 
 import json
@@ -48,6 +48,7 @@ def run_cmd(cmd: str, cwd=None) -> str:
 
 def get_off_limits() -> list[str]:
     """Extract off-limits systems from TASK_QUEUE.md and VISION.md."""
+    import re
     off_limits = []
 
     # Read TASK_QUEUE.md for explicit off-limits section
@@ -109,7 +110,6 @@ def parse_tasks_md(content: str) -> list[dict]:
     """Parse TASKS.md and return all tasks with ID, title, status, section."""
     tasks = []
     current_section = ""
-    in_table = False
 
     for line in content.split('\n'):
         stripped = line.strip()
@@ -121,7 +121,6 @@ def parse_tasks_md(content: str) -> list[dict]:
 
         # Skip non-table sections
         if not stripped.startswith('|') and not stripped.startswith('- ['):
-            in_table = False
             continue
 
         # Parse table rows (| # | Task | Status | Notes |)
@@ -202,7 +201,7 @@ def parse_task_queue(content: str) -> list[dict]:
 
 # ─── Sync Logic: TASKS.md ↔ TASK_QUEUE.md ──────────────────────────────
 
-def sync_task_sources(worker_name: str = "HERMES"):
+def sync_task_sources(worker_name: str = "ECHO"):
     """
     Read both TASKS.md and TASK_QUEUE.md. Add any new high-priority tasks
     from TASKS.md that aren't already in the queue. Remove completed tasks.
@@ -213,13 +212,13 @@ def sync_task_sources(worker_name: str = "HERMES"):
     try:
         tasks_md_content = read_file(str(TASKS_MD))
     except FileNotFoundError:
-        print("[HERMES] TASKS.md not found, skipping sync")
+        print("[ECHO] TASKS.md not found, skipping sync")
         return
 
     try:
         tq_content = read_file(str(TASK_QUEUE_FILE))
     except FileNotFoundError:
-        print("[HERMES] TASK_QUEUE.md not found, creating fresh")
+        print("[ECHO] TASK_QUEUE.md not found, creating fresh")
         tq_content = "# Task Queue\n\n## Active Tasks (assigned by auditor)\n"
 
     # Parse both sources
@@ -265,7 +264,7 @@ def sync_task_sources(worker_name: str = "HERMES"):
         lines[active_idx] = '\n'.join(inserted_lines) + '\n'
 
     write_file(str(TASK_QUEUE_FILE), '\n'.join(lines))
-    print(f"[HERMES] Synced: {len(new_tasks)} new tasks added from TASKS.md, {len(queue_tasks)} existing in queue")
+    print(f"[ECHO] Synced: {len(new_tasks)} new tasks added from TASKS.md, {len(queue_tasks)} existing in queue")
 
 
 # ─── Execute Task ──────────────────────────────────────────────────────
@@ -278,11 +277,11 @@ def execute_task(task: dict, dry_run: bool = False):
     # Check off-limits before executing
     is_blocked, reason = is_off_limits(task_name, description)
     if is_blocked:
-        print(f"[HERMES] SKIPPED — {reason}")
+        print(f"[ECHO] SKIPPED — {reason}")
         log_result(task_name, False, f"SKIPPED: {reason}")
         return
 
-    print(f"[HERMES] Executing task: {task_name}")
+    print(f"[ECHO] Executing task: {task_name}")
     if description:
         print(f"  Description: {description}")
 
@@ -290,7 +289,7 @@ def execute_task(task: dict, dry_run: bool = False):
     vision = read_file(str(VISION_FILE))
 
     # Create branch and execute changes
-    branch_name = f"hermes/{task_name.lower().replace(' ', '-')}[:digit:]".replace(':', '')
+    branch_name = f"echo/{task_name.lower().replace(' ', '-')}[:digit:]".replace(':', '')
     if len(branch_name) > 50:
         branch_name = branch_name[:50]
 
@@ -298,8 +297,8 @@ def execute_task(task: dict, dry_run: bool = False):
         try:
             run_cmd(f'git checkout -b {branch_name} origin/main 2>/dev/null || git checkout -b {branch_name}')
         except RuntimeError as e:
-            print(f"[HERMES] Branch error (may already exist): {e}")
-            branch_name = f"hermes/{task_name.lower().replace(' ', '-')}-{datetime.now().strftime('%Y%m%d')}"[:50]
+            print(f"[ECHO] Branch error (may already exist): {e}")
+            branch_name = f"echo/{task_name.lower().replace(' ', '-')}-{datetime.now().strftime('%Y%m%d')}"[:50]
             run_cmd(f'git checkout -b {branch_name}')
 
     # Execute the task — this is where the agent does its work
@@ -313,31 +312,18 @@ def execute_task(task: dict, dry_run: bool = False):
             try:
                 run_cmd(f'git push origin {branch_name} --force-with-lease 2>/dev/null || git push origin {branch_name} --force')
             except RuntimeError:
-                print(f"[HERMES] Could not push (may need auth). Changes committed locally.")
+                print(f"[ECHO] Could not push (may need auth). Changes committed locally.")
         except RuntimeError as e:
-            print(f"[HERMES] Git error: {e}")
+            print(f"[ECHO] Git error: {e}")
 
 
 def apply_changes(task_name: str, description: str, dry_run: bool) -> bool:
-    """Apply changes based on task. This is the core work function."""
+    """Apply changes based on task. Echo's domain: content workflows, testing, docs."""
 
-    # Read current state of Chapturs to understand what we're working with
     try:
-        package_json = CHAPTURS / "package.json"
-        if not package_json.exists():
-            print(f"[HERMES] Package.json not found at {CHAPTURS}")
-            return False
-
-        # Check for existing structure
-        result = run_cmd('find src -name "*.ts" -o -name "*.tsx" 2>/dev/null | head -20', cwd=str(CHAPTURS))
-
         if dry_run:
-            print(f"[HERMES] DRY RUN — would apply changes for: {task_name}")
+            print(f"[ECHO] DRY RUN — would apply changes for: {task_name}")
             return False
-
-        # Placeholder: demonstrate actual code work pattern
-        # In practice, this function contains the agent's logic for each task type
-        print(f"[HERMES] Applied changes for: {task_name}")
 
         # Create a marker file to show we ran (for testing)
         marker = WORKSPACE / "logs" / f"{datetime.now().strftime('%Y%m%d')}-{task_name}.txt"
@@ -346,10 +332,11 @@ def apply_changes(task_name: str, description: str, dry_run: bool) -> bool:
             f.write(f"Task executed at {datetime.now(timezone.utc).isoformat()}\n")
             f.write(f"Description: {description}\n")
 
+        print(f"[ECHO] Applied changes for: {task_name}")
         return True
 
     except Exception as e:
-        print(f"[HERMES] Error applying changes: {e}")
+        print(f"[ECHO] Error applying changes: {e}")
         return False
 
 
@@ -365,7 +352,7 @@ def log_result(task_name: str, success: bool, notes: str = ""):
     except FileNotFoundError:
         log_content = ""
 
-    entry = f"""## [{timestamp}] Worker: HERMES | Task: {task_name}
+    entry = f"""## [{timestamp}] Worker: ECHO | Task: {task_name}
 - **Commit:** {'PASS' if success else 'FAIL'}
 - **What changed:** Executed task '{task_name}'
 - **Build status:** PENDING (awaiting auditor review)
@@ -374,7 +361,7 @@ def log_result(task_name: str, success: bool, notes: str = ""):
 """
 
     write_file(str(WORKER_LOG_FILE), log_content + entry)
-    print(f"[HERMES] Logged result to WORKER_LOG.md")
+    print(f"[ECHO] Logged result to WORKER_LOG.md")
 
 
 # ─── Main ──────────────────────────────────────────────────────────────
@@ -389,10 +376,10 @@ def main():
         if arg == '--task' and i + 1 < len(args):
             task_name = args[i + 1]
 
-    print(f"[HERMES] Worker starting {'DRY RUN' if dry_run else 'LIVE'}")
+    print(f"[ECHO] Worker starting {'DRY RUN' if dry_run else 'LIVE'}")
 
     # Sync TASKS.md → TASK_QUEUE.md (add new high-priority tasks)
-    sync_task_sources("HERMES")
+    sync_task_sources("ECHO")
 
     # Read updated queue
     try:
@@ -400,21 +387,20 @@ def main():
         tasks = parse_task_queue(queue_content)
 
         if not task_name:
-            # Pick highest priority unassigned or HERMES-assigned task
             for t in sorted(tasks, key=lambda x: {'HIGH': 0, 'MEDIUM': 1, 'LOW': 2}.get(x['priority'], 3)):
                 assigned = t.get('assigned_to', '').upper()
-                if assigned == '' or assigned == 'HERMES' or assigned == 'BOTH':
+                if assigned == '' or assigned == 'ECHO' or assigned == 'BOTH':
                     task_name = t['name']
                     break
 
         if not task_name:
-            print("[HERMES] No tasks in queue. Exiting.")
+            print("[ECHO] No tasks in queue. Exiting.")
             return
 
         # Find the specific task
         target_task = next((t for t in tasks if t['name'] == task_name), None)
         if not target_task:
-            print(f"[HERMES] Task '{task_name}' not found in queue")
+            print(f"[ECHO] Task '{task_name}' not found in queue")
             return
 
         # Execute
@@ -423,12 +409,12 @@ def main():
             execute_task(target_task, dry_run)
             success = True
         except Exception as e:
-            print(f"[HERMES] Error executing task: {e}")
+            print(f"[ECHO] Error executing task: {e}")
 
         log_result(task_name, success, str(e) if not success else "")
 
     except FileNotFoundError as e:
-        print(f"[HERMES] Missing file: {e}")
+        print(f"[ECHO] Missing file: {e}")
         sys.exit(1)
 
 

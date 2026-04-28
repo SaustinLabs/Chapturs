@@ -69,3 +69,9 @@ test-results/
 .squad/sessions/
 # Squad: SubSquad activation file (local to this machine)
 .squad-workstream
+
+# Large binary files that should not be tracked
+*.exe
+*.zip
+*.tar.gz
+*.dmg
