@@ -118,4 +118,14 @@ These systems are too complex or premature. Workers must skip any task that touc
 
 2. **AI story writer bots** (any AI-generated content systems)
    - Author bots, AI writing assistants, AI content generation tools
-   - Leave alone until explicitly requested by Sam
+
+## Task Sync with TASKS.md
+
+Workers automatically sync between `TASKS.md` (master task list in repo) and `TASK_QUEUE.md` (worker queue):
+
+- On each run, workers read `TASKS.md` and add any new HIGH/MEDIUM priority tasks to the queue
+- Only 3 new tasks are added per run (to avoid overwhelming the queue)
+- Tasks already in the queue are skipped (dedup by title similarity or task ID)
+- The auditor syncs completion status back: when a worker completes a TASKS.md task, its ✅ status is updated
+
+This means workers always have fresh priorities from your master list without manual intervention.
