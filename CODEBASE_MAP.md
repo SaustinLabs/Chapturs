@@ -1,6 +1,6 @@
 # Chapturs — Codebase Map
 
-> Last updated: April 28, 2026
+> Last updated: April 28, 2026 (automated audit)
 > **Source of truth** for where every feature lives in the repository.
 
 ---
@@ -11,10 +11,10 @@
 Chapturs/
 ├── src/                          # Application source code (507 files)
 │   ├── app/                      # Next.js App Router pages & API routes
-│   │   ├── api/                  # 172 route files across 51 namespaces
+│   │   ├── api/                  # 173 route files across 52 namespaces
 │   │   └── *.tsx/*.ts            # 75 page components (flat under src/app/)
-│   ├── components/               # 158 .tsx/.ts component files (+ subdirectories)
-│   └── lib/                      # 62 library/utility modules
+│   ├── components/               # 159 .tsx/.ts component files (+ subdirectories)
+│   └── lib/                      # 74 library/utility modules
 ├── prisma/                       # Prisma schema + migrations + seed
 ├── docs/                         # Documentation source & summaries
 ├── public/                       # Static assets (images, logos, OG images)
@@ -154,7 +154,7 @@ Chapturs/
 
 ---
 
-## API Routes (`src/app/api/`) — 172 route files across 51 namespaces
+## API Routes (`src/app/api/`) — 173 route files across 52 namespaces
 
 ### Admin APIs (16 routes)
 - `admin/bootstrap` — PIN-based admin role activation
@@ -379,7 +379,21 @@ Chapturs/
 
 ---
 
-## Components (`src/components/`) — 158 .tsx/.ts files (+ subdirectories)
+## Components (`src/components/`) — 159 .tsx/.ts files (+ subdirectories)
+
+### Component Directory Breakdown
+- `src/components/` (root) — 92 component files
+- `src/components/admin/` — 1 file: `GutenbergImportForm.tsx`
+- `src/components/ads/` — 7 files
+- `src/components/auth/` — 2 files
+- `src/components/editor/` — 3 files
+- `src/components/experimental/` — 4 files
+- `src/components/living-world/` — 6 files
+- `src/components/onboarding/` — 2 files
+- `src/components/profile/` — 4 root files + subdirectories (blocks: 12, config: 11, editor: 6)
+- `src/components/story/` — 1 file
+- `src/components/ui/` — 7 files
+- `src/components/upload/` — 1 file
 
 Key components by category:
 
@@ -437,6 +451,7 @@ Key components by category:
 - `AdSupportSettings.tsx` — Reader ad support level settings
 - `BetaWelcome.tsx` — Beta welcome banner
 - `BuildingInPublicStats.tsx` — Roadmap stats display
+- `GutenbergImportForm.tsx` — Gutenberg import form (admin component)
 - `ModerationDashboard.tsx` — Content moderation dashboard UI
 - `PremiumSubscriptionSettings.tsx` — Premium subscription configuration
 
@@ -529,7 +544,7 @@ Key components by category:
 
 ---
 
-## Libraries (`src/lib/`) — 62 modules (+ test utilities)
+## Libraries (`src/lib/`) — 74 modules (+ test utilities)
 
 ### Core Services
 - `ContentValidationService.ts` — Content validation (maturity checks, image safety via Google Cloud Vision)
@@ -611,6 +626,16 @@ Key components by category:
 ### Suggestions
 - `suggestions/suggestion-permissions.ts` — Edit suggestion permission checks
 
+### Gutenberg Import Pipeline (spec written, implementation in progress)
+- `gutenberg-import/bot-user.ts` — Bot author record creation
+- `gutenberg-import/fetch-metadata.ts` — Fetch metadata from Google Books API
+- `gutenberg-import/generate-characters.ts` — AI character profile generation
+- `gutenberg-import/generate-glossary.ts` — AI glossary entry generation
+- `gutenberg-import/importer.ts` — Main import orchestrator
+- `gutenberg-import/parse-chapters.ts` — Parse document chapters
+- `gutenberg-import/parse-url.ts` — URL parsing utilities
+- `gutenberg-import/upload-cover.ts` — Cover image upload handling
+
 ### External APIs
 - `api/twitch.ts` / `api/x.ts` / `api/youtube.ts` — Social media integrations
 
@@ -674,18 +699,19 @@ Key models in the schema (`prisma/schema.prisma`):
 - `/api/test-error-handling` — Error handling tests
 - `/api/test-node` — Node environment tests
 
-### Test Pages (`src/app/test/` + root) — 5 pages
-- `/test-upload` — File upload testing page (root level)
+### Test Pages (`src/app/test/` + `src/app/admin/contests/`) — 6 pages
+- `/test-upload` — File upload testing page (under `src/app/test-upload/`)
 - `/test/editor` — Chapter editor testing page
 - `/test/emoji` — Emoji picker testing page
 - `/test/moderation` — Moderation testing page
 - `/test/reader` — Reader testing page
+- `/admin/contests` — Contest management (also serves as test page)
 
-
+These should be removed or gated behind feature flags before production deployment.
 
 ---
 
-## Scripts (`scripts/`)
+## Scripts (`scripts/`) — 8 files (+ sql/ subdirectory)
 
 ### Deployment & Operations
 - `process-queue.js` — Process queued jobs (QA queue, moderation queue)
@@ -698,7 +724,7 @@ Key models in the schema (`prisma/schema.prisma`):
 - `echo_worker.py` — Echo documentation maintainer for autonomous development
 - `hermes_worker.py` — Hermes agent worker for autonomous tasks
 
-### SQL Utilities
+### SQL Utilities & Maintenance
 - `addSafetyRule.mjs` — Add safety rules to content validation
 - `fix-r2-urls.js` — Fix R2 image URLs in database
 - `sql/` — SQL utility scripts directory

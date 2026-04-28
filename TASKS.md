@@ -17,8 +17,9 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 ### Recent Documentation Fixes (April 28, 2026)
 
-- CODEBASE_MAP.md updated: Added missing Creator Hub pages section (23 pages), fixed lib count from 64→62
+- CODEBASE_MAP.md updated: Fixed counts (173 API routes / 52 namespaces, 159 components, 74 lib modules), added gutenberg-import section, added admin component directory breakdown, fixed test pages reference
 - TASKS.md verified against actual codebase state — all TODO references confirmed accurate
+- VISION.md updated: Added Gutenberg import pipeline to "Live / Implemented" and corrected "Partial / In Progress" status
 
 ---
 
@@ -313,15 +314,12 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 
 ## 📝 Dev/Test Pages (Not for Production)
 
-These pages exist under `src/app/test/` and `src/app/api/test*` for development/testing purposes only:
-- `/test-upload` — File upload testing page
+These pages exist under `src/app/test/`, `src/app/test-upload/`, and `src/app/admin/contests/` for development/testing purposes only:
+- `/test-upload` — File upload testing page (`src/app/test-upload/page.tsx`)
 - `/test/editor` — Editor testing page
 - `/test/emoji` — Emoji picker testing page
 - `/test/moderation` — Moderation testing page
 - `/test/reader` — Reader testing page
-- `/api/test-db` — Database connectivity tests
-- `/api/test-error-handling` — Error handling tests
-- `/api/test-node` — Node environment tests
-- `/api/test/moderation` — Test moderation endpoint
+- `/admin/contests` — Contest management (also serves as test page)
 
 These should be removed or gated behind feature flags before production deployment.

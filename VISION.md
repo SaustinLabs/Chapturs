@@ -172,9 +172,11 @@ Multi-layer revenue model:
 - In-app notification center (60s polling)
 - Onboarding with taste discovery survey
 - Playwright mobile smoke test suite
+- Gutenberg import pipeline implementation (`src/lib/gutenberg-import/` — 8 files)
+- Admin component: `GutenbergImportForm.tsx`
 
 ### 🔶 Partial / In Progress
-- Gutenberg import pipeline (spec written, implementation not started)
+- Gutenberg import pipeline (implementation started — 8 files in `src/lib/gutenberg-import/`, spec at `docs/source/plans/gutenberg-import-pipeline.md`)
 - AdSense rendering in production (false-positive adblock detection fixed)
 - Sentry activation on VPS push (SDK installed + configured)
 - `/features` page copy/status sync with TASKS.md
