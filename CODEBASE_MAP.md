@@ -14,7 +14,7 @@ Chapturs/
 │   │   ├── api/                  # 172 route files across 51 namespaces
 │   │   └── *.tsx/*.ts            # 75 page components (flat under src/app/)
 │   ├── components/               # 158 .tsx/.ts component files (+ subdirectories)
-│   └── lib/                      # 63 library/utility modules
+│   └── lib/                      # 62 library/utility modules
 ├── prisma/                       # Prisma schema + migrations + seed
 ├── docs/                         # Documentation source & summaries
 ├── public/                       # Static assets (images, logos, OG images)
@@ -529,7 +529,7 @@ Key components by category:
 
 ---
 
-## Libraries (`src/lib/`) — 63 modules (+ test utilities)
+## Libraries (`src/lib/`) — 62 modules (+ test utilities)
 
 ### Core Services
 - `ContentValidationService.ts` — Content validation (maturity checks, image safety via Google Cloud Vision)
@@ -737,6 +737,9 @@ Key models in the schema (`prisma/schema.prisma`):
 ---
 
 ## Documentation (`docs/`)
+
+### Root Index
+- `INDEX.md` — Master documentation index and navigation guide
 
 ### Index & Summaries (`docs/summaries/`)
 - `feature-systems.md` — Feature overview

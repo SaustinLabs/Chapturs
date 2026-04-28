@@ -30,6 +30,7 @@ This repository is the project archive for **Chapturs.com**. It contains both th
 - [TASKS.md](TASKS.md) — Master task list with status tracking
 
 ## Documentation Index (`docs/`)
+- [docs/INDEX.md](docs/INDEX.md) — Master documentation index and navigation guide
 All source documents live under `docs/source/` organized by category:
 - **features/** — Feature specifications (character profiles, comments, editor, glossary, etc.)
 - **implementations/** — Implementation details and release notes

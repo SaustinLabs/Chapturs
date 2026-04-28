@@ -108,7 +108,7 @@ Multi-layer revenue model:
 
 | Layer | Technology | Notes |
 |-------|-----------|-------|
-| Framework | Next.js 15 (App Router) | Turbopack dev, standalone output |
+| Framework | Next.js 15 (App Router) | Turbopack dev, standalone output, Node.js 20.x |
 | Language | TypeScript 5 | Strict mode enabled |
 | Styling | Tailwind CSS 3.4 | Dark mode first-class, Inter variable font |
 | Database | PostgreSQL (Supabase) | Prisma ORM, 2,375-line schema |
