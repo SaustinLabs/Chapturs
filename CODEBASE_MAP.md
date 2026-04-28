@@ -1,499 +1,516 @@
-# Chapturs Architecture Map
+# Chapturs — Codebase Map
 
-## Overview
-Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across 40+ route groups, 507 source files total. Core stack: Next.js, Prisma, Redis, S3/R2 storage, Stripe for payments. Deployment via VPS (PM2) and Vercel.
-
----
-
-## Database Schema (Prisma — 2375 lines, 89 models)
-
-### Core Models
-- **User** — accounts, auth, roles (user/moderator/admin), premium status, ad support level
-- **Work** — serialized fiction works (stories/novels), chapters, sections
-- **Chapter** — individual chapters within a work
-- **Section** — granular content blocks within chapters (supports versioning, locking, collaboration)
-- **AuthorProfile** — author-specific metadata and settings
-
-### Reader Features
-- **Subscription** — user subscriptions to works/authors
-- **Bookmark** / **Like** / **ReadingHistory** / **ReadingSession** — reader engagement tracking
-- **UserProfile** — taste profile for recommendations (taste samples, preferences)
-- **UserSignal** — implicit signals (reading time, completion rate, skip patterns)
-- **RecommendationCache** / **RecommendationFeedback** — recommendation system state
-
-### Creator Features
-- **WorkCollaborator** — co-authoring permissions on works
-- **SectionEditSuggestion** — community edit suggestions with approval workflow
-- **SectionVersion** — version history for collaborative editing
-- **SectionLock** / **SectionPresence** — real-time collaboration locks and cursors
-
-### Community & Living World
-- **LivingWorld** — shared universes across multiple works (fan-created canon)
-- **CanonEntry** / **CanonCharacter** — canonical facts/characters within a living world
-- **LoreContradictionFlag** — automated contradiction detection between canon entries
-- **WorldCouncilVote** / **WorldCouncilMember** — community governance of shared universes
-
-### Content Quality & Moderation
-- **ContentReport** / **CommentReport** — content and comment reporting system
-- **QualityAssessment** — work quality scoring (LLM-powered)
-- **WorkRating** — user ratings for works
-- **Comment** — threaded comments with likes, reactions, reports
-
-### Monetization
-- **Payout** — author payout requests and processing
-- **AdPlacement** / **AdImpression** — ad system tracking
-- **CreatorRecommendation** — creator-to-reader recommendation features
-- **StripeCustomer** / **StripeSubscription** — payment integration
-
-### Fan Content Contributions
-- **FanTranslation** — community translations with voting/rating
-- **FanAudiobook** — community audiobook submissions
-- **FanContentVote** — voting on fan content quality
-- **Tier3Deal** — premium tier deal proposals from contributors
-
-### Gamification
-- **Achievement** / **UserAchievement** — badges and milestones (bronze/silver/gold/platinum)
-- **PointsLedger** — points system for actions (publishing chapters, reading, etc.)
-- **LevelTier** — progression levels (Newcomer → Apprentice → Journeyman, etc.)
-
-### Analytics & Notifications
-- **Notification** — in-app notifications
-- **SearchAnalytic** — search behavior tracking
-- **ABTestGroup** — A/B testing framework
+> Last updated: April 28, 2026
+> **Source of truth** for where every feature lives in the repository.
 
 ---
 
-## API Routes (~172 route files)
+## Directory Structure Overview
 
-### Auth & Users
-| Route | Purpose |
-|-------|---------|
-| `api/auth/[...nextauth]` | NextAuth.js authentication |
-| `api/auth/current-user` | Get current authenticated user |
-| `api/auth/sync-user` | Sync user profile data |
-| `api/user/profile`, `user/account`, `user/monetization` | User management |
-
-### Works & Chapters (Core Content)
-| Route | Purpose |
-|-------|---------|
-| `api/works/[id]` | Get/update work details |
-| `api/works/route` | List/create works |
-| `api/works/user/[userId]` | User's works |
-| `api/works/publish`, `works/drafts` | Publishing workflow |
-| `api/works/import` | Universal story importer endpoint |
-| `api/chapter/[workId]/[chapterId]/content` | Chapter content retrieval |
-
-### Sections (Granular Content Blocks)
-| Route | Purpose |
-|-------|---------|
-| `api/works/[id]/sections` | List sections within a work |
-| `api/works/[id]/sections/[sectionId]` | Get/update section |
-| `api/works/[id]/sections/[sectionId]/versions` | Section version history |
-| `api/works/[id]/sections/[sectionId]/lock` | Real-time collaboration lock |
-| `api/works/[id]/sections/[sectionId]/presence` | Live presence/cursors |
-
-### Feed & Recommendations
-| Route | Purpose |
-|-------|---------|
-| `api/feed` | Main feed with recommendations |
-| `api/search` | Full-text search across works |
-| `api/library` | User's library (saved/reading) |
-| `api/signals` | Reader signal tracking |
-
-### Creator Dashboard
-| Route | Purpose |
-|-------|---------|
-| `api/creator/dashboard-stats` | Creator analytics overview |
-| `api/creator/analytics` | Detailed work analytics |
-| `api/creator/earnings` | Revenue/payout data |
-| `api/creator/profile` | Author profile management |
-| `api/creator/works` | Creator's works management |
-
-### Admin Panel
-| Route | Purpose |
-|-------|---------|
-|| `api/admin/users`, `admin/stats`, `admin/settings` | User and system admin |
-|| `api/admin/payouts`, `admin/ad-revenue` | Financial administration |
-|| `api/admin/contests`, `admin/community-links` | Community management |
-
-### Fan Content & Translations
-| Route | Purpose |
-|-------|---------|
-| `api/fan-translations/[id]/suggest`, `[id]/rate` | Translation submission and voting |
-| `api/translations/route`, `translations/submit` | Translation management |
-| `api/fan-content/vote` | Fan content quality voting |
-
-### Living World System
-| Route | Purpose |
-|-------|---------|
-| `api/living-world/[worldId]` | Get living world details |
-| `api/living-world/[worldId]/canon` | Canon entries for a world |
-| `api/living-world/[worldId]/contradictions` | Lore contradiction detection |
-| `api/living-world/[worldId]/lore-master` | AI-powered lore management |
-
-### Social & Integrations
-| Route | Purpose |
-|-------|---------|
-| `api/social/x/user/[username]`, `social/youtube/channel/` | Social media integrations |
-| `api/social/discord/server/[guildId]` | Discord integration |
-| `api/social/twitch/channel/[channelName]` | Twitch integration |
-
-### Payments & Premium
-| Route | Purpose |
-|-------|---------|
-| `api/stripe/checkout`, `stripe/webhook` | Stripe payment processing |
-| `api/premium/status` | Check premium subscription status |
-| `api/user/taste-profile`, `user/taste-profile/samples` | Taste profile for recommendations |
-
-### Quality Assessment (LLM-powered)
-|| Route | Purpose |
-||-------|---------|
-|| `api/quality-assessment/[workId]` | Get quality score for a work |
-|| `api/quality-assessment/process`, `queue`, `stats` | LLM assessment pipeline |
-
-### Cron Jobs & Scheduling
-|| Route | Purpose |
-||-------|---------|
-|| `api/cron/flush-analytics` | Analytics data flush |
-|| `api/cron/process-assessments` | Background quality assessment processing |
-|| `api/cron/weekly-digest` | Weekly email digest delivery |
-
-### Contests & Events
-|| Route | Purpose |
-||-------|---------|
-|| `api/contests`, `contests/[id]/enter` | Contest creation and entry management |
-|| `admin/contests`, `admin/contests/[id]` | Admin contest management |
-
-### Contributor Quality Assessment
-|| Route | Purpose |
-||-------|---------|
-|| `api/contributor/glossary/[workId]` | Glossary contribution tracking |
-|| `api/contributor/qa-queue`, `contributor/qa-vote` | Community QA voting system |
-
-### Series System (v04)
-|| Route | Purpose |
-||-------|---------|
-|| `api/series`, `series/[seriesId]` | Series CRUD operations |
-|| `api/series/[seriesId]/subscribe` | Subscribe to all works in a series |
-|| `api/series/[seriesId]/works` | List works within a series |
-
-### Creator Ads & Recommendations
-|| Route | Purpose |
-||-------|---------|
-|| `api/creator-ads/recommendations` | Creator-to-reader recommendation setup |
-|| `api/default-ads/config`, `default-ads/config` | Default ad configuration management |
-
-### Upload Pipeline
-|| Route | Purpose |
-||-------|---------|
-|| `api/upload/request`, `upload/confirm`, `upload/delete` | Multi-step file upload pipeline |
-|| `api/upload/cover`, `upload/debug` | Cover image upload and debugging |
-|| `api/upload/parse-document` | Document parsing for story import (DOCX/PDF) |
-
-### Reader Stats & Progress
-|| Route | Purpose |
-||-------|---------|
-|| `api/reader/stats` | Per-reader reading statistics |
-|| `api/reading-progress`, `reading-sessions` | Reading progress tracking and session management |
-
-### Health Checks
-||| Route | Purpose |
-|||-------|---------|
-||| `api/health`, `health-edge` | Application health monitoring (standard + edge) |
-
-### Testing & Tier 3 Deals
-||| Route | Purpose |
-|||-------|---------|
-||| `api/test/*`, `test-db/*`, `test-error-handling/*`, `test-node/*` | Test endpoints and database testing utilities |
-||| `api/tier3-deals/*` | Premium tier deal proposals from contributors |
+```
+Chapturs/
+├── src/                          # Application source code (511 files)
+│   ├── app/                      # Next.js App Router pages & API routes
+│   │   ├── api/                  # 172 API route files across 40+ namespaces
+│   │   └── [page]/               # 75 page components
+│   ├── components/               # 102 reusable UI components (155 .tsx files)
+│   └── lib/                      # 66 library/utility modules
+├── prisma/                       # Prisma schema + migrations + seed
+├── docs/                         # Documentation source & summaries
+├── scripts/                      # Deployment & utility scripts
+├── __tests__/                    # Jest unit tests (13 test files)
+├── tests/                        # Playwright E2E tests
+└── nginx/                        # Nginx server configuration
+```
 
 ---
 
-## Key Libraries (`src/lib/`)
-
-### Core Services
-- **api/DataService.ts** — Central data access layer (abstraction over Prisma)
-- **database/PrismaService.ts** — Prisma client singleton + connection pooling
-- **database/schema.sql** — Raw SQL schema definitions
-- **ContentValidationService.ts** — Content moderation and validation
-- **config.ts** / **settings.ts** — Application configuration
-
-### Recommendation System (`src/lib/recommendations/`)
-- **IntelligentRecommendationEngine.ts** — Main recommendation engine (ML-based)
-- **RecommendationEngine.ts** — Fallback/basic recommendation logic
-- **SignalTracker.ts** — Tracks reader signals (reading time, completion, skips)
-- **reader-signals.ts** — Reader behavior signal extraction
-- **similarity.ts** — Content similarity calculations
-- **recommendation_schema.sql** — SQL schema for recommendation tables
-
-### Living World (`src/lib/living-world/`)
-- **canon-repository.ts** — Canon entry management
-- **contradiction-scanner.ts** — Automated lore contradiction detection
-- **lore-master-client.ts** — AI-powered lore assistant
-- **world-repository.ts** — Living world CRUD operations
-
-### Quality Assessment (`src/lib/quality-assessment/`)
-- **assessment-service.ts** — Work quality scoring service
-- **llm-service.ts** — LLM integration for content assessment
-- **cumulative-review.ts** — Aggregated review system
-- **assessment-sync.ts** — Async assessment processing
-
-### Translation (`src/lib/translation.ts`)
-- Auto-translation pipeline (5-phase design)
-- Fan translation management and voting
-
-### Collaboration (`src/lib/collaboration*`, `chapterLockStore.ts`)
-- **collaborationAccess.ts** — Co-authoring permissions
-- **collaborationActivity.ts** — Activity tracking for collaborators
-- **collaborationPatchValidation.js** — Real-time edit conflict resolution (JS file)
-- **chapterLockStore.ts** — Chapter-level locking mechanism
-
-### Additional Libraries
-- **achievements/** — Points system and achievement logic (`points.ts`)
-- **ads/** — Ad eligibility and density calculation (`ad-eligibility.ts`, `density-calculator.ts`)
-- **analytics/view-counter.ts** — Page view counting with `viewCount` field
-- **api/** — API helpers: errorHandling, schemas, twitch/x/youtube integrations
-- **auth/feature-access.ts** — Feature flag and access control checks
-- **cache/social-cache.ts** — Social media cache (Discord, YouTube, Twitch)
-- **database/PrismaService.ts** — Prisma client singleton + connection pooling (also listed under Core Services)
-- **digest/weeklyDigest.ts** — Weekly email digest batching
-- **email.ts** — Email sending service (Resend integration)
-- **emoji/** — Custom emoji system (`customEmojis.ts`, `emojiData.ts`)
-- **feedCache.ts** — Redis-based feed caching with intelligent invalidation
-- **image-processing.ts**, **images.ts** — Cover image processing and optimization
-- **logger.ts** — Application logging utility
-- **mockData.ts** — Mock data generators for testing
-- **notifications.ts** — In-app notification helpers
-- **observability/** — Monitoring logs (monetization, scheduler, world)
-- **payment.ts** — Payment processing utilities
-- **r2-usage.ts**, **r2.ts** — S3/R2 storage management
-- **rate-limit.ts** — Sliding-window rate limiter
-- **realtime.ts** — Real-time collaboration utilities
-- **redis.ts** — Redis client wrapper (raw fetch, no SDK)
-- **resolveDbUserId.ts** — Database user ID resolution helper
-- **sanitize.ts** — HTML/content sanitization
-- **scheduler/run-lock.ts** — Cron job distributed locking
-- **sectionVersioning.ts** — Section version management
-- **suggestions/suggestion-permissions.ts** — Edit suggestion permission checks
-- **selectionActionRegistry.tsx** — Reader selection action handlers
-- **supabase-edge.ts** — Supabase edge client utilities
-- **test-ad-system.ts**, **test-creator-apis.ts** — Test utility scripts
-
-### Custom Hooks (`src/hooks/`)
-- **useEmojiAutocomplete.ts** — Emoji autocomplete for editor
-- **usePretext.ts** — Pretext processing hooks
-- **useRecommendationTracking.tsx** — Recommendation interaction tracking
-- **useUser.tsx** — User session/auth state hook
-
-### Type Definitions (`src/types/`)
-- **achievements.ts** — Achievement and points type definitions
-- **ads.ts** — Ad system types
-- **chapt.ts** — Core Chapturs domain types (Work, FeedItem, etc.)
-- **comment.ts** — Comment-related types
-- **creator-ads.ts** — Creator ad configuration types
-- **index.ts** — Main type exports (User, Work, Author, etc.)
-- **next-auth.d.ts** — NextAuth type augmentation
-
-### Frontend Components (`src/components/`) — 158 files total
-
-### Reader Experience
-- **ChaptursReader.tsx** — Main reading interface
-- **ChapterBlockRenderer.tsx** — Renders individual content blocks with glossary/highlight support
-- **ChapterReactionBar.tsx** — Chapter-level reactions/comments toggle
-- **ChapterTopBar.tsx** — Navigation and chapter controls
-- **InfiniteFeed.tsx** — Infinite scroll feed with caching
-- **BrowsePageClient.tsx** — Client-side browse page wrapper with genre/status filters
-- **NewAndPromisingSection.tsx** — Horizontal strip of recent works on homepage
-- **TrendingPageClient.tsx** — Trending page client component with time filters
-- **MaturityGate.tsx** — R/NC-17 content interstitial gate
-- **TranslationPanel.tsx** — Translation banner with language selector and original toggle
-- **LanguageSelectorMenu.tsx** — Language selection dropdown for reader
-- **AudiobookSelectorMenu.tsx** — Audiobook playback controls
-- **StickyAudioScrubber.tsx** — Audio scrubber bar for audiobook playback
-- **ChunkRecovery.tsx** — Chapter chunk recovery UI for interrupted reads
-- **HtmlWithGlossary.tsx** — HTML rendering with glossary term highlights
-- **HtmlWithHighlights.tsx** — HTML rendering with reader highlight support
-- **InlineBlockComments.tsx** — Inline comments within chapter blocks
-- **MobileTextBox.tsx** — Mobile-friendly text display component
-- **NotificationBell.tsx** — In-app notification bell icon with unread count
-- **PageViewTracker.tsx** — Global page view tracking for analytics
-- **UserSync.tsx** — User session sync component
-
-### Editor & Creator Tools
-- **ChaptursEditor.tsx** — Block-based writing editor (8 block types)
-- **CreatorEditor.tsx** — Creator-specific editor interface
-- **ExperimentalEditor.tsx** — Experimental/legacy editor variant
-- **AdvancedUploader.tsx** — Story import/upload with parsing
-- **BlockEditors.tsx** — Individual block type editors
-- **editor/ChapterEditor.tsx** — TipTap-based chapter editor with extensions (under `src/components/editor/`)
-- **RichTextEditor.tsx** — Rich text editing wrapper
-- **PrePublishChecklist.tsx** — Server-side validation checklist UI
-- **CoverUploadField.tsx** — Dedicated cover upload field for works
-- **EditorSidebar.tsx** — Editor sidebar with block management
-
-### Community Features
-- **CommentSection.tsx**, **CommentItem.tsx**, **CommentForm.tsx** — Commenting system
-- **CharacterCard.tsx**, **CharacterModal.tsx** — Character management UI
-- **CharacterTooltip.tsx** — Inline character tooltip for glossary-style highlights
-- **CharacterProfileModal.tsx** — Detailed character profile modal
-- **CharacterProfileViewModal.tsx** — Read-only character profile view modal
-- **AchievementBadge.tsx**, **AchievementsBlock.tsx** — Gamification display
-- **FeaturedAchievements.tsx** — Star-pin featured achievements
-- **FeedCard.tsx** — Core discovery card component (cover, title, genre badges)
-- **TranslationPanel.tsx** — Translation banner with language selector and original toggle
-- **AudiobookSubmissionForm.tsx** — Fan audiobook submission form
-- **TranslationSubmissionForm.tsx** — Community translation suggestion form
-- **ReportButton.tsx**, **ReportModal.tsx** — Content reporting UI
-- **ConfirmMatureModal.tsx** — Mature content confirmation modal for publishing
-- **EditSuggestionModal.tsx** — Edit suggestion submission modal
-- **EditSuggestionsPanel.tsx** — Inline edit suggestions display panel
-- **RateWorkModal.tsx** — Work rating modal for readers
-- **WorkRatingSystem.tsx** — Inline work rating system component
-- **QualityCelebration.tsx** — Quality assessment celebration UI
-- **QualityReportModal.tsx**, **QualityVoteModal.tsx** — QA voting/reporting UI
-- **ReviewQueue.tsx** — Review queue management component
-
-### Creator Hub Components
-- **CreatorDashboard.tsx**, **CreatorDashboardNew.tsx** — Author dashboard views
-- **CreatorCollaboratorsHub.tsx** — Co-author management UI
-- **CreatorSuggestionQueue.tsx** — Reader edit suggestion moderation queue
-- **SeriesManager.tsx** — Series/volume grouping UI
-- **SeriesSubscribeButton.tsx** — One-click series subscription CTA
-- **CreatorAnalyticsDashboard.tsx** — Creator analytics view
-- **CreatorCommentModerationHub.tsx** — Comment moderation for creator works
-- **CreatorFanartPage.tsx** — Fan art review dashboard
-- **CreatorGlossaryPage.tsx** — Work-specific glossary management
-- **CreatorMonetizationHub.tsx** — Monetization settings and earnings view
-- **AdSupportSettings.tsx** — Reader ad support level configuration UI
-- **CreatorSuggestionsHub.tsx** — Reader edit suggestions moderation hub
-- **FanContentHub.tsx** — Fan content submission and browsing hub
-- **WorkCharactersPage.tsx**, **WorkCollaboratorsPage.tsx**, **WorkGlossaryPage.tsx** — Work-specific management pages
-- **CreatorCharactersPage.tsx** — Creator character management page
-- **GlossarySystem.tsx** — Glossary system component for works
-- **GlossaryTermModal.tsx** — Glossary term detail modal
-- **WeeklyDigestToggle.tsx** — Weekly email digest opt-in toggle for creators
-- **PretextClampText.tsx** — Text clamping utility with expand/collapse for long descriptions
-- **StoryManagement.tsx** — Story-level management tools
-- **PremiumSubscriptionSettings.tsx** — Premium subscription configuration UI
-- **ReaderMonetizationSettings.tsx** — Reader-side monetization preferences
-- **ContributorHubToggleSettings.tsx** — Contributor hub toggle settings
-
-### Admin & Moderation
-- **CommentModerationPanel.tsx** — Content moderation interface
-- **CreatorAnalyticsDashboard.tsx** — Creator analytics view
-- **AdPlacementEditor.tsx**, **AuthorAdSettings.tsx** — Ad management UI
-- **ModerationDashboard.tsx** — Global moderation dashboard
-
-### Profile & Social
-- **profile/ProfileLayout.tsx**, **profile/ProfileSidebar.tsx** — User profile layout system (under `src/components/profile/`)
-- **profile/BlockGrid.tsx**, **profile/FeaturedSpace.tsx** — Profile block grid and featured content area (under `src/components/profile/`)
-- **WorkViewer.tsx** — Story detail page viewer
-- **BetaWelcome.tsx** — Beta welcome banner component
-- **BuildingInPublicStats.tsx** — Building-in-public statistics display
-
-### UI Primitives & Layout
-- **AppLayout.tsx** — Main application shell with sidebar + content area
-- **Sidebar.tsx** — Navigation sidebar (collapsible on mobile)
-- **ui/Modal.tsx**, **ui/Tooltip.tsx**, **ui/Toast.tsx** — Shared UI primitives (under `src/components/ui/`)
-- **ui/ErrorBoundary.tsx**, **ui/FeedCardSkeleton.tsx**, **ui/StoryPageSkeleton.tsx** — Loading/error states (under `src/components/ui/`)
-- **ui/Footer.tsx** — Site footer component (under `src/components/ui/`)
-- **ui/FeatureHint.tsx** — Feature hint/guide component (under `src/components/ui/`)
-
-### Editor Extensions & Tools
-- **editor/extensions.tsx** — TipTap extension definitions (font family, etc.)
-- **editor/convert.ts** — HTML/Tiptap content conversion utilities
-- **SelectionActionToolbar.tsx** — Reader text selection action toolbar
-- **EmojiPicker.tsx** — Emoji picker for editor and comments
-
-### Ad Components (`src/components/ads/`)
-- **AdSlot.tsx**, **AdPreview.tsx** — Ad placement rendering
-- **AdPlacementEditor.tsx**, **AuthorAdSettings.tsx** — Ad management UI
-- **CreatorRecommendationSetup.tsx** — Creator-to-reader recommendation setup
-- **DefaultAdConfigManager.tsx** — Default ad configuration management
-- **SupportAuthorInterstitial.tsx** — "Support the author" interstitial
-
-### Auth Components (`src/components/auth/`)
-- **UsernameGuard.tsx**, **UsernameSelectionModal.tsx** — Username selection flow
-
-### Experimental Features (`src/components/experimental/`)
-- **BranchingStoryMode.tsx**, **BranchingStoryModeSimple.tsx** — Branching narrative UI
-- **VisualNovelMode.tsx** — Visual novel-style reading mode
-- **WorldbuildingMode.tsx** — World-building assistant mode
-
-### Living World Components (`src/components/living-world/`)
-- **CanonGraph.tsx** — Browse/add/filter canon entries by type
-- **LoreIndex.tsx** — Searchable, filterable lore entries + character cards
-- **TimelineView.tsx** — Chronological event list across stories
-- **WorldAtlas.tsx** — Story cards grid for shared universes
-- **WorldDefinitionForm.tsx**, **WritersRoomConsole.tsx** — World creation and management
-
-### Onboarding Components (`src/components/onboarding/`)
-- **OnboardingForm.tsx** — Username selection form
-- **TasteProfileSurvey.tsx** — Google Books taste discovery survey
-
-### Profile Sub-components (`src/components/profile/`)
-|- **profile/blocks/** — Block types: TextBox, ExternalLink, FavoriteAuthor, Support, DiscordInvite, TwitterFeed, TwitchChannel, YouTubeChannel, YouTubeVideo, WorkCard (10 block variants + BaseBlock base class)
-|- **profile/config/** — Configuration editors for each block type (10 config components)
-- **profile/editor/** — Profile editor UI (BlockPicker, EditableBlockGrid, etc.)
-
-### Story Page Components (`src/components/story/`)
-- **StoryPageClient.tsx** — Client-side story page with social sharing metadata
-
-### Upload Components (`src/components/upload/`)
-- **ImageUpload.tsx** — Cover image upload component
-- **CoverUploadField.tsx** — Dedicated cover upload field for works
-
----
-
-## App Pages (`src/app/`)
+## Pages (`src/app/[page]/`) — 75 pages
 
 ### Public Pages
-`about`, `about/roadmap`, `browse`, `contact`, `content-policy`, `dmca`, `features`, `join/[slug]`, `legal`, `library`, `not-found`, `page` (home), `privacy`, `robots.ts`, `terms`, `contests`, `fan-content`, `search`, `trending`, `subscriptions`
+| Route | File | Description |
+|-------|------|-------------|
+| `/` | `app/page.tsx` | Homepage / discovery feed |
+| `/browse` | `app/browse/page.tsx` | Browse with genre/status/sort filters |
+| `/trending` | `app/trending/page.tsx` | Trending works by time period |
+| `/search` | `app/search/page.tsx` | Full-text search |
+| `/about` | `app/about/page.tsx` | About page |
+| `/about/roadmap` | `app/about/roadmap/page.tsx` | Public roadmap with stats |
+| `/features` | `app/features/page.tsx` | Feature showcase |
+| `/contact` | `app/contact/page.tsx` | Contact form (reads from SiteSettings) |
+| `/privacy` | `app/privacy/page.tsx` | Privacy policy |
+| `/terms` | `app/terms/page.tsx` | Terms of service + AI content rules |
+| `/legal/privacy` | `app/legal/privacy/page.tsx` | Detailed privacy policy |
+| `/legal/terms` | `app/legal/terms/page.tsx` | Detailed terms (includes section 4.4) |
+| `/legal/creator-agreement` | `app/legal/creator-agreement/page.tsx` | Creator agreement |
+| `/dmca` | `app/dmca/page.tsx` | DMCA takedown + counter-notice procedure |
+| `/content-policy` | `app/content-policy/page.tsx` | Content policy page |
+| `/contests` | `app/contests/page.tsx` | Writing contests listing |
 
 ### Auth & Onboarding
-`auth/signin`, `onboarding` — username selection, profile setup flow with Google Books taste discovery
+| Route | File | Description |
+|-------|------|-------------|
+| `/auth/signin` | `app/auth/signin/page.tsx` | Sign-in page (NextAuth) |
+| `/onboarding` | `app/onboarding/page.tsx` | New user taste discovery (2-step: username + book search) |
 
-### Reader
-`reader/settings`, `reader/stats` — Chapter reading interface with block rendering and reader settings
+### Story & Reader
+| Route | File | Description |
+|-------|------|-------------|
+| `/story/[id]` | `app/story/[id]/page.tsx` | Story detail page |
+| `/story/[id]/chapter/[chapterId]` | `app/story/[id]/chapter/[chapterId]/page.tsx` | Chapter reader with translation support |
+| `/reader/settings` | `app/reader/settings/page.tsx` | Reader settings (maturity gate, delete account) |
+| `/reader/stats` | `app/reader/stats/page.tsx` | Reading statistics |
 
-### Creator Dashboard
-`creator/dashboard`, `creator/analytics`, `creator/characters`, `creator/editor`, `creator/fan-content-settings`, `creator/fanart`, `creator/glossary`, `creator/living-world/[worldId]`, `creator/moderation`, `creator/monetization`, `creator/profile/edit`, `creator/series`, `creator/settings`, `creator/upload`, `creator/work/[id]/chapters`, `creator/work/[id]/edit`, `creator/work/[id]/suggestions`, `creator/works`, `creator/works/[id]/characters`, `creator/works/[id]/collaborators`, `creator/works/[id]/glossary`, `creator/works/[id]/import` — Full creator hub with work management, editor, series, glossary, fan content, and moderation
+### Profile & Library
+| Route | File | Description |
+|-------|------|-------------|
+| `/profile/[username]` | `app/profile/[username]/page.tsx` | Author profile with achievements block |
+| `/library` | `app/library/page.tsx` | User's bookmarked/followed works |
+| `/subscriptions` | `app/subscriptions/page.tsx` | Subscription management |
 
-### Admin Panel
-`admin/*` — Full admin panel (users, payouts, settings, contests, living world management, validation rules, bootstrap, reports, ad-revenue)
+### Series & Worlds
+| Route | File | Description |
+|-------|------|-------------|
+| `/series/[seriesId]` | `app/series/[seriesId]/page.tsx` | Series detail page (multi-work grouping) |
+| `/worlds/[worldSlug]` | `app/worlds/[worldSlug]/page.tsx` | Living World atlas / browsable map |
 
-### Living World & Worlds
-`worlds/[worldSlug]`, `creator/living-world/[worldId]` — Shared universe browsing and creation
+### Notifications & Moderation
+| Route | File | Description |
+|-------|------|-------------|
+| `/notifications` | `app/notifications/page.tsx` | In-app notification center (bell icon, 60s polling) |
+| `/moderation` | `app/moderation/page.tsx` | User moderation queue |
 
-### Series
-`series/[seriesId]` — Public series detail pages with all works listed
+### Join / Community Links
+| Route | File | Description |
+|-------|------|-------------|
+| `/join/[slug]` | `app/join/[slug]/page.tsx` | Community referral link landing page |
 
-### Story Detail
-`story/[id]/*` — Story page with chapter navigation, maturity gate, social sharing metadata
-
-### Contributor Hub
-`contributor/[username]`, `contributor/board`, `contributor/art-board`, `contributor/dashboard` — Community contributor profiles and submission boards
-
-### Moderation & Notifications
-`moderation`, `notifications` — Global moderation queue and in-app notification center
+### Contributor Pages
+| Route | File | Description |
+|-------|------|-------------|
+| `/contributor/[username]` | `app/contributor/[username]/page.tsx` | Contributor profile |
+| `/contributor/board` | `app/contributor/board/page.tsx` | Fan content board |
+| `/contributor/art-board` | `app/contributor/art-board/page.tsx` | Fan art submissions |
+| `/contributor/dashboard` | `app/contributor/dashboard/page.tsx` | Contributor dashboard |
 
 ### Translations
-`translations`, `translations/review/[id]` — Translation management and review pages
+| Route | File | Description |
+|-------|------|-------------|
+| `/translations` | `app/translations/page.tsx` | Translation hub |
+| `/translations/review/[id]` | `app/translations/review/[id]/page.tsx` | Translation review page |
 
-### Test Pages (development)
-`test-upload`, `test/editor`, `test/emoji`, `test/moderation`, `test/reader` — Development/test UI pages for manual QA
+### Fan Content
+| Route | File | Description |
+|-------|------|-------------|
+| `/fan-content` | `app/fan-content/page.tsx` | Fan content hub (audiobooks, art, translations) |
+
+### Work Pages
+| Route | File | Description |
+|-------|------|-------------|
+| `/work/[id]` | `app/work/[id]/page.tsx` | Work detail page |
 
 ---
 
-## Key Design Patterns
+## API Routes (`src/app/api/`) — 172 route files across 40+ namespaces
 
-1. **Block-based content model** — Works → Chapters → Sections (granular blocks with versioning, locking, collaboration)
-2. **Living World system** — Cross-work shared universes with AI-powered canon management and contradiction detection
-3. **Signal-driven recommendations** — Implicit reader signals (reading time, completion rate, skip patterns) feed ML recommendation engine
-4. **Community governance** — Fan translations, audiobooks, lore votes, edit suggestions all have community voting systems
-5. **Dual monetization** — Creator ads + premium subscriptions (no pay-per-read)
-6. **Database-backed locking** — Section locks use `SectionLock` Prisma model with durable database storage; survives restarts and multi-instance deployments
-7. **Cascading similarity engine** — "Readers Also Enjoyed" uses layered cascade: author picks → collaborative signals → reader-to-reader co-completion → semantic LLM Jaccard → trending → popular fallback
-8. **Achievement points system** — PointsLedger tracks all point events; 5 level tiers (Newcomer → Apprentice → Journeyman, etc.); 11 seeded achievements with bronze/silver/gold/platinum tiers
-9. **Taste profile onboarding** — New users discover genre preferences via Google Books API during signup; affinities stored in `UserProfile.genreAffinities` and used for feed cold-start
-10. **Rate limiting** — Sliding-window rate limiter (IP-based) protects translation endpoints and other sensitive APIs
+### Admin APIs (19 routes)
+- `admin/bootstrap` — PIN-based admin role activation
+- `admin/community-links` — Community referral link management
+- `admin/contests` / `[id]` — Contest CRUD
+- `admin/payouts` — Payout processing
+- `admin/reports` / `[id]/action` — Content/comment moderation actions
+- `admin/settings` — Site settings (including premium_enabled, email addresses)
+- `admin/stats` — Admin statistics dashboard
+- `admin/stripe/events` — Stripe event log
+- `admin/users` — User management
+- `admin/validation-rules` / `invalidate` — Content validation rules + cache invalidation
+- `admin/ad-revenue` — Ad revenue tracking
+
+### Achievement APIs (3 routes)
+- `achievements/[userId]` — Get user achievements/points
+- `achievements/[userId]/featured` — Pin/unpin featured achievements (4-pin cap)
+- `achievements/[userId]/visibility` — Toggle achievement visibility on profile
+
+### Ad APIs (3 routes)
+- `ads/impression` — Track ad impressions
+- `ads/placements` / `[id]` — Ad placement management
+
+### Analytics APIs (2 routes)
+- `analytics/pageview` — Page view tracking
+- `analytics/site-stats` — Site-wide statistics
+
+### Auth APIs (5 routes)
+- `auth/[...nextauth]` — NextAuth session provider
+- `auth/check-username` — Username availability check
+- `auth/current-user` — Get current authenticated user
+- `auth/set-username` — Set username (onboarding step 1)
+- `auth/sync-user` — Sync user profile data
+
+### Bookmark APIs (1 route)
+- `bookmarks` — Create/remove bookmarks
+
+### Chapter Content API (1 route)
+- `chapter/[workId]/[chapterId]/content` — Chapter content with translation support
+
+### Comment APIs (6 routes)
+- `comments` — Create/list comments
+- `comments/[id]` / `[id]/like` / `[id]/react` / `[id]/report` / `[id]/resolve` — Comment CRUD + moderation
+
+### Contest APIs (2 routes)
+- `contests` / `[id]/enter` — Contest listing + entry submission
+
+### Contributor APIs (3 routes)
+- `contributor/glossary/[workId]` — Glossary contributions per work
+- `contributor/qa-queue` / `qa-vote` — Quality assessment queue + voting
+
+### Creator APIs (8 routes)
+- `creator/analytics` — Creator analytics dashboard
+- `creator/dashboard-stats` — Dashboard statistics
+- `creator/debug` — Debug endpoint
+- `creator/earnings` — Earnings tracking
+- `creator/fan-content-settings` — Fan content preferences
+- `creator/fanart` — Fan art management
+- `creator/moderation/comments` / `[id]/action` — Comment moderation queue + actions
+- `creator/payouts/request` — Payout request submission
+- `creator/profile` — Creator profile management
+
+### Edit Suggestions APIs (3 routes)
+- `edit-suggestions` — Submit reader suggestions
+- `edit-suggestions/[id]/approve` / `[id]/reject` — Moderator approve/reject
+
+### Fan Content APIs (1 route)
+- `fan-content/vote` — Vote on fan content submissions
+
+### Fan Translation APIs (2 routes)
+- `fan-translations/[id]/rate` — Rate translation quality (star rating, auto-promote at threshold)
+- `fan-translations/[id]/suggest` — Submit translation suggestion
+
+### Feed API (1 route)
+- `feed` — Discovery feed with community_genres cookie cold-start seeding
+
+### Health APIs (2 routes)
+- `health` / `health-edge` — Health check endpoints
+
+### Image APIs (1 route)
+- `image/cover/[id]` — Cover image serving
+
+### Join API (1 route)
+- `join/[slug]` — Community referral link handler + signup tracking
+
+### Library API (1 route)
+- `library` — User's library (bookmarks, follows)
+
+### Like APIs (1 route)
+- `likes` — Story like/unlike
+
+### Living World APIs (5 routes)
+- `living-world` / `[worldId]` — World CRUD + definition management
+- `living-world/[worldId]/canon` — Canon entry management
+- `living-world/[worldId]/contradictions` — Lore contradiction scanning
+- `living-world/[worldId]/lore-master` — AI lore master agent endpoint
+- `living-world/[worldId]/votes` — World Council voting
+
+### Moderation APIs (2 routes)
+- `moderation/queue` / `[id]` — Content moderation queue + item management
+- `moderation/report` — Report submission
+
+### Notification APIs (2 routes)
+- `notifications` — Notification center + 60s polling data
+- `notifications/[id]` — Mark as read, delete
+
+### Onboarding APIs (1 route)
+- `onboarding/book-search` — Google Books API integration for taste discovery
+
+### Premium APIs (1 route)
+- `premium` — Premium subscription management
+
+### Profile APIs (1 route)
+- `profile` — User profile management
+
+### Quality Assessment APIs (2 routes)
+- `quality-assessment` / `[id]` — QA scoring + detail retrieval
+
+### Reader APIs (3 routes)
+- `reader` — Reader-specific endpoints
+- `reading-progress` — Reading progress tracking
+- `reading-sessions` — Reading session management
+
+### Search API (1 route)
+- `search` — Full-text search with publishedWithinDays param
+
+### Series APIs (2 routes)
+- `series` / `[id]` — Series CRUD + subscription endpoint (`[id]/subscribe`)
+
+### Signal APIs (1 route)
+- `signals` — Recommendation signal management
+
+### Social APIs (1 route)
+- `social` — Social interaction endpoints
+
+### Stripe APIs (2 routes)
+- `stripe/checkout` — Checkout session creation
+- `stripe/webhook` — Stripe webhook handler with idempotency + event logging
+
+---
+
+## Components (`src/components/`) — 102 components
+
+Key components by category:
+
+### Reader & Content
+- `ChaptursReader.tsx` — Main chapter reader (large body typography, line-height 1.7–1.8)
+- `ChapterBlockRenderer.tsx` — Chapter content rendering with translation support
+- `ChapterTopBar.tsx` — Chapter navigation bar
+- `ChapterReactionBar.tsx` — Reader reaction/emoji bar
+
+### Editor & Creator Tools
+- `ChaptursEditor.tsx` — TipTap-based chapter editor (FontFamily extension, 8 curated fonts)
+- `AdvancedUploader.tsx` — File upload with progress tracking
+- `CoverUploadField.tsx` — Cover image upload field
+
+### Feed & Discovery
+- `FeedCard.tsx` — Story card component (cover art, genre badges, metadata)
+- `BrowsePageClient.tsx` — Browse page client wrapper
+- `TrendingPageClient.tsx` — Trending page client wrapper
+
+### Profile & Achievements
+- `AchievementBadge.tsx` — Achievement badge display
+- `AchievementsBlock.tsx` — User achievements/level block on profile
+- `FeaturedAchievements.tsx` — Pinned featured achievements (4-pin cap)
+
+### Characters & Glossary
+- `CharacterCard.tsx` / `CharacterModal.tsx` / `CharacterProfileViewModal.tsx` — Character management UI
+- `CharacterTooltip.tsx` — Hover tooltip for character names in reader
+
+### Comments & Social
+- `CommentForm.tsx` / `CommentItem.tsx` / `CommentSection.tsx` — Comment system
+- `CommentModerationPanel.tsx` — Moderator comment management
+
+### Admin & Settings
+- `AdSupportSettings.tsx` — Reader ad support level settings
+- `BetaWelcome.tsx` — Beta welcome banner
+- `BuildingInPublicStats.tsx` — Roadmap stats display
+
+### Modals & Overlays
+- `ConfirmMatureModal.tsx` — Mature content confirmation modal
+- `ChunkRecovery.tsx` — Chapter chunk recovery UI
+
+---
+
+## Libraries (`src/lib/`) — 66 modules
+
+### Core Services
+- `ContentValidationService.ts` — Content validation (maturity checks, image safety via Google Cloud Vision)
+- `config.ts` — Application configuration
+- `email.ts` — Email sending (Resend integration)
+- `logger.ts` — Structured logging
+- `notifications.ts` — Notification service
+
+### Database & Data
+- `database/PrismaService.ts` — Prisma client singleton
+- `database/schema.sql` — Raw SQL schema reference
+- `DataService.ts` — Generic data service layer
+
+### Authentication & Authorization
+- `auth/feature-access.ts` — Feature flag access control
+- `collaborationAccess.ts` — Collaborator permission checks (canEdit, canPublish)
+- `resolveDbUserId.ts` — User ID resolution utility
+
+### Chapter Management
+- `chapterLockStore.ts` — Durable chapter locking (database-backed SectionLock model)
+- `sectionVersioning.ts` — Section version history tracking
+
+### Collaboration
+- `collaborationActivity.ts` — Collaboration activity logging
+- `collaborationPatchValidation.js` / `.ts` — Patch validation for collaborative editing
+
+### Feed & Caching
+- `feedCache.ts` — Feed snapshot cache (stores items+page+scroll on unmount)
+- `cache/social-cache.ts` — Social data caching
+
+### Translation System
+- `translation.ts` — LLM-powered translation (`translateBatch`, `translateBatchChunked`)
+  - Uses OpenRouter with `meta-llama/llama-3.1-8b-instruct` (configurable)
+  - In-memory sliding-window rate limiter (20 req/hr per IP)
+  - Auto-chunks >50 blocks sequentially
+
+### Recommendations
+- `recommendations/reader-signals.ts` — Reader completion signals → co-completion scores
+- `recommendations/IntelligentRecommendationEngine.ts` — Multi-layer recommendation cascade
+
+### Living World / Lore
+- `living-world/canon-repository.ts` — Canon entry storage/retrieval
+- `living-world/contradiction-scanner.ts` — AI contradiction detection
+- `living-world/lore-master-client.ts` — OpenRouter lore master agent
+- `living-world/world-repository.ts` — World definition CRUD
+
+### Quality Assessment
+- `quality-assessment/assessment-service.ts` — LLM quality scoring (6 dimensions)
+- `quality-assessment/assessment-sync.ts` — Async assessment processing
+- `quality-assessment/cumulative-review.ts` — Reader review aggregation
+- `quality-assessment/llm-service.ts` — LLM calls for QA
+- `quality-assessment/types.ts` — Type definitions
+
+### Achievements & Points
+- `achievements/points.ts` — Points ledger + achievement awarding
+
+### Ads & Monetization
+- `ads/ad-eligibility.ts` — Ad eligibility checks
+- `ads/density-calculator.ts` — Ad density calculation
+- `payment.ts` — Payment processing helpers
+- `r2.ts` / `r2-usage.ts` — Cloudflare R2 storage + usage tracking/alerts
+
+### Analytics & Monitoring
+- `analytics/view-counter.ts` — Page view counting with viewCount field
+- `observability/monetization-logger.ts` — Monetization event logging
+- `observability/scheduler-logger.ts` — Scheduler event logging
+- `observability/world-logger.ts` — Living World event logging
+
+### External APIs
+- `api/twitch.ts` / `api/x.ts` / `api/youtube.ts` — Social media integrations
+- `api/DataService.ts` — Generic external API client
+
+### Utilities
+- `images.ts` / `image-processing.ts` — Image processing (Sharp)
+- `rate-limit.ts` — Rate limiting utilities
+- `realtime.ts` — Real-time event handling (Pusher integration)
+- `redis.ts` — Redis operations (raw fetch, no @upstash/redis SDK)
+- `sanitize.ts` — HTML sanitization (DOMPurify)
+- `settings.ts` — Site settings management
+
+---
+
+## Prisma Schema Models
+
+Key models in the schema:
+- **User** — Core user model with role, adSupportLevel, isPremium, etc.
+- **Work** / **Section** — Story and chapter data
+- **Series**, **SeriesVolume**, **SeriesWork** — Series grouping
+- **CharacterProfile**, **GlossaryEntry**, **GlossaryDefinitionVersion** — Character/glossary tracking
+- **Comment**, **Like**, **Bookmark**, **ReadingHistory**, **ReadingSession** — Reader interactions
+- **Achievement**, **UserAchievement**, **PointsLedger**, **LevelTier** — Achievement system
+- **WorkCollaborator**, **CollaborationActivity**, **SectionLock** — Collaboration features
+- **LivingWorld**, **CanonEntry**, **CanonCharacter**, **LoreContradictionFlag**, **WorldCouncilVote** — Living World / lore
+- **FanTranslation**, **FanAudiobook**, **ImageSubmission** — Fan contributions
+- **ContentReport**, **CreatorSuggestionQueue** — Moderation
+- **UserSignal**, **WorkSemanticProfile**, **AuthorRecommendation**, **ContentSimilarity** — Recommendation system
+- **Payout**, **AdPlacement**, **AdImpression** — Monetization
+
+---
+
+## Tests (`__tests__/` + `tests/`)
+
+### Jest Unit Tests (13 files)
+- `achievements.test.ts` — Achievement point calculations
+- `collaborator-revenue-share.test.ts` — Revenue share logic
+- `core.test.ts` — Core functionality tests
+- `payouts-flow.test.ts` — Payout state machine
+- `points.test.ts` — Points event pipeline
+- `stripe-checkout.test.ts` / `stripe-webhook.test.ts` — Stripe integration
+- `suggestions-*.test.ts` (6 files) — Edit suggestion CRUD + permissions
+
+### Playwright E2E Tests (`tests/`)
+- Mobile smoke suite: feed, reader, editor flows
+- Configured in `playwright.config.ts`
+- Scripts: `npm run test:e2e`, `npm run test:e2e:mobile`
+
+---
+
+## Deployment & Operations
+
+### Stack
+- **Framework**: Next.js 15 (App Router) with Turbopack dev
+- **Runtime**: Node.js 20.x, standalone output mode
+- **Database**: PostgreSQL via Prisma ORM (Supabase hosted)
+- **Storage**: Cloudflare R2 for images/covers
+- **Email**: Resend API
+- **AI/LLM**: OpenRouter SDK (`openai` package) — no groq-sdk dependency
+- **Auth**: NextAuth v5 with Google OAuth
+- **Payments**: Stripe v19
+- **Monitoring**: Sentry (free tier, DSN via GitHub Secrets)
+- **Real-time**: Pusher for live updates
+
+### VPS Deployment
+- Auto-deploy via GitHub Actions runner
+- PM2 process manager (`ecosystem.config.js`)
+- Nginx reverse proxy with static file serving
+- Prisma client generated standalone + rsynced to VPS
+- `prisma db push` runs on the runner (not VPS)
+
+### CI/CD
+- GitHub Actions workflow: `.github/workflows/recommendation-refresh.yml` (cron every 6h)
+- Automated deploy on main branch push via runner
+
+---
+
+## Documentation (`docs/`)
+
+### Index & Summaries (`docs/summaries/`)
+- `feature-systems.md` — Feature overview
+- `implementations-release.md` — Implementation release notes
+- `bugs-fixes.md` — Bug fix history
+- `deployment-ops.md` — Deployment operations guide
+- `database-data.md` — Database data reference
+- `roadmap-ideas.md` — Future roadmap ideas
+- `testing-qa.md` — Testing and QA procedures
+- `security-sensitive.md` — Security-sensitive information
+- `methods-paths.md` — API methods and paths reference
+- `visuals.md` — Visual design assets
+- `source-index.md` — Cross-reference index for source docs
+- `task-suggestions-core.md` / `task-suggestions-features.md` — Task suggestions
+
+### Source Documents (`docs/source/`)
+Organized by category:
+- `features/` — Feature specifications (character profiles, comments, content moderation, editor, emoji system, fanart, glossary, image upload, quality assessment, work management)
+- `implementations/` — Implementation details and release notes
+- `plans/` — Strategic plans (Gutenberg import pipeline spec)
+- `fixes/` — Bug fix documentation
+- `ops/` — Operations runbooks
+- `database/` — Database schema docs, migration summaries, integration guides
+- `testing/` — Test documentation
+- `visuals/` — Visual design documents
+
+### Architecture (`docs/architecture/`)
+- `ai-storytelling-external-bot-runtime-concept.md` — External AI bot architecture contract
+- `migration-order.md` — Migration ordering guide
+- `phase1-adoption-audit.md` — Phase 1 adoption audit
+- `plan-contracts.md` — Plan contracts
+
+### Operations (`docs/operations/`)
+- `env-matrix.md` — Environment variable reference matrix
+- `monetization-launch-checklist.md` — Monetization go-live checklist
+- `release-gates.md` — Release gate criteria
+
+### Security (`docs/security/`)
+- `SECURITY_AUDIT_2026-04-04.md` — Security audit report from April 4, 2026
+
+---
+
+## Scripts (`scripts/`)
+
+- `addSafetyRule.mjs` — Add content safety rule
+- `fix-r2-urls.js` — Fix R2 URL references
+- `process-queue.js` — Queue processing utility
+- `test-db.ts` — Database test script
+- `test-deploy.sh` — Deployment test runner
+- `verify-stripe-webhook.ps1` — Stripe webhook verification (PowerShell)
+
+---
+
+## Key File Locations Quick Reference
+
+| What | Path |
+|------|------|
+| Prisma schema | `prisma/schema.prisma` (2,375 lines) |
+| Database seed | `prisma/seed.ts` |
+| Next.js config | `next.config.js` |
+| Tailwind config | `tailwind.config.js` |
+| TypeScript config | `tsconfig.json` |
+| ESLint config | `.eslintrc.json` |
+| Playwright config | `playwright.config.ts` |
+| PM2 ecosystem | `ecosystem.config.js` |
+| Middleware | `middleware.ts` |
+| Auth config | `auth.ts` |
+| Instrumentation | `instrumentation.ts`, `instrumentation-client.ts` |
+| Nginx config | `nginx/` directory |
+| Squad agent config | `.squad/config.json` + `.squad/agents/*/` |

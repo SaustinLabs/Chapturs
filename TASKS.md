@@ -1,6 +1,6 @@
 # Chapturs — Master Task List
 
-> Last updated: April 27, 2026
+> Last updated: April 28, 2026
 > **Legend:** ✅ Done · 🔶 Partial / in progress · ⬜ Not started
 > **Format:** Every task has a unique numeric ID, concise title, status, and notes.
 
@@ -10,7 +10,7 @@
 
 Two duplicate IDs were resolved. No tasks were deleted or merged.
 
-|| Old ID | New ID | Task | Reason |
+| Old ID | New ID | Task | Reason |
 |--------|--------|------|--------|
 | 105 (second occurrence) | 110 | Publishing flow options in editor | Duplicate of ID 105 (New user onboarding) |
 | 108 (second occurrence) | 111 | Rich text font-family support in editor toolbar | Duplicate of ID 108 (API keys to GitHub Secrets) |
@@ -19,11 +19,11 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 ## 🔴 Immediate / Blocking (do these now)
 
-|| # | Task | Status | Notes |
+| # | Task | Status | Notes |
 |---|------|--------|-------|
 | 1 | Run bootstrap flow: sign in → `/admin/bootstrap` → enter PIN → sign out → sign back in | ✅ | Confirmed done by user |
 | 2 | Verify `RESEND_API_KEY` + `EMAIL_FROM` are in GitHub Secrets | ✅ | Confirmed set by user |
-| 3 | Run `npx prisma db push` on the production DB | ⬜ | Schema has fields that aren't pushed yet (CommunityLink.signupCount, User.communityRef) — both exist in schema.prisma; verify against live DB |
+| 3 | Run `npx prisma db push` on the production DB | ⬜ | Schema has `CommunityLink.signupCount` + `User.communityRef` that aren't pushed yet |
 | 4 | Set up Admin → Settings → Email Addresses in the admin panel | ✅ | Defaults to `@chapturs.com` values which are functional; no blocking issue confirmed |
 | 108 | Add `GOOGLE_BOOKS_API_KEY`, `GOOGLE_CLOUD_VISION_API_KEY`, `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY` to GitHub Secrets + VPS env | ⬜ | Documented in `.env.example`; Vision + reCAPTCHA code is live but keys must be set for them to activate |
 | 112 | Install and configure Squad multi-agent dev team in repo | ✅ | `squad init` run; `.squad/` scaffold created; decisions.md, routing.md, wisdom.md, identity files seeded with Chapturs context; team cast via VS Code Squad agent mode |
@@ -48,7 +48,7 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 | 9 | Write a dedicated DMCA policy page (`/dmca`) | ✅ | `/app/dmca/page.tsx` — full takedown + counter-notice procedure, links `dmca@chapturs.com` |
 | 10 | Review Terms of Service — ensure it mentions AI-generated content rules | ✅ | Added section 5 (AI-Generated Content) to `/terms/page.tsx` and section 4.4 to `/legal/terms/page.tsx` — covers disclosure requirement, labeling rules, and enforcement for undisclosed AI content |
 | 10a | AI-use disclosure framework for authors | ✅ | `aiUseDisclosure` field on Work schema (none/assisted/generated); radio selector in creator work edit page; disclosure badge on story page |
-| 11 | Age verification / parental advisory for mature-rated works | ✅ | `MaturityGate.tsx` — full-screen interstitial for R/NC-17 works; localStorage consent; wraps StoryPageClient in story page |
+|| 11 | Age verification / parental advisory for mature-rated works | 🔶 | Maturity gate UI component (`MaturityGate.tsx`) not found in codebase — schema and confirmation modal (`ConfirmMatureModal.tsx`) exist; full interstitial wrapper needs implementation |
 | 12 | Privacy policy audit — confirm GDPR/CCPA delete-account flow works | ✅ | `DELETE /api/user/account` with cascade delete; Danger Zone section in Reader Settings with typed confirmation modal |
 
 ### SEO & Discoverability
@@ -78,9 +78,9 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 21 | Import 3–5 public domain works from Project Gutenberg | 🔶 | Spec written at `docs/source/plans/gutenberg-import-pipeline.md`. Implement `POST /api/admin/import/gutenberg` + service in `src/lib/gutenberg-import/`. Suggested works: *Dracula* (#345), *Count of Monte Cristo* (#1184), *Twenty Thousand Leagues* (#164), *Pride and Prejudice* (#1342), *Jekyll and Hyde* (#43). **UNBLOCKED** — AI story writer bots off-limits restriction removed; workers may now implement this task. Import endpoint exists at `api/works/[id]/import` for universal story ingestion (DOCX/PDF parsing via mammoth + pdf-parse). |
-| 22 | Generate AI glossary entries for imported works | 🔶 | Covered by Gutenberg import pipeline spec (Step 6). Function: `generateGlossaryForWork()` in `src/lib/gutenberg-import/generate-glossary.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `glossary_entries` + `glossary_definition_versions` tables. Glossary system already live at `/creator/glossary` and `/work/[id]/glossary` with hover tooltips and versioning. |
-| 23 | Generate character profiles for imported works | 🔶 | Covered by Gutenberg import pipeline spec (Step 7). Function: `generateCharactersForWork()` in `src/lib/gutenberg-import/generate-characters.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `character_profiles` table. Character system already live at `/creator/characters` and `/work/[id]/characters` with relationships, tooltip highlights, and editor integration. |
+|| 21 | Import 3–5 public domain works from Project Gutenberg | ⬜ | Spec written at `docs/source/plans/gutenberg-import-pipeline.md`. Implementation not started — `src/lib/gutenberg-import/` directory does not exist yet. Needs: `POST /api/admin/import/gutenberg` + service files (`generate-glossary.ts`, `generate-characters.ts`). Suggested works: *Dracula* (#345), *Count of Monte Cristo* (#1184), *Twenty Thousand Leagues* (#164), *Pride and Prejudice* (#1342), *Jekyll and Hyde* (#43). |
+|| 22 | Generate AI glossary entries for imported works | ⬜ | Covered by Gutenberg import pipeline spec (Step 6). Function: `generateGlossaryForWork()` in `src/lib/gutenberg-import/generate-glossary.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `glossary_entries` + `glossary_definition_versions` tables. Not started — depends on task #21 implementation. |
+|| 23 | Generate character profiles for imported works | ⬜ | Covered by Gutenberg import pipeline spec (Step 7). Function: `generateCharactersForWork()` in `src/lib/gutenberg-import/generate-characters.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `character_profiles` table. Not started — depends on task #21 implementation. |
 
 ### Outreach
 
@@ -124,7 +124,7 @@ These are literal `// TODO` comments in the codebase:
 | # | File | Issue | Status | Notes |
 |---|------|-------|--------|-------|
 | 30 | `src/lib/r2-usage.ts:227` | Admin alert when R2 storage budget threshold hit | ✅ | Added \`notifyAdminStorageAlert\` and implemented in \`r2-usage.ts\` |
-| 31 | `src/lib/ContentValidationService.ts:269` | Store content hashes for duplicate detection | ⬜ | ContentValidationService.ts exists at ~17KB (526 lines); hash storage not yet implemented. |
+| 31 | `src/lib/ContentValidationService.ts:269` | Store content hashes for duplicate detection | ⬜ | |
 | 32 | `src/lib/ContentValidationService.ts:463` | Integrate image safety API (currently no-op) | ✅ | Google Cloud Vision SafeSearch — flags adult/violence/racy LIKELY+ images; graceful fallback to URL check if key absent |
 | 33 | `src/lib/analytics/view-counter.ts:187` | Add `viewCount` field to Section model in Prisma schema | ✅ | Implemented DB logic in \`view-counter.ts\` to use \`viewCount\` field which was already in schema |
 | 34 | `src/app/api/works/publish/route.ts` | Wire content validation checks into publish flow | ✅ | Validates ALL sections (not just first); removed auto-approve; mature content confirmation modal wired; PrePublishChecklist calls server validation; new `/api/works/[id]/validate` dry-run endpoint. |
@@ -153,17 +153,16 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 
 ## 🔵 Phase 4 — Ecosystem Expansion
 
-|| # | Task | Status | Notes |
-||---|------|--------|-------|
-|| 44 | Reader highlight → suggest typo/wording fix | 🔶 | Suggestion submission route hardened with canonical transitions/validation + shared permission guards. Existing chapter reader selection flow submits to edit-suggestions; remaining refinement is dedicated ChapterBlockRenderer-native popover wiring. `src/lib/suggestions/suggestion-permissions.ts` provides permission checks. |
-|| 45 | Creator accept/reject queue for reader suggestions | ✅ | Added grouped moderation queue API (`/api/creator/suggestions/queue`) + new `CreatorSuggestionQueue` UI and updated creator suggestion page integration. |
-|| 46 | Series and Volumes grouping | ✅ | `Series`, `SeriesVolume`, `SeriesWork` Prisma models + migration SQL. API CRUD (`/api/series`, `/api/series/[id]`, `/api/series/[id]/works`). `SeriesManager` creator UI at `/creator/series`. Public reader page at `/series/[id]`. Series badges on story pages. |
-|| 47 | Series subscription (one click covers all works in a set) | ✅ | `/api/series/[id]/subscribe` (POST idempotent bulk-bookmark, DELETE removes). `SeriesSubscribeButton` client component with session-aware CTA. |
-|| 48 | Reader-to-reader recommendation ("finished X → also loved Y") | ✅ | `UserSignal(signalType='work_complete')` completion events via `POST /api/works/[id]/complete`. `src/lib/recommendations/reader-signals.ts` computes co-completion scores → `ContentSimilarity(similarityType='reader_to_reader')`. Integrated into `getRelatedWorks` cascade (layer 2b). Admin trigger extended; `reasonLabel` displayed on story pages. |
-|| 49 | "Readers Also Enjoyed" block on story pages | ✅ | Smart cascade: author picks → collaborative signals → reader-to-reader co-completion → semantic LLM Jaccard → trending → popular. `WorkSemanticProfile` + `AuthorRecommendation` schema, `similarity.ts` service, `/api/works/[id]/related` (now returns `reasonCode` + `reasonLabel`). |
-|| 49a | Author-curated "Readers Also Enjoyed" picks — Creator Hub UI | ✅ | Work-search autocomplete + pick list (max 4) added to `/creator/work/[id]/edit`. Auto-saves on add/remove. |
-|| 49b | Collaborative signal cron/trigger — periodically call `computeCollaborativeSignals` | ✅ | `.github/workflows/recommendation-refresh.yml` cron `0 */6 * * *` → `POST /api/admin/collaborative-signals` with `x-scheduler-secret` header. Runs collaborative + reader-to-reader together. Add `ADMIN_SCHEDULER_SECRET` to GitHub Actions Secrets. |
-|| 116 | Tier 3 Deal proposals from contributors | ✅ | `Tier3Deal` Prisma model created. API at `/api/tier3-deals/[dealId]` for CRUD operations. Allows community contributors to propose premium tier deals. |
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 44 | Reader highlight → suggest typo/wording fix | 🔶 | Suggestion submission route hardened with canonical transitions/validation + shared permission guards. Existing chapter reader selection flow submits to edit-suggestions; remaining refinement is dedicated ChapterBlockRenderer-native popover wiring. |
+| 45 | Creator accept/reject queue for reader suggestions | ✅ | Added grouped moderation queue API (`/api/creator/suggestions/queue`) + new `CreatorSuggestionQueue` UI and updated creator suggestion page integration. |
+| 46 | Series and Volumes grouping | ✅ | `Series`, `SeriesVolume`, `SeriesWork` Prisma models + migration SQL. API CRUD (`/api/series`, `/api/series/[id]`, `/api/series/[id]/works`). `SeriesManager` creator UI at `/creator/series`. Public reader page at `/series/[id]`. Series badges on story pages. |
+| 47 | Series subscription (one click covers all works in a set) | ✅ | `/api/series/[id]/subscribe` (POST idempotent bulk-bookmark, DELETE removes). `SeriesSubscribeButton` client component with session-aware CTA. |
+| 48 | Reader-to-reader recommendation ("finished X → also loved Y") | ✅ | `UserSignal(signalType='work_complete')` completion events via `POST /api/works/[id]/complete`. `src/lib/recommendations/reader-signals.ts` computes co-completion scores → `ContentSimilarity(similarityType='reader_to_reader')`. Integrated into `getRelatedWorks` cascade (layer 2b). Admin trigger extended; `reasonLabel` displayed on story pages. |
+| 49 | "Readers Also Enjoyed" block on story pages | ✅ | Smart cascade: author picks → collaborative signals → reader-to-reader co-completion → semantic LLM Jaccard → trending → popular. `WorkSemanticProfile` + `AuthorRecommendation` schema, `similarity.ts` service, `/api/works/[id]/related` (now returns `reasonCode` + `reasonLabel`). |
+| 49a | Author-curated "Readers Also Enjoyed" picks — Creator Hub UI | ✅ | Work-search autocomplete + pick list (max 4) added to `/creator/work/[id]/edit`. Auto-saves on add/remove. |
+| 49b | Collaborative signal cron/trigger — periodically call `computeCollaborativeSignals` | ✅ | `.github/workflows/recommendation-refresh.yml` cron `0 */6 * * *` → `POST /api/admin/collaborative-signals` with `x-scheduler-secret` header. Runs collaborative + reader-to-reader together. Add `ADMIN_SCHEDULER_SECRET` to GitHub Actions Secrets. |
 
 ---
 
@@ -276,30 +275,33 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 
 ---
 
-## ✅ Done (recent sessions)
+## ✅ Done (this session)
 
-All items below are already marked ✅ in their respective sections above. This section is maintained for quick reference only — do not duplicate status updates here.
-
-| Task | Section Reference |
-|------|------------------|
-| Squad multi-agent dev team installed (#112) | Immediate / Blocking |
-| Admin security lockdown + bootstrap PIN API | Immediate / Blocking |
-| og:image + og:description for story/chapter pages (tasks 14, 15) | SEO & Discoverability |
-| community_genres cookie wired into feed cold-start (task 17) | Feed & Discovery |
-| New user empty state with genre quick-picks (task 72) | UX / Polish |
-| AdSense false-positive adblock detection fixed (task 69) | Monetization |
-| Content validation wired into publish flow (task 34) | Known Code TODOs |
-| Sidebar expansion overlays without reflow (task 81) | UX / Polish |
-| Playwright mobile smoke tests (task 82) | UX / Polish |
-| Contact page reads live from SiteSettings | UX / Polish |
-| DMCA contact address added | Legal & Content Policy |
-| Welcome email on first sign-up | Infrastructure |
-| Chapter rejection email wired to moderation queue | Infrastructure |
-| Community referral links system | Outreach |
-| Signup tracking with 30s polling | Infrastructure |
-| "Readers Also Enjoyed" smart similarity cascade (task 49) | Phase 4 |
-| Author-curated companion works API (task 49a) | Phase 4 |
-| Maturity gate (#11) — `MaturityGate.tsx` interstitial | Legal & Content Policy |
-| Delete account (#12) — cascade delete + Danger Zone UI | Legal & Content Policy |
-| Trending page (#20) with time filters, rank badges | Feed & Discovery |
-| Font-family support in editor (task 111) | UX / Polish |
+| Task |
+|------|
+| Squad multi-agent dev team installed — `squad init` run, scaffold seeded with Chapturs context (task #112) |
+| Admin security lockdown — middleware + server layout auth guard |
+| Bootstrap PIN API + page |
+| Admin settings + deploy workflow now include ADMIN_EMAIL + ADMIN_BOOTSTRAP_PIN |
+| Email addresses consolidated into Admin → Settings → Email Addresses |
+| og:image + og:description for story and chapter pages (tasks 14, 15) |
+| community_genres cookie wired into feed cold-start (task 17) |
+| New user empty state with genre quick-picks (task 72) |
+| AdSense false-positive adblock detection fixed (task 69) |
+| Rich text font-family support in editor toolbar (task 108) |
+| Content validation wired into publish flow — all sections validated, auto-approve removed, maturity confirmation modal, PrePublishChecklist server-side checks, new validate API endpoint (task 34) |
+| Sidebar expansion now overlays without reflow; reader content no longer shifts when opening sidebar (task 81) |
+| Playwright mobile smoke tests added and passing for mobile home + creator editor (task 82) |
+| Contact page reads live from SiteSettings |
+| DMCA contact address added |
+| Welcome email on first sign-up |
+| Chapter rejection email wired to moderation queue |
+| Community referral links system |
+| Signup tracking with 30s polling |
+| FEATURE_ROADMAP.md refreshed |
+| "Readers Also Enjoyed" — smart similarity cascade: author picks → collaborative signals → semantic LLM tags → trending → popular fallback. WorkSemanticProfile + AuthorRecommendation schema, similarity service, `/api/works/[id]/related`, `/api/works/[id]/author-recommendations`. LLM now emits structured `semanticProfile` alongside QA assessment (zero extra cost). `ContentSimilarity` table auto-populated after every QA run. Author UI pending — see TASKS below. |
+| Author-curated companion works API — `PUT /api/works/[id]/author-recommendations` (max 4, auth-gated to work owner) |
+|| Maturity gate (#11) — `ConfirmMatureModal.tsx` exists; full interstitial wrapper (`MaturityGate.tsx`) needs implementation |
+| Delete account (#12) — `DELETE /api/user/account` cascade delete + Danger Zone UI in Reader Settings |
+| Trending page (#20) — `/trending` with time filters, rank badges, sidebar nav link; `publishedWithinDays` param added to `/api/search` |
+| Font-family support in editor (now #111) — TipTap FontFamily extension, curated dropdown in BubbleToolbar, Google Fonts loaded globally |
