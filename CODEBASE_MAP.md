@@ -9,16 +9,17 @@
 
 ```
 Chapturs/
-├── src/                          # Application source code (511 files)
+├── src/                          # Application source code (507 files)
 │   ├── app/                      # Next.js App Router pages & API routes
-│   │   ├── api/                  # 172 route files across 71 namespaces
+│   │   ├── api/                  # 172 route files across 51 namespaces
 │   │   └── *.tsx/*.ts            # 75 page components (flat under src/app/)
-│   ├── components/               # 155 .tsx component files (+ subdirectories)
-│   └── lib/                      # 64 library/utility modules
+│   ├── components/               # 158 .tsx/.ts component files (+ subdirectories)
+│   └── lib/                      # 63 library/utility modules
 ├── prisma/                       # Prisma schema + migrations + seed
 ├── docs/                         # Documentation source & summaries
+├── public/                       # Static assets (images, logos, OG images)
 ├── scripts/                      # Deployment, utility & worker scripts
-├── __tests__/                    # Jest unit tests (1 test file)
+├── __tests__/                    # Jest unit tests (1 file)
 ├── tests/                        # Playwright E2E tests
 └── nginx/                        # Nginx server configuration
 ```
@@ -27,7 +28,7 @@ Chapturs/
 
 ---
 
-## Pages (`src/app/[page]/`) — 75 pages (23 Creator Hub + 52 public/auth/reader/admin)
+## Pages (`src/app/[page]/`) — 75 pages (22 Creator Hub + 53 public/auth/reader/admin)
 
 ### Public Pages
 | Route | File | Description |
@@ -77,24 +78,24 @@ Chapturs/
 | `/worlds/[worldSlug]` | `app/worlds/[worldSlug]/page.tsx` | Living World atlas / browsable map |
 
 ### Notifications & Moderation
-|| Route | File | Description |
-||-------|------|-------------|
-|| `/notifications` | `app/notifications/page.tsx` | In-app notification center (bell icon, 60s polling) |
-|| `/moderation` | `app/moderation/page.tsx` | User moderation queue |
+| Route | File | Description |
+|-------|------|-------------|
+| `/notifications` | `app/notifications/page.tsx` | In-app notification center (bell icon, 60s polling) |
+| `/moderation` | `app/moderation/page.tsx` | User moderation queue |
 
 ### Admin Pages
-|| Route | File | Description |
-||-------|------|-------------|
-|| `/admin` | `app/admin/page.tsx` | Admin panel landing page |
-|| `/admin/bootstrap` | `app/admin/bootstrap/page.tsx` | PIN-based admin role activation |
-|| `/admin/community-links` | `app/admin/community-links/page.tsx` | Community referral link management |
-|| `/admin/contests` | `app/admin/contests/page.tsx` | Contest management |
-|| `/admin/living-world` | `app/admin/living-world/page.tsx` | Living World admin console |
-|| `/admin/payouts` | `app/admin/payouts/page.tsx` | Payout processing |
-|| `/admin/reports` | `app/admin/reports/page.tsx` | Content moderation queue |
-|| `/admin/settings` | `app/admin/settings/page.tsx` | Site settings (email addresses, premium_enabled) |
-|| `/admin/users` | `app/admin/users/page.tsx` | User management |
-|| `/admin/validation-rules` | `app/admin/validation-rules/page.tsx` | Content validation rules |
+| Route | File | Description |
+|-------|------|-------------|
+| `/admin` | `app/admin/page.tsx` | Admin panel landing page |
+| `/admin/bootstrap` | `app/admin/bootstrap/page.tsx` | PIN-based admin role activation |
+| `/admin/community-links` | `app/admin/community-links/page.tsx` | Community referral link management |
+| `/admin/contests` | `app/admin/contests/page.tsx` | Contest management |
+| `/admin/living-world` | `app/admin/living-world/page.tsx` | Living World admin console |
+| `/admin/payouts` | `app/admin/payouts/page.tsx` | Payout processing |
+| `/admin/reports` | `app/admin/reports/page.tsx` | Content moderation queue |
+| `/admin/settings` | `app/admin/settings/page.tsx` | Site settings (email addresses, premium_enabled) |
+| `/admin/users` | `app/admin/users/page.tsx` | User management |
+| `/admin/validation-rules` | `app/admin/validation-rules/page.tsx` | Content validation rules |
 
 ### Join / Community Links
 | Route | File | Description |
@@ -121,39 +122,39 @@ Chapturs/
 | `/fan-content` | `app/fan-content/page.tsx` | Fan content hub (audiobooks, art, translations) |
 
 ### Work Pages
-|| Route | File | Description |
-||-------|------|-------------|
-|| `/work/[id]` | `app/work/[id]/page.tsx` | Work detail page |
+| Route | File | Description |
+|-------|------|-------------|
+| `/work/[id]` | `app/work/[id]/page.tsx` | Work detail page |
 
 ### Creator Hub Pages
-|| Route | File | Description |
-||-------|------|-------------|
-|| `/creator/analytics` | `app/creator/analytics/page.tsx` | Creator analytics dashboard |
-|| `/creator/characters` | `app/creator/characters/page.tsx` | Character management for creator |
-|| `/creator/dashboard` | `app/creator/dashboard/page.tsx` | Classic creator dashboard layout |
-|| `/creator/editor` | `app/creator/editor/page.tsx` | Chapter editor page |
-|| `/creator/fan-content-settings` | `app/creator/fan-content-settings/page.tsx` | Fan content preferences |
-|| `/creator/fanart` | `app/creator/fanart/page.tsx` | Fan art management |
-|| `/creator/glossary` | `app/creator/glossary/page.tsx` | Glossary management for creator |
-|| `/creator/living-world/[worldId]` | `app/creator/living-world/[worldId]/page.tsx` | Living World admin for creators |
-|| `/creator/moderation` | `app/creator/moderation/page.tsx` | Comment moderation queue |
-|| `/creator/monetization` | `app/creator/monetization/page.tsx` | Monetization settings and tracking |
-|| `/creator/profile/edit` | `app/creator/profile/edit/page.tsx` | Creator profile edit page |
-|| `/creator/series` | `app/creator/series/page.tsx` | Series manager UI |
-|| `/creator/settings` | `app/creator/settings/page.tsx` | Creator settings |
-|| `/creator/upload` | `app/creator/upload/page.tsx` | Upload page for creator |
-|| `/creator/work/[id]/chapters` | `app/creator/work/[id]/chapters/page.tsx` | Chapter management per work |
-|| `/creator/work/[id]/edit` | `app/creator/work/[id]/edit/page.tsx` | Work edit page |
-|| `/creator/work/[id]/suggestions` | `app/creator/work/[id]/suggestions/page.tsx` | Suggestion moderation queue |
-|| `/creator/works` | `app/creator/works/page.tsx` | List creator's works |
-|| `/creator/works/[id]/characters` | `app/creator/works/[id]/characters/page.tsx` | Character management per work |
-|| `/creator/works/[id]/collaborators` | `app/creator/works/[id]/collaborators/page.tsx` | Collaborator management per work |
-|| `/creator/works/[id]/glossary` | `app/creator/works/[id]/glossary/page.tsx` | Glossary management per work |
-|| `/creator/works/[id]/import` | `app/creator/works/[id]/import/page.tsx` | Import content into a work |
+| Route | File | Description |
+|-------|------|-------------|
+| `/creator/analytics` | `app/creator/analytics/page.tsx` | Creator analytics dashboard |
+| `/creator/characters` | `app/creator/characters/page.tsx` | Character management for creator |
+| `/creator/dashboard` | `app/creator/dashboard/page.tsx` | Classic creator dashboard layout |
+| `/creator/editor` | `app/creator/editor/page.tsx` | Chapter editor page |
+| `/creator/fan-content-settings` | `app/creator/fan-content-settings/page.tsx` | Fan content preferences |
+| `/creator/fanart` | `app/creator/fanart/page.tsx` | Fan art management |
+| `/creator/glossary` | `app/creator/glossary/page.tsx` | Glossary management for creator |
+| `/creator/living-world/[worldId]` | `app/creator/living-world/[worldId]/page.tsx` | Living World admin for creators |
+| `/creator/moderation` | `app/creator/moderation/page.tsx` | Comment moderation queue |
+| `/creator/monetization` | `app/creator/monetization/page.tsx` | Monetization settings and tracking |
+| `/creator/profile/edit` | `app/creator/profile/edit/page.tsx` | Creator profile edit page |
+| `/creator/series` | `app/creator/series/page.tsx` | Series manager UI |
+| `/creator/settings` | `app/creator/settings/page.tsx` | Creator settings |
+| `/creator/upload` | `app/creator/upload/page.tsx` | Upload page for creator |
+| `/creator/work/[id]/chapters` | `app/creator/work/[id]/chapters/page.tsx` | Chapter management per work |
+| `/creator/work/[id]/edit` | `app/creator/work/[id]/edit/page.tsx` | Work edit page |
+| `/creator/work/[id]/suggestions` | `app/creator/work/[id]/suggestions/page.tsx` | Suggestion moderation queue |
+| `/creator/works` | `app/creator/works/page.tsx` | List creator's works |
+| `/creator/works/[id]/characters` | `app/creator/works/[id]/characters/page.tsx` | Character management per work |
+| `/creator/works/[id]/collaborators` | `app/creator/works/[id]/collaborators/page.tsx` | Collaborator management per work |
+| `/creator/works/[id]/glossary` | `app/creator/works/[id]/glossary/page.tsx` | Glossary management per work |
+| `/creator/works/[id]/import` | `app/creator/works/[id]/import/page.tsx` | Import content into a work |
 
 ---
 
-## API Routes (`src/app/api/`) — 172 route files across 71 namespaces
+## API Routes (`src/app/api/`) — 172 route files across 51 namespaces
 
 ### Admin APIs (16 routes)
 - `admin/bootstrap` — PIN-based admin role activation
@@ -228,6 +229,11 @@ Chapturs/
 
 ### Creator Ad APIs (1 route)
 - `creator-ads/recommendations` — Get ad placement recommendations for creators
+
+### Cron APIs (3 routes)
+- `cron/flush-analytics` — Aggregates and flushes analytics data
+- `cron/process-assessments` — Processes queued quality assessment jobs
+- `cron/weekly-digest` — Sends weekly email digest of activity on followed works
 
 ### Edit Suggestions APIs (3 routes)
 - `edit-suggestions` — Submit reader suggestions
@@ -371,13 +377,9 @@ Chapturs/
 - `works/publish` — Publish a work (with content validation)
 - `works/user/[userId]` — Get works by user ID
 
-### Stripe APIs (2 routes)
-- `stripe/checkout` — Checkout session creation
-- `stripe/webhook` — Stripe webhook handler with idempotency + event logging
-
 ---
 
-## Components (`src/components/`) — 155 .tsx files (+ subdirectories)
+## Components (`src/components/`) — 158 .tsx/.ts files (+ subdirectories)
 
 Key components by category:
 
@@ -527,7 +529,7 @@ Key components by category:
 
 ---
 
-## Libraries (`src/lib/`) — 66 modules (+ test files)
+## Libraries (`src/lib/`) — 63 modules (+ test utilities)
 
 ### Core Services
 - `ContentValidationService.ts` — Content validation (maturity checks, image safety via Google Cloud Vision)
@@ -657,26 +659,29 @@ Key models in the schema (`prisma/schema.prisma`):
 
 ## Tests (`__tests__/` + `tests/`)
 
-### Jest Unit Tests (`__tests__/`)
-- `monetization.test.js` — Monetization-related tests
+### Jest Unit Tests (`__tests__/`) — 1 file
+- `monetization.test.js` — Monetization-related tests (Stripe checkout, webhook)
 
-### Playwright E2E Tests (`tests/`)
-- `achievements.spec.ts` — Achievement system tests
+### Playwright E2E Tests (`tests/`) — 2 files
+- `achievements.spec.ts` — Achievement system end-to-end tests
 - `mobile-smoke.spec.ts` — Mobile smoke suite: feed, reader, editor flows
 - Configured in `playwright.config.ts`
 - Scripts: `npm run test:e2e`, `npm run test:e2e:mobile`
 
-### Test API Routes (`src/app/api/test/`)
+### Test API Routes (`src/app/api/`)
+- `/api/test/moderation` — Test moderation endpoint
 - `/api/test-db` — Database connectivity tests
 - `/api/test-error-handling` — Error handling tests
 - `/api/test-node` — Node environment tests
-- `/test-upload` — File upload testing page
 
-### Test Pages (`src/app/test/`)
-- `/test/editor` — Editor testing page
+### Test Pages (`src/app/test/` + root) — 5 pages
+- `/test-upload` — File upload testing page (root level)
+- `/test/editor` — Chapter editor testing page
 - `/test/emoji` — Emoji picker testing page
 - `/test/moderation` — Moderation testing page
 - `/test/reader` — Reader testing page
+
+
 
 ---
 
@@ -786,6 +791,11 @@ Organized by category:
 | ESLint config | `.eslintrc.json` |
 | Playwright config | `playwright.config.ts` |
 | PM2 ecosystem | `ecosystem.config.js` |
+| Package manager | `package.json`, `package-lock.json` |
+| Environment vars | `.env.example` (template), `.env.local` (local overrides) |
+| Git ignore | `.gitignore` — Excludes node_modules, .next/, Test Materials/ |
+| VS Code config | `.vscode/tasks.json` |
+| Node version | `.node-version` (20) |
 | Middleware | `middleware.ts` |
 | Auth config | `auth.ts` |
 | Instrumentation | `instrumentation.ts`, `instrumentation-client.ts` |
