@@ -150,7 +150,7 @@ The project uses a structured multi-agent development team orchestrated through 
 |--------|------|--------|-------|
 | Squad Team (6 agents) | Multi-agent dev team | ✅ Active | VS Code Agent mode, Ocean's Eleven universe cast |
 | Recommendation Refresh | GitHub Actions cron | ✅ Active | Every 6 hours |
-| Weekly Digest | Next.js route worker | ⬜ Not yet implemented | Schema exists, batching logic needed |
+| Weekly Digest | Next.js route worker | ✅ Available | Sends personalized reading digests to opted-in users who read content this week |
 | Process Assessments | Next.js route worker | ✅ Available | Quality assessment queue processor |
 | Flush Analytics | Next.js route worker | ✅ Available | Analytics aggregation |
 | QA Worker (70B) | LLM runtime | ✅ Available | `meta-llama/llama-3.3-70b-instruct` |

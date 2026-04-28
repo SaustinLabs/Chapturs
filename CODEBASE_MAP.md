@@ -14,7 +14,7 @@ Chapturs/
 │   │   ├── api/                  # 172 route files across 71 namespaces
 │   │   └── *.tsx/*.ts            # 75 page components (flat under src/app/)
 │   ├── components/               # 155 .tsx component files (+ subdirectories)
-│   └── lib/                      # 66 library/utility modules
+│   └── lib/                      # 64 library/utility modules
 ├── prisma/                       # Prisma schema + migrations + seed
 ├── docs/                         # Documentation source & summaries
 ├── scripts/                      # Deployment, utility & worker scripts
@@ -77,10 +77,24 @@ Chapturs/
 | `/worlds/[worldSlug]` | `app/worlds/[worldSlug]/page.tsx` | Living World atlas / browsable map |
 
 ### Notifications & Moderation
-| Route | File | Description |
-|-------|------|-------------|
-| `/notifications` | `app/notifications/page.tsx` | In-app notification center (bell icon, 60s polling) |
-| `/moderation` | `app/moderation/page.tsx` | User moderation queue |
+|| Route | File | Description |
+||-------|------|-------------|
+|| `/notifications` | `app/notifications/page.tsx` | In-app notification center (bell icon, 60s polling) |
+|| `/moderation` | `app/moderation/page.tsx` | User moderation queue |
+
+### Admin Pages
+|| Route | File | Description |
+||-------|------|-------------|
+|| `/admin` | `app/admin/page.tsx` | Admin panel landing page |
+|| `/admin/bootstrap` | `app/admin/bootstrap/page.tsx` | PIN-based admin role activation |
+|| `/admin/community-links` | `app/admin/community-links/page.tsx` | Community referral link management |
+|| `/admin/contests` | `app/admin/contests/page.tsx` | Contest management |
+|| `/admin/living-world` | `app/admin/living-world/page.tsx` | Living World admin console |
+|| `/admin/payouts` | `app/admin/payouts/page.tsx` | Payout processing |
+|| `/admin/reports` | `app/admin/reports/page.tsx` | Content moderation queue |
+|| `/admin/settings` | `app/admin/settings/page.tsx` | Site settings (email addresses, premium_enabled) |
+|| `/admin/users` | `app/admin/users/page.tsx` | User management |
+|| `/admin/validation-rules` | `app/admin/validation-rules/page.tsx` | Content validation rules |
 
 ### Join / Community Links
 | Route | File | Description |
@@ -355,12 +369,14 @@ Key components by category:
 
 ### Editor & Creator Tools
 - `ChaptursEditor.tsx` — TipTap-based chapter editor (FontFamily extension, 8 curated fonts)
+- `CreatorDashboard.tsx` — Classic creator dashboard layout
+- `CreatorDashboardNew.tsx` — New creator dashboard layout
+- `CreatorEditor.tsx` — Creator-specific editor component
 - `AdvancedUploader.tsx` — File upload with progress tracking
 - `CoverUploadField.tsx` — Cover image upload field
 - `BlockEditors.tsx` / `RichTextEditor.tsx` — Block and rich text editing components
 - `ExperimentalEditor.tsx` — Experimental editor variant
 - `PrePublishChecklist.tsx` — Pre-publish validation checklist
-- `CreatorDashboardNew.tsx` — New creator dashboard layout
 - `StoryManagement.tsx` — Story management UI
 
 ### Feed & Discovery
@@ -432,6 +448,7 @@ Key components by category:
 - `SupportAuthorInterstitial.tsx` — Support author interstitial ad
 
 ### Auth Components (`auth/`)
+- `AuthProvider.tsx` — NextAuth session provider wrapper
 - `UsernameGuard.tsx` — Username guard (legacy, replaced by onboarding flow)
 - `UsernameSelectionModal.tsx` — Username selection modal for new users
 
@@ -484,7 +501,7 @@ Key components by category:
 
 ---
 
-## Libraries (`src/lib/`) — 66 modules (+ test files)
+## Libraries (`src/lib/`) — 64 modules (+ test files)
 
 ### Core Services
 - `ContentValidationService.ts` — Content validation (maturity checks, image safety via Google Cloud Vision)
@@ -590,7 +607,9 @@ Key components by category:
 
 Key models in the schema (`prisma/schema.prisma`):
 - **User** / **UserProfile** — Core user model with role, adSupportLevel, isPremium, etc.
-- **Work** / **Section** / **SectionLock** / **SectionVersion** / **SectionEditSuggestion** — Story and chapter data
+- **Author** / **CreatorProfile** — Author profile and customizable creator profiles
+- **ContributorProfile** — Contributor hub profile
+- **Work** / **Section** / **SectionLock** / **SectionVersion** / **SectionEditSuggestion** / **SectionPresence** — Story and chapter data
 - **Series**, **SeriesVolume**, **SeriesWork** — Series grouping
 - **CharacterProfile**, **CharacterVersion**, **CharacterRelationship**, **GlossaryEntry**, **GlossaryDefinitionVersion** — Character/glossary tracking
 - **Comment**, **CommentLike**, **CommentReport**, **BlockComment** — Comment system variants
@@ -598,14 +617,14 @@ Key models in the schema (`prisma/schema.prisma`):
 - **Achievement**, **UserAchievement**, **PointsLedger**, **LevelTier** — Achievement system
 - **WorkCollaborator**, **CollaborationActivity** — Collaboration features
 - **LivingWorld**, **CanonEntry**, **CanonCharacter**, **LoreContradictionFlag**, **WorldCouncilVote**, **WorldCouncilMember** — Living World / lore
-- **FanTranslation**, **FanAudiobook**, **ImageSubmission**, **FanContentVote** — Fan contributions
+- **FanTranslation**, **FanAudiobook**, **ImageSubmission**, **Image**, **FanContentVote** — Fan contributions
 - **ContentReport**, **ContentModerationQueue**, **QualityAssessment**, **QualityAssessmentHistory**, **QualityAssessmentQueue**, **AssessmentFeedback**, **AssessmentPromptTemplate** — Moderation & QA
 - **UserSignal**, **WorkSemanticProfile**, **AuthorRecommendation**, **CreatorRecommendation**, **ContentSimilarity**, **RecommendationCache**, **RecommendationFeedback** — Recommendation system
 - **Payout**, **AdPlacement**, **AdImpression**, **AdCampaign**, **AdPlacementMetrics**, **DefaultAdConfig**, **PremiumRevenuePool** — Monetization
 - **StripeEventLog**, **Subscription** — Payment tracking
 - **CommunityLink**, **Contest**, **ContestEntry**, **Tier3Deal** — Community features
 - **Notification**, **Translation**, **TranslationSuggestion**, **TranslationVote**, **TranslatorProfile** — Translation system
-- **Author**, **AuthorEarnings**, **WorkRating**, **TrendingMetric**, **SearchAnalytic** — Analytics
+- **AuthorEarnings**, **WorkRating**, **TrendingMetric**, **SearchAnalytic** — Analytics
 - **SiteSettings**, **ValidationRule**, **ContentValidation**, **ABTestGroup**, **LLMUsageLog**, **ProfileBlock** — Platform management
 
 ---

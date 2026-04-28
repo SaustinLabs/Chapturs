@@ -112,7 +112,7 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 27 | In-app notification centre (bell icon, unread count) | ✅ | Bell on desktop sidebar + mobile bottom nav Alerts tab; full `/notifications` page; per-notification mark-as-read; 60s polling |
-| 28 | Weekly email digest of activity on followed works | ⬜ | Requires batching logic / cron job |
+|| 28 | Weekly email digest of activity on followed works | ✅ | Route at `src/app/api/cron/weekly-digest/route.ts` — sends personalized digests to opted-in users who read content this week; protected by shared secret auth header |
 | 29 | Web push notifications (service worker) | ⬜ | Nice-to-have, after in-app centre |
 
 ---
@@ -301,7 +301,22 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 | FEATURE_ROADMAP.md refreshed |
 | "Readers Also Enjoyed" — smart similarity cascade: author picks → collaborative signals → semantic LLM tags → trending → popular fallback. WorkSemanticProfile + AuthorRecommendation schema, similarity service, `/api/works/[id]/related`, `/api/works/[id]/author-recommendations`. LLM now emits structured `semanticProfile` alongside QA assessment (zero extra cost). `ContentSimilarity` table auto-populated after every QA run. Author UI pending — see TASKS below. |
 | Author-curated companion works API — `PUT /api/works/[id]/author-recommendations` (max 4, auth-gated to work owner) |
-||| Maturity gate (#11) — `MaturityGate.tsx` and `ConfirmMatureModal.tsx` both exist; full interstitial wrapper implemented and wired into reader flow ✅ |
+| Maturity gate (#11) — `MaturityGate.tsx` and `ConfirmMatureModal.tsx` both exist; full interstitial wrapper implemented and wired into reader flow ✅ |
 | Delete account (#12) — `DELETE /api/user/account` cascade delete + Danger Zone UI in Reader Settings |
 | Trending page (#20) — `/trending` with time filters, rank badges, sidebar nav link; `publishedWithinDays` param added to `/api/search` |
 | Font-family support in editor (now #111) — TipTap FontFamily extension, curated dropdown in BubbleToolbar, Google Fonts loaded globally |
+
+## 📝 Dev/Test Pages (Not for Production)
+
+These pages exist under `src/app/test/` and `src/app/api/test*` for development/testing purposes only:
+- `/test-upload` — File upload testing page
+- `/test/editor` — Editor testing page
+- `/test/emoji` — Emoji picker testing page
+- `/test/moderation` — Moderation testing page
+- `/test/reader` — Reader testing page
+- `/api/test-db` — Database connectivity tests
+- `/api/test-error-handling` — Error handling tests
+- `/api/test-node` — Node environment tests
+- `/api/test/moderation` — Test moderation endpoint
+
+These should be removed or gated behind feature flags before production deployment.
