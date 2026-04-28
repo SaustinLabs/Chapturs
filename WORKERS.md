@@ -59,6 +59,12 @@ The project uses a structured multi-agent development team orchestrated through 
 | Process Assessments | `src/app/api/cron/process-assessments/route.ts` | Cron-triggered | Processes queued quality assessment jobs |
 | Flush Analytics | `src/app/api/cron/flush-analytics/route.ts` | Cron-triggered | Aggregates and flushes analytics data |
 
+### Admin Route Workers (Triggered by GitHub Actions)
+
+| Route | Path | Trigger | Purpose |
+|-------|------|---------|---------|
+| Collaborative Signals | `src/app/api/admin/collaborative-signals/route.ts` | Scheduled cron (`0 */6 * * *`) | Runs collaborative + reader-to-reader recommendation signals via POST with `x-scheduler-secret` header |
+
 ### External Workers (Scripts)
 
 | Script | Path | Purpose |
@@ -67,6 +73,11 @@ The project uses a structured multi-agent development team orchestrated through 
 | DB Test Runner | `scripts/test-db.ts` | Database connectivity and schema validation tests |
 | Deployment Tester | `scripts/test-deploy.sh` | End-to-end deployment verification |
 | Stripe Webhook Verifier | `scripts/verify-stripe-webhook.ps1` | Verify Stripe webhook signature and event processing |
+| Codebase Auditor | `scripts/auditor.py` | Autonomous codebase auditor — scans src/, compares against docs |
+| Echo Worker | `scripts/echo_worker.py` | Echo documentation maintainer for autonomous development |
+| Hermes Worker | `scripts/hermes_worker.py` | Hermes agent worker for autonomous tasks |
+| Safety Rule Adder | `scripts/addSafetyRule.mjs` | Add content safety rules to validation |
+| R2 URL Fixer | `scripts/fix-r2-urls.js` | Fix R2 image URL references in database |
 
 ---
 

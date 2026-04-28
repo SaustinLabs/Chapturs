@@ -38,11 +38,19 @@ All source documents live under `docs/source/` organized by category:
 - **ops/** — Operations runbooks
 - **database/** — Schema docs, migration summaries, integration guides
 - **testing/** — Test documentation
+- **visuals/** — Visual design documents
 
 Summaries and indexes live under `docs/summaries/`:
 - [feature-systems.md](docs/summaries/feature-systems.md)
 - [bugs-fixes.md](docs/summaries/bugs-fixes.md)
 - [deployment-ops.md](docs/summaries/deployment-ops.md)
+- [database-data.md](docs/summaries/database-data.md)
+- [roadmap-ideas.md](docs/summaries/roadmap-ideas.md)
+- [testing-qa.md](docs/summaries/testing-qa.md)
+- [security-sensitive.md](docs/summaries/security-sensitive.md)
+- [methods-paths.md](docs/summaries/methods-paths.md)
+- [visuals.md](docs/summaries/visuals.md)
+- [source-index.md](docs/summaries/source-index.md)
 
 ## Organization
 All source documents live under:

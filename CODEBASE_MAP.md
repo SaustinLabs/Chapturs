@@ -11,17 +11,19 @@
 Chapturs/
 ├── src/                          # Application source code (511 files)
 │   ├── app/                      # Next.js App Router pages & API routes
-│   │   ├── api/                  # 172 route files across 48 namespaces
-│   │   └── [page]/               # 75 page components
-│   ├── components/               # 155 .tsx component files
+│   │   ├── api/                  # 172 route files across 71 namespaces
+│   │   └── *.tsx/*.ts            # 75 page components (flat under src/app/)
+│   ├── components/               # 155 .tsx component files (+ subdirectories)
 │   └── lib/                      # 66 library/utility modules
 ├── prisma/                       # Prisma schema + migrations + seed
 ├── docs/                         # Documentation source & summaries
-├── scripts/                      # Deployment & utility scripts
-├── __tests__/                    # Jest unit tests (13 test files)
+├── scripts/                      # Deployment, utility & worker scripts
+├── __tests__/                    # Jest unit tests (1 test file)
 ├── tests/                        # Playwright E2E tests
 └── nginx/                        # Nginx server configuration
 ```
+
+> **Note**: Pages are flat under `src/app/` — not nested in a `[page]` directory. Each route is its own folder with a `page.tsx`.
 
 ---
 
@@ -111,9 +113,9 @@ Chapturs/
 
 ---
 
-## API Routes (`src/app/api/`) — 172 route files across 40+ namespaces
+## API Routes (`src/app/api/`) — 172 route files across 71 namespaces
 
-### Admin APIs (19 routes)
+### Admin APIs (16 routes)
 - `admin/bootstrap` — PIN-based admin role activation
 - `admin/community-links` — Community referral link management
 - `admin/contests` / `[id]` — Contest CRUD
@@ -125,15 +127,17 @@ Chapturs/
 - `admin/users` — User management
 - `admin/validation-rules` / `invalidate` — Content validation rules + cache invalidation
 - `admin/ad-revenue` — Ad revenue tracking
+- `admin/collaborative-signals` — Trigger collaborative recommendation signal computation
 
 ### Achievement APIs (3 routes)
 - `achievements/[userId]` — Get user achievements/points
 - `achievements/[userId]/featured` — Pin/unpin featured achievements (4-pin cap)
 - `achievements/[userId]/visibility` — Toggle achievement visibility on profile
 
-### Ad APIs (3 routes)
+### Ad APIs (2 routes + config)
 - `ads/impression` — Track ad impressions
 - `ads/placements` / `[id]` — Ad placement management
+- `default-ads/config` — Default ad configuration settings
 
 ### Analytics APIs (2 routes)
 - `analytics/pageview` — Page view tracking
@@ -145,6 +149,11 @@ Chapturs/
 - `auth/current-user` — Get current authenticated user
 - `auth/set-username` — Set username (onboarding step 1)
 - `auth/sync-user` — Sync user profile data
+
+### Audiobook APIs (2 routes)
+- `audiobooks/submit` — Submit audiobook for a chapter
+- `works/[id]/chapters/[chapterId]/audiobooks/route.ts` — List audiobooks for a chapter
+- `works/[id]/chapters/[chapterId]/audiobooks/[audiobookId]/stream` — Stream audiobook audio
 
 ### Bookmark APIs (1 route)
 - `bookmarks` — Create/remove bookmarks
@@ -163,16 +172,22 @@ Chapturs/
 - `contributor/glossary/[workId]` — Glossary contributions per work
 - `contributor/qa-queue` / `qa-vote` — Quality assessment queue + voting
 
-### Creator APIs (8 routes)
+### Creator APIs (14 routes)
 - `creator/analytics` — Creator analytics dashboard
 - `creator/dashboard-stats` — Dashboard statistics
 - `creator/debug` — Debug endpoint
 - `creator/earnings` — Earnings tracking
 - `creator/fan-content-settings` — Fan content preferences
 - `creator/fanart` — Fan art management
+- `creator/fix-works` — Fix work metadata/data issues
 - `creator/moderation/comments` / `[id]/action` — Comment moderation queue + actions
 - `creator/payouts/request` — Payout request submission
 - `creator/profile` — Creator profile management
+- `creator/suggestions/queue` — Reader suggestion moderation queue
+- `creator/works` — List creator's works
+
+### Creator Ad APIs (1 route)
+- `creator-ads/recommendations` — Get ad placement recommendations for creators
 
 ### Edit Suggestions APIs (3 routes)
 - `edit-suggestions` — Submit reader suggestions
@@ -203,7 +218,7 @@ Chapturs/
 ### Like APIs (1 route)
 - `likes` — Story like/unlike
 
-### Living World APIs (5 routes)
+### Living World APIs (6 routes)
 - `living-world` / `[worldId]` — World CRUD + definition management
 - `living-world/[worldId]/canon` — Canon entry management
 - `living-world/[worldId]/contradictions` — Lore contradiction scanning
@@ -218,34 +233,103 @@ Chapturs/
 - `notifications` — Notification center + 60s polling data
 - `notifications/[id]` — Mark as read, delete
 
-### Onboarding APIs (1 route)
+### Onboarding APIs (2 routes)
 - `onboarding/book-search` — Google Books API integration for taste discovery
+- `onboarding/complete` — Complete onboarding flow with genre affinities saved
 
 ### Premium APIs (1 route)
-- `premium` — Premium subscription management
+- `premium/status` — Check premium subscription status
 
-### Profile APIs (1 route)
-- `profile` — User profile management
+### Profile APIs (1 route + user endpoints)
+- `profile/[username]` — Get public profile by username
+- `user/account` — Account management (delete cascade, update)
+- `user/contributor` — Contributor settings/profile
+- `user/monetization` — User monetization preferences
+- `user/profile` — User profile management
+- `user/taste-profile` — Taste profile / genre affinities
+- `user/taste-profile/samples` — Sample taste profiles for recommendations
 
-### Quality Assessment APIs (2 routes)
-- `quality-assessment` / `[id]` — QA scoring + detail retrieval
+### Quality Assessment APIs (4 routes)
+- `quality-assessment/[workId]` — Get QA score for a work
+- `quality-assessment/process` — Process queued assessments
+- `quality-assessment/queue` — QA queue management
+- `quality-assessment/stats` — QA statistics dashboard
 
-### Reader APIs (3 routes)
-- `reader` — Reader-specific endpoints
+### Reader APIs (2 routes)
+- `reader/stats` — Reading statistics per user/work
 - `reading-progress` — Reading progress tracking
 - `reading-sessions` — Reading session management
 
 ### Search API (1 route)
 - `search` — Full-text search with publishedWithinDays param
 
-### Series APIs (2 routes)
+### Series APIs (3 routes)
 - `series` / `[id]` — Series CRUD + subscription endpoint (`[id]/subscribe`)
+- `series/[seriesId]/works` — List works in a series
 
 ### Signal APIs (1 route)
 - `signals` — Recommendation signal management
 
-### Social APIs (1 route)
-- `social` — Social interaction endpoints
+### Social APIs (5 endpoints)
+- `social/discord/server/[guildId]` — Discord server integration
+- `social/twitch/channel/[channelName]` / `validate` — Twitch channel integration + validation
+- `social/x/user/[username]` — X/Twitter user data lookup
+- `social/youtube/channel/[channelId]` — YouTube channel integration
+
+### Stripe APIs (2 routes)
+- `stripe/checkout` — Checkout session creation
+- `stripe/webhook` — Stripe webhook handler with idempotency + event logging
+
+### Subscription APIs (1 route)
+- `subscriptions` — User subscription management
+
+### Tier 3 Deal APIs (1 route)
+- `tier3-deals/[dealId]` — Advanced fan contribution deal management
+
+### Translation APIs (7 routes)
+- `translations` — List translations for a work
+- `translations/[id]` — Get translation detail
+- `translations/submit` — Submit new translation
+- `translations/suggestions` — View translation suggestions
+- `translations/vote` — Vote on translations
+
+### Upload APIs (6 routes)
+- `upload/confirm` — Confirm file upload
+- `upload/cover` — Cover image upload
+- `upload/debug` — Upload debugging endpoint
+- `upload/delete` — Delete uploaded files
+- `upload/parse-document` — Parse document for chapter content
+- `upload/request` — Request upload session
+
+### Work APIs (30+ routes)
+- `works` / `[id]` — Work CRUD + detail retrieval
+- `works/[id]/assess` — Trigger quality assessment
+- `works/[id]/author-recommendations` — Author-curated companion works (max 4)
+- `works/[id]/blocks/[blockId]/comments` / `[commentId]` — Block-level comments
+- `works/[id]/chapters/[chapterId]/translations` / `[translationId]/content` — Chapter translations
+- `works/[id]/characters` / `[characterId]` / `[characterId]/relationships` / `[characterId]/snippet` / `[characterId]/submissions` — Character management
+- `works/[id]/collaborators` / `activity` — Collaborator management + activity log
+- `works/[id]/comments` — Work-level comments
+- `works/[id]/complete` — Mark work as completed (triggers recommendation signals)
+- `works/[id]/fanart` — Fan art submissions for a work
+- `works/[id]/featured-comments` — Featured comments on a work
+- `works/[id]/glossary` — Glossary entries for a work
+- `works/[id]/import` — Import content into a work
+- `works/[id]/rate` — Rate a work
+- `works/[id]/related` — "Readers Also Enjoyed" recommendations (smart cascade)
+- `works/[id]/sections` / `[sectionId]` — Chapter/section management
+- `works/[id]/sections/[sectionId]/lock` — Durable chapter locking
+- `works/[id]/sections/[sectionId]/presence` — Real-time presence tracking
+- `works/[id]/sections/[sectionId]/react` — Section-level reactions
+- `works/[id]/sections/[sectionId]/schedule` — Schedule chapter publication
+- `works/[id]/sections/[sectionId]/suggestions` / `[suggestionId]` — Edit suggestions per section
+- `works/[id]/sections/[sectionId]/versions` — Section version history
+- `works/[id]/validate` — Pre-publish validation dry-run
+- `works/[id]/view` — Track chapter view count
+- `works/ad-settings` — Work-level ad settings
+- `works/drafts` — List work drafts
+- `works/publish` — Publish a work (with content validation)
+- `works/user/[userId]` — Get works by user ID
 
 ### Stripe APIs (2 routes)
 - `stripe/checkout` — Checkout session creation
@@ -253,7 +337,7 @@ Chapturs/
 
 ---
 
-## Components (`src/components/`) — 155 .tsx files
+## Components (`src/components/`) — 155 .tsx files (+ subdirectories)
 
 Key components by category:
 
@@ -267,6 +351,7 @@ Key components by category:
 - `MaturityGate.tsx` — Maturity gate interstitial for R/NC-17 works (now implemented)
 - `QualityCelebration.tsx` / `QualityReportModal.tsx` / `QualityVoteModal.tsx` — Quality assessment UI
 - `RateWorkModal.tsx` — Rate work modal component
+- `ReviewQueue.tsx` — Review queue management UI
 
 ### Editor & Creator Tools
 - `ChaptursEditor.tsx` — TipTap-based chapter editor (FontFamily extension, 8 curated fonts)
@@ -275,6 +360,8 @@ Key components by category:
 - `BlockEditors.tsx` / `RichTextEditor.tsx` — Block and rich text editing components
 - `ExperimentalEditor.tsx` — Experimental editor variant
 - `PrePublishChecklist.tsx` — Pre-publish validation checklist
+- `CreatorDashboardNew.tsx` — New creator dashboard layout
+- `StoryManagement.tsx` — Story management UI
 
 ### Feed & Discovery
 - `FeedCard.tsx` — Story card component (cover art, genre badges, metadata)
@@ -285,6 +372,10 @@ Key components by category:
 - `AchievementBadge.tsx` — Achievement badge display
 - `AchievementsBlock.tsx` — User achievements/level block on profile
 - `FeaturedAchievements.tsx` — Pinned featured achievements (4-pin cap)
+- `ProfileLayout.tsx` / `ProfileSidebar.tsx` — Profile page layout components
+- `profile/blocks/*` — Profile block types: BaseBlock, DiscordInvite, ExternalLink, FavoriteAuthor, Support, TextBox, TwitchChannel, TwitterFeed, WorkCard, YouTubeChannel, YouTubeVideo
+- `profile/config/*` — Block configuration modals for each profile block type
+- `profile/editor/*` — Profile editor components: BasicInfoEditor, BlockPicker, EditableBlockGrid, EditableFeaturedSpace, ProfileEditor, ProfileEditorWYSIWYG
 
 ### Characters & Glossary
 - `CharacterCard.tsx` / `CharacterModal.tsx` / `CharacterProfileModal.tsx` / `CharacterProfileViewModal.tsx` — Character management UI
@@ -303,6 +394,7 @@ Key components by category:
 - `BetaWelcome.tsx` — Beta welcome banner
 - `BuildingInPublicStats.tsx` — Roadmap stats display
 - `ModerationDashboard.tsx` — Content moderation dashboard UI
+- `PremiumSubscriptionSettings.tsx` — Premium subscription configuration
 
 ### Modals & Overlays
 - `ConfirmMatureModal.tsx` — Mature content confirmation modal
@@ -330,6 +422,44 @@ Key components by category:
 - `AudiobookSelectorMenu.tsx` / `AudiobookSubmissionForm.tsx` — Audiobook features
 - `FanContentHub.tsx` — Fan content hub (audiobooks, art, translations)
 
+### Ad Components (`ads/`)
+- `AdPlacementEditor.tsx` — Ad placement configuration editor
+- `AdPreview.tsx` — Ad preview component
+- `AdSlot.tsx` — Ad slot renderer
+- `AuthorAdSettings.tsx` — Author ad settings panel
+- `CreatorRecommendationSetup.tsx` — Creator recommendation setup UI
+- `DefaultAdConfigManager.tsx` — Default ad configuration manager
+- `SupportAuthorInterstitial.tsx` — Support author interstitial ad
+
+### Auth Components (`auth/`)
+- `UsernameGuard.tsx` — Username guard (legacy, replaced by onboarding flow)
+- `UsernameSelectionModal.tsx` — Username selection modal for new users
+
+### Editor Components (`editor/`)
+- `ChapterEditor.tsx` — Chapter editor component
+- `extensions.tsx` — TipTap extensions including FontFamily
+
+### Experimental Components (`experimental/`)
+- `BranchingStoryMode.tsx` / `BranchingStoryModeSimple.tsx` — Branching story mode variants
+- `VisualNovelMode.tsx` — Visual novel-style reading mode
+- `WorldbuildingMode.tsx` — Worldbuilding-focused editor mode
+
+### Living World Components (`living-world/`)
+- `CanonGraph.tsx` — Browse/add/filter canon entries by type
+- `LoreIndex.tsx` — Searchable, filterable lore entries + character cards
+- `TimelineView.tsx` — Chronological event list for world history
+- `WorldAtlas.tsx` — Story cards grid at `/worlds/[slug]`
+- `WorldDefinitionForm.tsx` — World definition form (founder sets The Beginning + The End)
+- `WritersRoomConsole.tsx` — Creator hub writers room console
+
+### Onboarding Components (`onboarding/`)
+- `OnboardingForm.tsx` — Onboarding form component
+- `TasteProfileSurvey.tsx` — Taste profile survey modal for new users
+
+### Profile Components (`profile/`)
+- `BlockGrid.tsx` / `FeaturedSpace.tsx` — Profile layout components
+- `ContributorHubToggleSettings.tsx` — Contributor hub toggle settings
+
 ### UI Utilities
 - `AppLayout.tsx` — Main app layout wrapper with sidebar
 - `Sidebar.tsx` — Navigation sidebar component
@@ -343,10 +473,18 @@ Key components by category:
 - `StickyAudioScrubber.tsx` — Audio playback scrubber
 - `WorkCharactersPage.tsx` / `WorkCollaboratorsPage.tsx` / `WorkGlossaryPage.tsx` — Work detail pages
 - `WorkRatingSystem.tsx` / `WorkViewer.tsx` — Work rating and viewing components
+- `FeatureHint.tsx` / `FeedCardSkeleton.tsx` / `Footer.tsx` / `Modal.tsx` / `StoryPageSkeleton.tsx` / `Toast.tsx` / `Tooltip.tsx` — UI utility components
+- `MobileTextBox.tsx` — Mobile-friendly text box component
+- `PretextClampText.tsx` — Text clamping utility for previews
+- `UserSync.tsx` — User sync component
+- `WeeklyDigestToggle.tsx` — Weekly digest opt-in toggle
+
+### Upload Components (`upload/`)
+- `ImageUpload.tsx` — Image upload component with progress tracking
 
 ---
 
-## Libraries (`src/lib/`) — 66 modules
+## Libraries (`src/lib/`) — 66 modules (+ test files)
 
 ### Core Services
 - `ContentValidationService.ts` — Content validation (maturity checks, image safety via Google Cloud Vision)
@@ -441,6 +579,11 @@ Key components by category:
 - `selectionActionRegistry.tsx` — Text selection action registry for reader highlights
 - `supabase-edge.ts` — Supabase edge function client
 
+### Test & Mock Files
+- `mockData.ts` — Mock data for testing and development
+- `test-ad-system.ts` — Ad system test utilities
+- `test-creator-apis.ts` — Creator API test utilities
+
 ---
 
 ## Prisma Schema Models (2,375 lines)
@@ -483,6 +626,32 @@ Key models in the schema (`prisma/schema.prisma`):
 - `/api/test-error-handling` — Error handling tests
 - `/api/test-node` — Node environment tests
 - `/test-upload` — File upload testing page
+
+### Test Pages (`src/app/test/`)
+- `/test/editor` — Editor testing page
+- `/test/emoji` — Emoji picker testing page
+- `/test/moderation` — Moderation testing page
+- `/test/reader` — Reader testing page
+
+---
+
+## Scripts (`scripts/`)
+
+### Deployment & Operations
+- `process-queue.js` — Process queued jobs (QA queue, moderation queue)
+- `test-db.ts` — Database connectivity and schema validation tests
+- `test-deploy.sh` — End-to-end deployment verification
+- `verify-stripe-webhook.ps1` — Verify Stripe webhook signature and event processing
+
+### Worker Scripts
+- `auditor.py` — Autonomous codebase auditor (scans src/, compares against docs)
+- `echo_worker.py` — Echo documentation maintainer for autonomous development
+- `hermes_worker.py` — Hermes agent worker for autonomous tasks
+
+### SQL Utilities
+- `addSafetyRule.mjs` — Add safety rules to content validation
+- `fix-r2-urls.js` — Fix R2 image URLs in database
+- `sql/` — SQL utility scripts directory
 
 ---
 
@@ -557,20 +726,6 @@ Organized by category:
 
 ### Security (`docs/security/`)
 - `SECURITY_AUDIT_2026-04-04.md` — Security audit report from April 4, 2026
-
----
-
-## Scripts (`scripts/`)
-
-- `addSafetyRule.mjs` — Add content safety rule
-- `auditor.py` — Python-based codebase auditor
-- `echo_worker.py` / `hermes_worker.py` — Python worker scripts for autonomous tasks
-- `fix-r2-urls.js` — Fix R2 URL references
-- `process-queue.js` — Queue processing utility (QA queue, moderation queue)
-- `test-db.ts` — Database connectivity and schema validation tests
-- `test-deploy.sh` — End-to-end deployment verification
-- `verify-stripe-webhook.ps1` — Stripe webhook signature verification (PowerShell)
-- `sql/` — SQL script directory
 
 ---
 
