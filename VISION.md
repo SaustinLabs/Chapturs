@@ -21,9 +21,5 @@
 - Syosetu replacement (Chapturs is a case study showing adaptation potential)
 - Over-engineered AI frontends that complicate the author workflow
 
-## Off-Limits Systems (do not touch — too complex / premature)
-1. **Living World system** — Lore master, canon graph, contradiction scanner, world atlas, lore index, timeline view, writers room console. Too complex for current stage. Do NOT modify, extend, or refactor any living-world code.
-2. **AI story writer bots** — Any AI-generated content systems (author bots, AI writing assistants). Leave these alone until explicitly requested.
-
 ## Decision Rule
 When in doubt between two approaches: pick the one that's simpler for creators and smoother for readers. If it adds complexity, question whether it adds enough value to justify it.

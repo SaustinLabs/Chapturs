@@ -1,7 +1,7 @@
 # Chapturs Architecture Map
 
 ## Overview
-Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across 40+ route groups. Core stack: Next.js, Prisma, Redis, S3/R2 storage, Stripe for payments.
+Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across 40+ route groups, 507 source files total. Core stack: Next.js, Prisma, Redis, S3/R2 storage, Stripe for payments. Deployment via VPS (PM2) and Vercel.
 
 ---
 
@@ -212,8 +212,8 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 ## Key Libraries (`src/lib/`)
 
 ### Core Services
-- **DataService.ts** — Central data access layer (abstraction over Prisma)
-- **PrismaService.ts** — Singleton Prisma client with connection pooling
+- **api/DataService.ts** — Central data access layer (abstraction over Prisma)
+- **database/PrismaService.ts** — Singleton Prisma client with connection pooling
 - **ContentValidationService.ts** — Content moderation and validation
 - **config.ts** / **settings.ts** — Application configuration
 
@@ -250,7 +250,10 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 - **achievements/** — Points system and achievement logic (`points.ts`)
 - **ads/** — Ad eligibility and density calculation (`ad-eligibility.ts`, `density-calculator.ts`)
 - **analytics/view-counter.ts** — Page view counting with `viewCount` field
-- **cache/** — Caching utilities (Redis-based)
+- **api/** — API helpers: errorHandling, schemas, twitch/x/youtube integrations
+- **auth/feature-access.ts** — Feature flag and access control checks
+- **cache/social-cache.ts** — Social media cache (Discord, YouTube, Twitch)
+- **database/PrismaService.ts** — Prisma client singleton + schema.sql
 - **digest/weeklyDigest.ts** — Weekly email digest batching
 - **email.ts** — Email sending service (Resend integration)
 - **emoji/** — Custom emoji system (`customEmojis.ts`, `emojiData.ts`)
@@ -269,9 +272,25 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 - **sanitize.ts** — HTML/content sanitization
 - **scheduler/run-lock.ts** — Cron job distributed locking
 - **sectionVersioning.ts** — Section version management
-- **suggestions/** — Edit suggestion utilities
+- **suggestions/suggestion-permissions.ts** — Edit suggestion permission checks
 - **selectionActionRegistry.tsx** — Reader selection action handlers
 - **supabase-edge.ts** — Supabase edge client utilities
+- **test-ad-system.ts**, **test-creator-apis.ts** — Test utility scripts
+
+### Custom Hooks (`src/hooks/`)
+- **useEmojiAutocomplete.ts** — Emoji autocomplete for editor
+- **usePretext.ts** — Pretext processing hooks
+- **useRecommendationTracking.tsx** — Recommendation interaction tracking
+- **useUser.tsx** — User session/auth state hook
+
+### Type Definitions (`src/types/`)
+- **achievements.ts** — Achievement and points type definitions
+- **ads.ts** — Ad system types
+- **chapt.ts** — Core Chapturs domain types (Work, FeedItem, etc.)
+- **comment.ts** — Comment-related types
+- **creator-ads.ts** — Creator ad configuration types
+- **index.ts** — Main type exports (User, Work, Author, etc.)
+- **next-auth.d.ts** — NextAuth type augmentation
 
 ### Frontend Components (`src/components/`)
 
@@ -317,12 +336,68 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 - **BlockGrid.tsx** — Profile block grid (text, links, social, works)
 - **WorkViewer.tsx** — Story detail page viewer
 
+### UI Primitives & Layout
+- **AppLayout.tsx** — Main application shell with sidebar + content area
+- **Sidebar.tsx** — Navigation sidebar (collapsible on mobile)
+- **Modal.tsx**, **Tooltip.tsx**, **Toast.tsx** — Shared UI primitives
+- **ErrorBoundary.tsx**, **FeedCardSkeleton.tsx**, **StoryPageSkeleton.tsx** — Loading/error states
+- **Footer.tsx** — Site footer component
+
+### Editor Extensions & Tools
+- **editor/ChapterEditor.tsx** — TipTap-based chapter editor with extensions
+- **editor/extensions.tsx** — TipTap extension definitions (font family, etc.)
+- **editor/convert.ts** — HTML/Tiptap content conversion utilities
+- **SelectionActionToolbar.tsx** — Reader text selection action toolbar
+- **EmojiPicker.tsx** — Emoji picker for editor and comments
+
+### Ad Components (`src/components/ads/`)
+- **AdSlot.tsx**, **AdPreview.tsx** — Ad placement rendering
+- **AdPlacementEditor.tsx**, **AuthorAdSettings.tsx** — Ad management UI
+- **CreatorRecommendationSetup.tsx** — Creator-to-reader recommendation setup
+- **DefaultAdConfigManager.tsx** — Default ad configuration management
+- **SupportAuthorInterstitial.tsx** — "Support the author" interstitial
+
+### Auth Components (`src/components/auth/`)
+- **UsernameGuard.tsx**, **UsernameSelectionModal.tsx** — Username selection flow
+
+### Editor UI (`src/components/editor/`)
+- **ChapterEditor.tsx** — TipTap-based chapter editor with extensions
+- **extensions.tsx** — TipTap extension definitions (font family, etc.)
+
+### Experimental Features (`src/components/experimental/`)
+- **BranchingStoryMode.tsx**, **BranchingStoryModeSimple.tsx** — Branching narrative UI
+- **VisualNovelMode.tsx** — Visual novel-style reading mode
+- **WorldbuildingMode.tsx** — World-building assistant mode
+
+### Living World Components (`src/components/living-world/`)
+- **CanonGraph.tsx** — Browse/add/filter canon entries by type
+- **LoreIndex.tsx** — Searchable, filterable lore entries + character cards
+- **TimelineView.tsx** — Chronological event list across stories
+- **WorldAtlas.tsx** — Story cards grid for shared universes
+- **WorldDefinitionForm.tsx**, **WritersRoomConsole.tsx** — World creation and management
+
+### Onboarding Components (`src/components/onboarding/`)
+- **OnboardingForm.tsx** — Username selection form
+- **TasteProfileSurvey.tsx** — Google Books taste discovery survey
+
+### Profile Sub-components (`src/components/profile/`)
+- **profile/blocks/** — Block types: TextBox, ExternalLink, FavoriteAuthor, Support, DiscordInvite, TwitterFeed, TwitchChannel, YouTubeChannel, YouTubeVideo, WorkCard
+- **profile/config/** — Configuration editors for each block type
+- **profile/editor/** — Profile editor UI (BlockPicker, EditableBlockGrid, etc.)
+
+### Story Page Components (`src/components/story/`)
+- **StoryPageClient.tsx** — Client-side story page with social sharing metadata
+
+### Upload Components (`src/components/upload/`)
+- **ImageUpload.tsx** — Cover image upload component
+- **CoverUploadField.tsx** — Dedicated cover upload field for works
+
 ---
 
 ## App Pages (`src/app/`)
 
 ### Public Pages
-`about`, `browse`, `contact`, `content-policy`, `dmca`, `features`, `join`, `legal`, `library`, `not-found`, `page` (home), `privacy`, `robots.ts`, `terms`, `contests`, `fan-content`, `search`, `trending`, `subscriptions`
+`about`, `about/roadmap`, `browse`, `contact`, `content-policy`, `dmca`, `features`, `join`, `legal`, `library`, `not-found`, `page` (home), `privacy`, `robots.ts`, `terms`, `contests`, `fan-content`, `search`, `trending`, `subscriptions`
 
 ### Auth & Onboarding
 `auth/signin`, `onboarding` — username selection, profile setup flow with Google Books taste discovery
@@ -331,10 +406,10 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 `reader/settings`, `reader/stats` — Chapter reading interface with block rendering and reader settings
 
 ### Creator Dashboard
-`creator/dashboard`, `creator/analytics`, `creator/characters`, `creator/editor`, `creator/glossary`, `creator/moderation`, `creator/monetization`, `creator/profile/edit`, `creator/series`, `creator/upload`, `creator/work/[id]/*` — Full creator hub with work management, editor, series, glossary, and moderation
+`creator/dashboard`, `creator/analytics`, `creator/characters`, `creator/editor`, `creator/fan-content-settings`, `creator/fanart`, `creator/glossary`, `creator/living-world/[worldId]`, `creator/moderation`, `creator/monetization`, `creator/profile/edit`, `creator/series`, `creator/settings`, `creator/upload`, `creator/work/[id]/chapters`, `creator/work/[id]/edit`, `creator/work/[id]/suggestions`, `creator/works`, `creator/works/[id]/characters`, `creator/works/[id]/collaborators`, `creator/works/[id]/glossary`, `creator/works/[id]/import` — Full creator hub with work management, editor, series, glossary, fan content, and moderation
 
 ### Admin Panel
-`admin/*` — Full admin panel (users, payouts, settings, contests, living world management, validation rules, bootstrap)
+`admin/*` — Full admin panel (users, payouts, settings, contests, living world management, validation rules, bootstrap, reports, ad-revenue)
 
 ### Living World & Worlds
 `worlds/[worldSlug]`, `creator/living-world/[worldId]` — Shared universe browsing and creation
@@ -348,6 +423,15 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 ### Contributor Hub
 `contributor/[username]`, `contributor/board`, `contributor/art-board`, `contributor/dashboard` — Community contributor profiles and submission boards
 
+### Moderation & Notifications
+`moderation`, `notifications` — Global moderation queue and in-app notification center
+
+### Translations
+`translations`, `translations/review/[id]` — Translation management and review pages
+
+### Test Pages (development)
+`test-upload`, `test/editor`, `test/emoji`, `test/moderation`, `test/reader` — Development/test UI pages for manual QA
+
 ---
 
 ## Key Design Patterns
@@ -357,3 +441,8 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 3. **Signal-driven recommendations** — Implicit reader signals (reading time, completion rate, skip patterns) feed ML recommendation engine
 4. **Community governance** — Fan translations, audiobooks, lore votes, edit suggestions all have community voting systems
 5. **Dual monetization** — Creator ads + premium subscriptions (no pay-per-read)
+6. **Database-backed locking** — Section locks use `SectionLock` Prisma model with durable database storage; survives restarts and multi-instance deployments
+7. **Cascading similarity engine** — "Readers Also Enjoyed" uses layered cascade: author picks → collaborative signals → reader-to-reader co-completion → semantic LLM Jaccard → trending → popular fallback
+8. **Achievement points system** — PointsLedger tracks all point events; 5 level tiers (Newcomer → Apprentice → Journeyman, etc.); 11 seeded achievements with bronze/silver/gold/platinum tiers
+9. **Taste profile onboarding** — New users discover genre preferences via Google Books API during signup; affinities stored in `UserProfile.genreAffinities` and used for feed cold-start
+10. **Rate limiting** — Sliding-window rate limiter (IP-based) protects translation endpoints and other sensitive APIs

@@ -1,41 +1,54 @@
-﻿# Chapturs.com Project Archive
+# Chapturs.com — Live Application Archive
 
-This repository is the project archive for **Chapturs.com**. It is **not** intended to be built or used directly. I use this repo as the simplest way to store and track the product vision, technical specs, and implementation history for Chapturs.
-
-If the name is confusing, that’s fair — it’s a working archive name, not a distribution-ready codebase.
+This repository contains both the **live production codebase** and a structured archive of product/technical documentation, decisions, and feature plans for **Chapturs.com**.
 
 ## What This Repo Is
-- A structured archive of product/technical documentation, decisions, and feature plans.
-- A historical record of implementation notes, fixes, and deployment playbooks.
-- A convenient single place to track progress on Chapturs.com.
+- A live Next.js 15 application (App Router) with 172 API routes across 40+ route groups
+- Prisma ORM on PostgreSQL with 89 models in the schema (`prisma/schema.prisma`)
+- Production deployment infrastructure (VPS + Vercel, PM2, Cloudflare)
+- Structured archive of product/technical documentation, decisions, and feature plans
+- Historical record of implementation notes, fixes, and deployment playbooks
 
 ## What This Repo Is Not
-- A production-ready application.
-- A maintained build target.
-- Guaranteed to run or deploy without additional work.
+- A monolithic application — it's a working Next.js app with separate concerns (API routes, pages, components, libraries)
+- Guaranteed to run locally without proper `.env` configuration (database URL, auth secrets, etc.)
 
 ## Documentation (Start Here)
-- docs/INDEX.md
-- docs/summaries/feature-systems.md
-- docs/summaries/bugs-fixes.md
-- docs/summaries/deployment-ops.md
+- `VISION.md` — Project charter and core principles
+- `DESIGN.md` — Full design system spec (colors, typography, components)
+- `CODEBASE_MAP.md` — Detailed architecture map of routes/models/services
+- `TASKS.md` — Active development tasks and priorities
+- `WORKERS.md` — Worker instructions for autonomous development
 
-## Organization
+## Documentation Index
 All source documents live under:
-- docs/source/features/
-- docs/source/implementations/
-- docs/source/plans/
-- docs/source/fixes/
-- docs/source/ops/
-- docs/source/database/
-- docs/source/testing/
-- docs/source/visuals/
+- `docs/source/features/` — Feature documentation
+- `docs/source/implementations/` — Implementation notes
+- `docs/source/plans/` — Architecture plans and contracts
+- `docs/source/fixes/` — Bug fix records
+- `docs/source/ops/` — Operations guides
+- `docs/source/database/` — Database schema and migration docs
+- `docs/source/testing/` — Testing documentation
 
 Summaries and indexes live under:
-- docs/summaries/
+- `docs/summaries/`
+- `docs/architecture/` — Architecture contracts and plans
+- `docs/operations/` — Operations guides (env matrix, release gates)
+- `docs/security/` — Security audit records
+
+## Quick Stats
+| Metric | Count |
+|--------|-------|
+| API Routes | 172 |
+| Prisma Models | 89 |
+| Schema Lines | 2375 |
+| Source Files (src/) | 507 |
+| Components | 158 |
+| Libraries | 63 |
 
 ## Notes
 - Many documents include dates inside the files; filesystem timestamps may not reflect real chronology.
-- Some legacy docs reference old filenames; use docs/summaries/source-index.md to locate the current path.
+- Some legacy docs reference old filenames; use `docs/INDEX.md` to locate current paths.
+- `.env.local` contains database connection strings and auth secrets — never commit this file.
 
-If you’re looking for the actual live product, visit **Chapturs.com**.
+If you're looking for the actual live product, visit **Chapturs.com**.

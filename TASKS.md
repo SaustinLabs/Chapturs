@@ -276,33 +276,30 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 
 ---
 
-## ✅ Done (this session)
+## ✅ Done (recent sessions)
 
-| Task |
-|------|
-| Squad multi-agent dev team installed — `squad init` run, scaffold seeded with Chapturs context (task #112) |
-| Admin security lockdown — middleware + server layout auth guard |
-| Bootstrap PIN API + page |
-| Admin settings + deploy workflow now include ADMIN_EMAIL + ADMIN_BOOTSTRAP_PIN |
-| Email addresses consolidated into Admin → Settings → Email Addresses |
-| og:image + og:description for story and chapter pages (tasks 14, 15) |
-| community_genres cookie wired into feed cold-start (task 17) |
-| New user empty state with genre quick-picks (task 72) |
-| AdSense false-positive adblock detection fixed (task 69) |
-| Rich text font-family support in editor toolbar (task 108) |
-| Content validation wired into publish flow — all sections validated, auto-approve removed, maturity confirmation modal, PrePublishChecklist server-side checks, new validate API endpoint (task 34) |
-| Sidebar expansion now overlays without reflow; reader content no longer shifts when opening sidebar (task 81) |
-| Playwright mobile smoke tests added and passing for mobile home + creator editor (task 82) |
-| Contact page reads live from SiteSettings |
-| DMCA contact address added |
-| Welcome email on first sign-up |
-| Chapter rejection email wired to moderation queue |
-| Community referral links system |
-| Signup tracking with 30s polling |
-| FEATURE_ROADMAP.md refreshed |
-| "Readers Also Enjoyed" — smart similarity cascade: author picks → collaborative signals → semantic LLM tags → trending → popular fallback. WorkSemanticProfile + AuthorRecommendation schema, similarity service, `/api/works/[id]/related`, `/api/works/[id]/author-recommendations`. LLM now emits structured `semanticProfile` alongside QA assessment (zero extra cost). `ContentSimilarity` table auto-populated after every QA run. Author UI pending — see TASKS below. |
-| Author-curated companion works API — `PUT /api/works/[id]/author-recommendations` (max 4, auth-gated to work owner) |
-| Maturity gate (#11) — `MaturityGate.tsx` interstitial for R/NC-17 stories; localStorage consent; wired into `/story/[id]` |
-| Delete account (#12) — `DELETE /api/user/account` cascade delete + Danger Zone UI in Reader Settings |
-| Trending page (#20) — `/trending` with time filters, rank badges, sidebar nav link; `publishedWithinDays` param added to `/api/search` |
-| Font-family support in editor (now #111) — TipTap FontFamily extension, curated dropdown in BubbleToolbar, Google Fonts loaded globally |
+All items below are already marked ✅ in their respective sections above. This section is maintained for quick reference only — do not duplicate status updates here.
+
+| Task | Section Reference |
+|------|------------------|
+| Squad multi-agent dev team installed (#112) | Immediate / Blocking |
+| Admin security lockdown + bootstrap PIN API | Immediate / Blocking |
+| og:image + og:description for story/chapter pages (tasks 14, 15) | SEO & Discoverability |
+| community_genres cookie wired into feed cold-start (task 17) | Feed & Discovery |
+| New user empty state with genre quick-picks (task 72) | UX / Polish |
+| AdSense false-positive adblock detection fixed (task 69) | Monetization |
+| Content validation wired into publish flow (task 34) | Known Code TODOs |
+| Sidebar expansion overlays without reflow (task 81) | UX / Polish |
+| Playwright mobile smoke tests (task 82) | UX / Polish |
+| Contact page reads live from SiteSettings | UX / Polish |
+| DMCA contact address added | Legal & Content Policy |
+| Welcome email on first sign-up | Infrastructure |
+| Chapter rejection email wired to moderation queue | Infrastructure |
+| Community referral links system | Outreach |
+| Signup tracking with 30s polling | Infrastructure |
+| "Readers Also Enjoyed" smart similarity cascade (task 49) | Phase 4 |
+| Author-curated companion works API (task 49a) | Phase 4 |
+| Maturity gate (#11) — `MaturityGate.tsx` interstitial | Legal & Content Policy |
+| Delete account (#12) — cascade delete + Danger Zone UI | Legal & Content Policy |
+| Trending page (#20) with time filters, rank badges | Feed & Discovery |
+| Font-family support in editor (task 111) | UX / Polish |
