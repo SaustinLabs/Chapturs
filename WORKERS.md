@@ -45,7 +45,11 @@ The project uses a structured multi-agent development team orchestrated through 
 
 | Workflow | File | Schedule | Purpose |
 |----------|------|----------|---------|
-| Recommendation Refresh | `.github/workflows/recommendative-refresh.yml` | `0 */6 * * *` (every 6 hours) | Runs collaborative + reader-to-reader recommendation signals via `POST /api/admin/collaborative-signals` with `x-scheduler-secret` header |
+| Recommendation Refresh | `.github/workflows/recommendation-refresh.yml` | `0 */6 * * *` (every 6 hours) | Runs collaborative + reader-to-reader recommendation signals via `POST /api/admin/collaborative-signals` with `x-scheduler-secret` header |
+| Squad Heartbeat | `.github/workflows/squad-heartbeat.yml` | `*/30 * * * *` (every 30 min) | Ralph agent heartbeat — reacts to issues/PRs, keeps squad alive |
+| Squad Issue Assign | `.github/workflows/squad-issue-assign.yml` | On issue events | Auto-assigns work items to squad agents |
+| Squad Triage | `.github/workflows/squad-triage.yml` | On label/events | Triages and routes squad issues |
+| Sync Squad Labels | `.github/workflows/sync-squad-labels.yml` | On demand | Syncs labels across repos for squad tracking |
 
 ### Next.js Route Workers (Server-Side Scheduled Tasks)
 

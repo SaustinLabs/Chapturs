@@ -11,9 +11,9 @@
 Chapturs/
 ├── src/                          # Application source code (511 files)
 │   ├── app/                      # Next.js App Router pages & API routes
-│   │   ├── api/                  # 172 API route files across 40+ namespaces
+│   │   ├── api/                  # 172 route files across 48 namespaces
 │   │   └── [page]/               # 75 page components
-│   ├── components/               # 102 reusable UI components (155 .tsx files)
+│   ├── components/               # 155 .tsx component files
 │   └── lib/                      # 66 library/utility modules
 ├── prisma/                       # Prisma schema + migrations + seed
 ├── docs/                         # Documentation source & summaries
@@ -118,7 +118,7 @@ Chapturs/
 - `admin/community-links` — Community referral link management
 - `admin/contests` / `[id]` — Contest CRUD
 - `admin/payouts` — Payout processing
-- `admin/reports` / `[id]/action` — Content/comment moderation actions
+- `admin/reports` — Content moderation (list + comment/[id]/action + content/[id]/action)
 - `admin/settings` — Site settings (including premium_enabled, email addresses)
 - `admin/stats` — Admin statistics dashboard
 - `admin/stripe/events` — Stripe event log
@@ -253,7 +253,7 @@ Chapturs/
 
 ---
 
-## Components (`src/components/`) — 102 components
+## Components (`src/components/`) — 155 .tsx files
 
 Key components by category:
 
@@ -262,11 +262,19 @@ Key components by category:
 - `ChapterBlockRenderer.tsx` — Chapter content rendering with translation support
 - `ChapterTopBar.tsx` — Chapter navigation bar
 - `ChapterReactionBar.tsx` — Reader reaction/emoji bar
+- `InfiniteFeed.tsx` — Infinite scroll feed with pagination
+- `NewAndPromisingSection.tsx` — Horizontal strip of recent works above main feed
+- `MaturityGate.tsx` — Maturity gate interstitial for R/NC-17 works (now implemented)
+- `QualityCelebration.tsx` / `QualityReportModal.tsx` / `QualityVoteModal.tsx` — Quality assessment UI
+- `RateWorkModal.tsx` — Rate work modal component
 
 ### Editor & Creator Tools
 - `ChaptursEditor.tsx` — TipTap-based chapter editor (FontFamily extension, 8 curated fonts)
 - `AdvancedUploader.tsx` — File upload with progress tracking
 - `CoverUploadField.tsx` — Cover image upload field
+- `BlockEditors.tsx` / `RichTextEditor.tsx` — Block and rich text editing components
+- `ExperimentalEditor.tsx` — Experimental editor variant
+- `PrePublishChecklist.tsx` — Pre-publish validation checklist
 
 ### Feed & Discovery
 - `FeedCard.tsx` — Story card component (cover art, genre badges, metadata)
@@ -279,21 +287,62 @@ Key components by category:
 - `FeaturedAchievements.tsx` — Pinned featured achievements (4-pin cap)
 
 ### Characters & Glossary
-- `CharacterCard.tsx` / `CharacterModal.tsx` / `CharacterProfileViewModal.tsx` — Character management UI
+- `CharacterCard.tsx` / `CharacterModal.tsx` / `CharacterProfileModal.tsx` / `CharacterProfileViewModal.tsx` — Character management UI
 - `CharacterTooltip.tsx` — Hover tooltip for character names in reader
+- `GlossarySystem.tsx` / `GlossaryTermModal.tsx` — Glossary management
+- `HtmlWithGlossary.tsx` / `HtmlWithHighlights.tsx` — HTML rendering with glossary/highlight support
 
 ### Comments & Social
 - `CommentForm.tsx` / `CommentItem.tsx` / `CommentSection.tsx` — Comment system
 - `CommentModerationPanel.tsx` — Moderator comment management
+- `InlineBlockComments.tsx` — Inline block-level comments
+- `SelectionActionToolbar.tsx` — Toolbar for text selection actions
 
 ### Admin & Settings
 - `AdSupportSettings.tsx` — Reader ad support level settings
 - `BetaWelcome.tsx` — Beta welcome banner
 - `BuildingInPublicStats.tsx` — Roadmap stats display
+- `ModerationDashboard.tsx` — Content moderation dashboard UI
 
 ### Modals & Overlays
 - `ConfirmMatureModal.tsx` — Mature content confirmation modal
 - `ChunkRecovery.tsx` — Chapter chunk recovery UI
+- `EditSuggestionModal.tsx` / `EditSuggestionsPanel.tsx` — Edit suggestion UI
+
+### Creator Hub Components
+- `CreatorAnalyticsDashboard.tsx` — Creator analytics dashboard
+- `CreatorCollaboratorsHub.tsx` — Collaborator management hub
+- `CreatorCommentModerationHub.tsx` — Comment moderation for creators
+- `CreatorFanartPage.tsx` / `CreatorGlossaryPage.tsx` — Creator content pages
+- `CreatorMonetizationHub.tsx` — Monetization settings and tracking
+- `CreatorSuggestionQueue.tsx` / `CreatorSuggestionsHub.tsx` — Suggestion moderation queue
+
+### Series & Subscriptions
+- `SeriesManager.tsx` — Series management UI
+- `SeriesSubscribeButton.tsx` — One-click series subscription button
+
+### Translation & Language
+- `TranslationPanel.tsx` — Translation panel in chapter reader
+- `TranslationSubmissionForm.tsx` — Fan translation submission form
+- `LanguageSelectorMenu.tsx` — Language selection dropdown
+
+### Audiobooks & Fan Content
+- `AudiobookSelectorMenu.tsx` / `AudiobookSubmissionForm.tsx` — Audiobook features
+- `FanContentHub.tsx` — Fan content hub (audiobooks, art, translations)
+
+### UI Utilities
+- `AppLayout.tsx` — Main app layout wrapper with sidebar
+- `Sidebar.tsx` — Navigation sidebar component
+- `EditorSidebar.tsx` — Editor-specific sidebar
+- `EmojiPicker.tsx` — Emoji picker for comments/reactions
+- `ErrorBoundary.tsx` / `global-error.tsx` — Error boundary components
+- `NotificationBell.tsx` — Notification bell with unread count
+- `PageViewTracker.tsx` — Page view tracking component
+- `ReaderMonetizationSettings.tsx` — Reader ad density settings
+- `ReportButton.tsx` / `ReportModal.tsx` — Content reporting UI
+- `StickyAudioScrubber.tsx` — Audio playback scrubber
+- `WorkCharactersPage.tsx` / `WorkCollaboratorsPage.tsx` / `WorkGlossaryPage.tsx` — Work detail pages
+- `WorkRatingSystem.tsx` / `WorkViewer.tsx` — Work rating and viewing components
 
 ---
 
@@ -309,7 +358,8 @@ Key components by category:
 ### Database & Data
 - `database/PrismaService.ts` — Prisma client singleton
 - `database/schema.sql` — Raw SQL schema reference
-- `DataService.ts` — Generic data service layer
+- `api/DataService.ts` — Generic external API client (moved from root lib)
+- `api/errorHandling.ts` / `api/schemas.ts` — Error handling and Zod schemas
 
 ### Authentication & Authorization
 - `auth/feature-access.ts` — Feature flag access control
@@ -337,6 +387,8 @@ Key components by category:
 ### Recommendations
 - `recommendations/reader-signals.ts` — Reader completion signals → co-completion scores
 - `recommendations/IntelligentRecommendationEngine.ts` — Multi-layer recommendation cascade
+- `recommendations/RecommendationEngine.ts` / `SignalTracker.ts` / `similarity.ts` — Recommendation engine components
+- `recommendations/recommendation_schema.sql` — Schema reference for recommendation tables
 
 ### Living World / Lore
 - `living-world/canon-repository.ts` — Canon entry storage/retrieval
@@ -366,9 +418,18 @@ Key components by category:
 - `observability/scheduler-logger.ts` — Scheduler event logging
 - `observability/world-logger.ts` — Living World event logging
 
+### Digest & Scheduling
+- `digest/weeklyDigest.ts` — Weekly email digest generation
+- `scheduler/run-lock.ts` — Distributed lock for scheduled tasks
+
+### Emoji System
+- `emoji/customEmojis.ts` / `emoji/emojiData.ts` — Custom emoji definitions and data
+
+### Suggestions
+- `suggestions/suggestion-permissions.ts` — Edit suggestion permission checks
+
 ### External APIs
 - `api/twitch.ts` / `api/x.ts` / `api/youtube.ts` — Social media integrations
-- `api/DataService.ts` — Generic external API client
 
 ### Utilities
 - `images.ts` / `image-processing.ts` — Image processing (Sharp)
@@ -377,42 +438,51 @@ Key components by category:
 - `redis.ts` — Redis operations (raw fetch, no @upstash/redis SDK)
 - `sanitize.ts` — HTML sanitization (DOMPurify)
 - `settings.ts` — Site settings management
+- `selectionActionRegistry.tsx` — Text selection action registry for reader highlights
+- `supabase-edge.ts` — Supabase edge function client
 
 ---
 
-## Prisma Schema Models
+## Prisma Schema Models (2,375 lines)
 
-Key models in the schema:
-- **User** — Core user model with role, adSupportLevel, isPremium, etc.
-- **Work** / **Section** — Story and chapter data
+Key models in the schema (`prisma/schema.prisma`):
+- **User** / **UserProfile** — Core user model with role, adSupportLevel, isPremium, etc.
+- **Work** / **Section** / **SectionLock** / **SectionVersion** / **SectionEditSuggestion** — Story and chapter data
 - **Series**, **SeriesVolume**, **SeriesWork** — Series grouping
-- **CharacterProfile**, **GlossaryEntry**, **GlossaryDefinitionVersion** — Character/glossary tracking
-- **Comment**, **Like**, **Bookmark**, **ReadingHistory**, **ReadingSession** — Reader interactions
+- **CharacterProfile**, **CharacterVersion**, **CharacterRelationship**, **GlossaryEntry**, **GlossaryDefinitionVersion** — Character/glossary tracking
+- **Comment**, **CommentLike**, **CommentReport**, **BlockComment** — Comment system variants
+- **Like**, **Bookmark**, **ReadingHistory**, **ReadingSession** — Reader interactions
 - **Achievement**, **UserAchievement**, **PointsLedger**, **LevelTier** — Achievement system
-- **WorkCollaborator**, **CollaborationActivity**, **SectionLock** — Collaboration features
-- **LivingWorld**, **CanonEntry**, **CanonCharacter**, **LoreContradictionFlag**, **WorldCouncilVote** — Living World / lore
-- **FanTranslation**, **FanAudiobook**, **ImageSubmission** — Fan contributions
-- **ContentReport**, **CreatorSuggestionQueue** — Moderation
-- **UserSignal**, **WorkSemanticProfile**, **AuthorRecommendation**, **ContentSimilarity** — Recommendation system
-- **Payout**, **AdPlacement**, **AdImpression** — Monetization
+- **WorkCollaborator**, **CollaborationActivity** — Collaboration features
+- **LivingWorld**, **CanonEntry**, **CanonCharacter**, **LoreContradictionFlag**, **WorldCouncilVote**, **WorldCouncilMember** — Living World / lore
+- **FanTranslation**, **FanAudiobook**, **ImageSubmission**, **FanContentVote** — Fan contributions
+- **ContentReport**, **ContentModerationQueue**, **QualityAssessment**, **QualityAssessmentHistory**, **QualityAssessmentQueue**, **AssessmentFeedback**, **AssessmentPromptTemplate** — Moderation & QA
+- **UserSignal**, **WorkSemanticProfile**, **AuthorRecommendation**, **CreatorRecommendation**, **ContentSimilarity**, **RecommendationCache**, **RecommendationFeedback** — Recommendation system
+- **Payout**, **AdPlacement**, **AdImpression**, **AdCampaign**, **AdPlacementMetrics**, **DefaultAdConfig**, **PremiumRevenuePool** — Monetization
+- **StripeEventLog**, **Subscription** — Payment tracking
+- **CommunityLink**, **Contest**, **ContestEntry**, **Tier3Deal** — Community features
+- **Notification**, **Translation**, **TranslationSuggestion**, **TranslationVote**, **TranslatorProfile** — Translation system
+- **Author**, **AuthorEarnings**, **WorkRating**, **TrendingMetric**, **SearchAnalytic** — Analytics
+- **SiteSettings**, **ValidationRule**, **ContentValidation**, **ABTestGroup**, **LLMUsageLog**, **ProfileBlock** — Platform management
 
 ---
 
 ## Tests (`__tests__/` + `tests/`)
 
-### Jest Unit Tests (13 files)
-- `achievements.test.ts` — Achievement point calculations
-- `collaborator-revenue-share.test.ts` — Revenue share logic
-- `core.test.ts` — Core functionality tests
-- `payouts-flow.test.ts` — Payout state machine
-- `points.test.ts` — Points event pipeline
-- `stripe-checkout.test.ts` / `stripe-webhook.test.ts` — Stripe integration
-- `suggestions-*.test.ts` (6 files) — Edit suggestion CRUD + permissions
+### Jest Unit Tests (`__tests__/`)
+- `monetization.test.js` — Monetization-related tests
 
 ### Playwright E2E Tests (`tests/`)
-- Mobile smoke suite: feed, reader, editor flows
+- `achievements.spec.ts` — Achievement system tests
+- `mobile-smoke.spec.ts` — Mobile smoke suite: feed, reader, editor flows
 - Configured in `playwright.config.ts`
 - Scripts: `npm run test:e2e`, `npm run test:e2e:mobile`
+
+### Test API Routes (`src/app/api/test/`)
+- `/api/test-db` — Database connectivity tests
+- `/api/test-error-handling` — Error handling tests
+- `/api/test-node` — Node environment tests
+- `/test-upload` — File upload testing page
 
 ---
 
@@ -438,8 +508,12 @@ Key models in the schema:
 - `prisma db push` runs on the runner (not VPS)
 
 ### CI/CD
-- GitHub Actions workflow: `.github/workflows/recommendation-refresh.yml` (cron every 6h)
-- Automated deploy on main branch push via runner
+- `.github/workflows/deploy-vps.yml` — VPS deployment pipeline (build, prisma push, rsync, PM2 reload)
+- `.github/workflows/recommendation-refresh.yml` — Recommendation signal refresh cron (`0 */6 * * *`)
+- `.github/workflows/squad-heartbeat.yml` — Squad agent heartbeat (every 30 min, reacts to issues/PRs)
+- `.github/workflows/squad-issue-assign.yml` — Auto-assign squad work items to agents
+- `.github/workflows/squad-triage.yml` — Squad issue triage workflow
+- `.github/workflows/sync-squad-labels.yml` — Sync squad labels across repos
 
 ---
 
@@ -489,11 +563,14 @@ Organized by category:
 ## Scripts (`scripts/`)
 
 - `addSafetyRule.mjs` — Add content safety rule
+- `auditor.py` — Python-based codebase auditor
+- `echo_worker.py` / `hermes_worker.py` — Python worker scripts for autonomous tasks
 - `fix-r2-urls.js` — Fix R2 URL references
-- `process-queue.js` — Queue processing utility
-- `test-db.ts` — Database test script
-- `test-deploy.sh` — Deployment test runner
-- `verify-stripe-webhook.ps1` — Stripe webhook verification (PowerShell)
+- `process-queue.js` — Queue processing utility (QA queue, moderation queue)
+- `test-db.ts` — Database connectivity and schema validation tests
+- `test-deploy.sh` — End-to-end deployment verification
+- `verify-stripe-webhook.ps1` — Stripe webhook signature verification (PowerShell)
+- `sql/` — SQL script directory
 
 ---
 

@@ -181,13 +181,12 @@ Multi-layer revenue model:
 - `/features` page copy/status sync with TASKS.md
 
 ### ⬜ Not Started / Planned
-- Maturity gate component (`MaturityGate.tsx`) — claimed done but file not found in codebase
-- Content hash storage for duplicate detection (code TODO at `ContentValidationService.ts:269`)
-- AI Author Bots (Phase 6) — bot author records, chapter generation pipeline, scheduling
-- Vector-indexed lore store (pgvector or Pinecone)
-- TranslatorProfile hub UI
-- Release cadence UX for beta publishing
-- Founder program policy doc for point values + award rules
+|- Content hash storage for duplicate detection (code TODO at `ContentValidationService.ts:269`)
+|- AI Author Bots (Phase 6) — bot author records, chapter generation pipeline, scheduling
+|- Vector-indexed lore store (pgvector or Pinecone)
+|- TranslatorProfile hub UI
+|- Release cadence UX for beta publishing
+|- Founder program policy doc for point values + award rules
 
 ---
 
