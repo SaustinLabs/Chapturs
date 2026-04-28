@@ -1,6 +1,6 @@
 # Chapturs — Master Task List
 
-> Last updated: April 14, 2026
+> Last updated: April 28, 2026
 > **Legend:** ✅ Done · 🔶 Partial / in progress · ⬜ Not started
 > **Format:** Every task has a unique numeric ID, concise title, status, and notes.
 
@@ -48,7 +48,7 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 | 9 | Write a dedicated DMCA policy page (`/dmca`) | ✅ | `/app/dmca/page.tsx` — full takedown + counter-notice procedure, links `dmca@chapturs.com` |
 | 10 | Review Terms of Service — ensure it mentions AI-generated content rules | ✅ | Added section 5 (AI-Generated Content) to `/terms/page.tsx` and section 4.4 to `/legal/terms/page.tsx` — covers disclosure requirement, labeling rules, and enforcement for undisclosed AI content |
 | 10a | AI-use disclosure framework for authors | ✅ | `aiUseDisclosure` field on Work schema (none/assisted/generated); radio selector in creator work edit page; disclosure badge on story page |
-| 11 | Age verification / parental advisory for mature-rated works | ✅ | `MaturityGate.tsx` — full-screen interstitial for R/NC-17 works; localStorage consent; wraps StoryPageClient in story page |
+|| 11 | Age verification / parental advisory for mature-rated works | 🔶 | Maturity gate UI component (`MaturityGate.tsx`) not found in codebase — schema and confirmation modal (`ConfirmMatureModal.tsx`) exist; full interstitial wrapper needs implementation |
 | 12 | Privacy policy audit — confirm GDPR/CCPA delete-account flow works | ✅ | `DELETE /api/user/account` with cascade delete; Danger Zone section in Reader Settings with typed confirmation modal |
 
 ### SEO & Discoverability
@@ -78,9 +78,9 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 21 | Import 3–5 public domain works from Project Gutenberg | 🔶 | Spec written at `docs/source/plans/gutenberg-import-pipeline.md`. Implement `POST /api/admin/import/gutenberg` + service in `src/lib/gutenberg-import/`. Suggested works: *Dracula* (#345), *Count of Monte Cristo* (#1184), *Twenty Thousand Leagues* (#164), *Pride and Prejudice* (#1342), *Jekyll and Hyde* (#43). |
-| 22 | Generate AI glossary entries for imported works | 🔶 | Covered by Gutenberg import pipeline spec (Step 6). Function: `generateGlossaryForWork()` in `src/lib/gutenberg-import/generate-glossary.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `glossary_entries` + `glossary_definition_versions` tables. |
-| 23 | Generate character profiles for imported works | 🔶 | Covered by Gutenberg import pipeline spec (Step 7). Function: `generateCharactersForWork()` in `src/lib/gutenberg-import/generate-characters.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `character_profiles` table. |
+|| 21 | Import 3–5 public domain works from Project Gutenberg | ⬜ | Spec written at `docs/source/plans/gutenberg-import-pipeline.md`. Implementation not started — `src/lib/gutenberg-import/` directory does not exist yet. Needs: `POST /api/admin/import/gutenberg` + service files (`generate-glossary.ts`, `generate-characters.ts`). Suggested works: *Dracula* (#345), *Count of Monte Cristo* (#1184), *Twenty Thousand Leagues* (#164), *Pride and Prejudice* (#1342), *Jekyll and Hyde* (#43). |
+|| 22 | Generate AI glossary entries for imported works | ⬜ | Covered by Gutenberg import pipeline spec (Step 6). Function: `generateGlossaryForWork()` in `src/lib/gutenberg-import/generate-glossary.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `glossary_entries` + `glossary_definition_versions` tables. Not started — depends on task #21 implementation. |
+|| 23 | Generate character profiles for imported works | ⬜ | Covered by Gutenberg import pipeline spec (Step 7). Function: `generateCharactersForWork()` in `src/lib/gutenberg-import/generate-characters.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `character_profiles` table. Not started — depends on task #21 implementation. |
 
 ### Outreach
 
@@ -301,7 +301,7 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 | FEATURE_ROADMAP.md refreshed |
 | "Readers Also Enjoyed" — smart similarity cascade: author picks → collaborative signals → semantic LLM tags → trending → popular fallback. WorkSemanticProfile + AuthorRecommendation schema, similarity service, `/api/works/[id]/related`, `/api/works/[id]/author-recommendations`. LLM now emits structured `semanticProfile` alongside QA assessment (zero extra cost). `ContentSimilarity` table auto-populated after every QA run. Author UI pending — see TASKS below. |
 | Author-curated companion works API — `PUT /api/works/[id]/author-recommendations` (max 4, auth-gated to work owner) |
-| Maturity gate (#11) — `MaturityGate.tsx` interstitial for R/NC-17 stories; localStorage consent; wired into `/story/[id]` |
+|| Maturity gate (#11) — `ConfirmMatureModal.tsx` exists; full interstitial wrapper (`MaturityGate.tsx`) needs implementation |
 | Delete account (#12) — `DELETE /api/user/account` cascade delete + Danger Zone UI in Reader Settings |
 | Trending page (#20) — `/trending` with time filters, rank badges, sidebar nav link; `publishedWithinDays` param added to `/api/search` |
 | Font-family support in editor (now #111) — TipTap FontFamily extension, curated dropdown in BubbleToolbar, Google Fonts loaded globally |
