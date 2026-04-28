@@ -20,21 +20,33 @@
 ```
 /mnt/c/Users/Smccr/Documents/Chapturs/src/
 ├── app/                    # Next.js App Router pages & API routes
-│   ├── api/                # API routes (route.ts files)
+│   ├── api/                # API routes (route.ts files) — 172+ endpoints
 │   │   └── work/[id]/      # Work-specific endpoints
 │   ├── creator/            # Creator hub pages
 │   ├── reader/             # Reader hub pages
 │   ├── story/              # Story detail pages
-│   └── ...                 # Other route groups (admin, auth, etc.)
-├── components/             # React components (.tsx)
-│   └── ui/                 # Shared UI primitives
-├── hooks/                  # Custom React hooks (.ts/.tsx)
-├── lib/                    # Business logic & utilities
-│   ├── api/errorHandling.ts  # Centralized error/response helpers
-│   ├── database/PrismaService.ts  # Prisma singleton (globalForPrisma)
-│   ├── redis.ts            # Redis client wrapper
-│   └── recommendations/    # Recommendation engine
-├── types/                  # TypeScript type definitions
+│   ├── admin/              # Admin panel pages
+│   ├── contributor/        # Contributor profiles & boards
+│   └── ...                 # Other route groups (auth, browse, etc.)
+├── components/             # React components (.tsx) — 100+ files
+│   ├── ui/                 # Shared UI primitives
+│   ├── ads/                # Ad-related components
+│   ├── editor/             # TipTap editor extensions & converters
+│   ├── living-world/       # Living World UI (off-limits for workers)
+│   └── profile/            # Profile blocks, configs, editors
+├── hooks/                  # Custom React hooks (.ts/.tsx) — 4 files
+├── lib/                    # Business logic & utilities — 50+ files
+│   ├── api/                # API helpers (errorHandling, schemas, DataService)
+│   ├── database/           # PrismaService singleton + schema.sql
+│   ├── recommendations/    # Recommendation engine (ML-based)
+│   ├── living-world/       # Canon, contradiction scanner, lore master
+│   ├── quality-assessment/ # LLM-powered QA pipeline
+│   ├── achievements/       # Points system & achievement logic
+│   ├── ads/                # Ad eligibility & density calculator
+│   ├── digest/             # Weekly email digest batching
+│   ├── emoji/              # Custom emoji system
+│   └── observability/      # Monitoring logs (monetization, scheduler, world)
+├── types/                  # TypeScript type definitions — 7 files
 └── auth.ts                 # NextAuth config
 ```
 
@@ -85,10 +97,10 @@
 
 ## Testing & Quality
 
-- E2E tests: Playwright (`npm run test:e2e`)
-- Linting: Next.js built-in lint (`npm run lint`)
-- Build: `npm run build` (Prisma generate + Next.js build)
-- No Jest unit tests found — focus on E2E and manual verification
+- **Unit tests**: Jest (`npm run verify:monetization` runs stripe-webhook, stripe-checkout, payouts-flow tests) — 13 test files in `src/__tests__/` covering achievements, points, payouts, Stripe, collaborators, and edit suggestions
+- **E2E tests**: Playwright (`npm run test:e2e`) — includes mobile smoke suite (`test:e2e:mobile`)
+- **Linting**: Next.js built-in lint (`npm run lint`)
+- **Build**: `npm run build` (Prisma generate + Next.js build)
 
 ## Key Files to Reference
 

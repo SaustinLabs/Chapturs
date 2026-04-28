@@ -1,6 +1,6 @@
 # Chapturs — Master Task List
 
-> Last updated: April 14, 2026
+> Last updated: April 27, 2026
 > **Legend:** ✅ Done · 🔶 Partial / in progress · ⬜ Not started
 > **Format:** Every task has a unique numeric ID, concise title, status, and notes.
 
@@ -10,7 +10,7 @@
 
 Two duplicate IDs were resolved. No tasks were deleted or merged.
 
-| Old ID | New ID | Task | Reason |
+|| Old ID | New ID | Task | Reason |
 |--------|--------|------|--------|
 | 105 (second occurrence) | 110 | Publishing flow options in editor | Duplicate of ID 105 (New user onboarding) |
 | 108 (second occurrence) | 111 | Rich text font-family support in editor toolbar | Duplicate of ID 108 (API keys to GitHub Secrets) |
@@ -19,11 +19,11 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 ## 🔴 Immediate / Blocking (do these now)
 
-| # | Task | Status | Notes |
+|| # | Task | Status | Notes |
 |---|------|--------|-------|
 | 1 | Run bootstrap flow: sign in → `/admin/bootstrap` → enter PIN → sign out → sign back in | ✅ | Confirmed done by user |
 | 2 | Verify `RESEND_API_KEY` + `EMAIL_FROM` are in GitHub Secrets | ✅ | Confirmed set by user |
-| 3 | Run `npx prisma db push` on the production DB | ⬜ | Schema has `CommunityLink.signupCount` + `User.communityRef` that aren't pushed yet |
+| 3 | Run `npx prisma db push` on the production DB | ⬜ | Schema has fields that aren't pushed yet (CommunityLink.signupCount, User.communityRef) |
 | 4 | Set up Admin → Settings → Email Addresses in the admin panel | ✅ | Defaults to `@chapturs.com` values which are functional; no blocking issue confirmed |
 | 108 | Add `GOOGLE_BOOKS_API_KEY`, `GOOGLE_CLOUD_VISION_API_KEY`, `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY` to GitHub Secrets + VPS env | ⬜ | Documented in `.env.example`; Vision + reCAPTCHA code is live but keys must be set for them to activate |
 | 112 | Install and configure Squad multi-agent dev team in repo | ✅ | `squad init` run; `.squad/` scaffold created; decisions.md, routing.md, wisdom.md, identity files seeded with Chapturs context; team cast via VS Code Squad agent mode |
