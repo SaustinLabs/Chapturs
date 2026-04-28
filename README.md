@@ -52,6 +52,20 @@ Summaries and indexes live under `docs/summaries/`:
 - [visuals.md](docs/summaries/visuals.md)
 - [source-index.md](docs/summaries/source-index.md)
 
+### Architecture Docs (`docs/architecture/`)
+- `ai-storytelling-external-bot-runtime-concept.md` — External AI bot architecture contract
+- `migration-order.md` — Migration ordering guide
+- `phase1-adoption-audit.md` — Phase 1 adoption audit
+- `plan-contracts.md` — Plan contracts
+
+### Operations Docs (`docs/operations/`)
+- `env-matrix.md` — Environment variable reference matrix
+- `monetization-launch-checklist.md` — Monetization go-live checklist
+- `release-gates.md` — Release gate criteria
+
+### Security Docs (`docs/security/`)
+- `SECURITY_AUDIT_2026-04-04.md` — Security audit report from April 4, 2026
+
 ## Organization
 All source documents live under:
 - `docs/source/features/` — Feature specifications

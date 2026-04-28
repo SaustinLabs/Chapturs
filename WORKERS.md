@@ -78,6 +78,7 @@ The project uses a structured multi-agent development team orchestrated through 
 | Hermes Worker | `scripts/hermes_worker.py` | Hermes agent worker for autonomous tasks |
 | Safety Rule Adder | `scripts/addSafetyRule.mjs` | Add content safety rules to validation |
 | R2 URL Fixer | `scripts/fix-r2-urls.js` | Fix R2 image URL references in database |
+| SQL Utilities | `scripts/sql/` | SQL utility scripts directory |
 
 ---
 

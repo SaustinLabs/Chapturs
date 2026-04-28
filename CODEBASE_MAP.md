@@ -27,7 +27,7 @@ Chapturs/
 
 ---
 
-## Pages (`src/app/[page]/`) — 75 pages
+## Pages (`src/app/[page]/`) — 75 pages (23 Creator Hub + 52 public/auth/reader/admin)
 
 ### Public Pages
 | Route | File | Description |
@@ -121,9 +121,35 @@ Chapturs/
 | `/fan-content` | `app/fan-content/page.tsx` | Fan content hub (audiobooks, art, translations) |
 
 ### Work Pages
-| Route | File | Description |
-|-------|------|-------------|
-| `/work/[id]` | `app/work/[id]/page.tsx` | Work detail page |
+|| Route | File | Description |
+||-------|------|-------------|
+|| `/work/[id]` | `app/work/[id]/page.tsx` | Work detail page |
+
+### Creator Hub Pages
+|| Route | File | Description |
+||-------|------|-------------|
+|| `/creator/analytics` | `app/creator/analytics/page.tsx` | Creator analytics dashboard |
+|| `/creator/characters` | `app/creator/characters/page.tsx` | Character management for creator |
+|| `/creator/dashboard` | `app/creator/dashboard/page.tsx` | Classic creator dashboard layout |
+|| `/creator/editor` | `app/creator/editor/page.tsx` | Chapter editor page |
+|| `/creator/fan-content-settings` | `app/creator/fan-content-settings/page.tsx` | Fan content preferences |
+|| `/creator/fanart` | `app/creator/fanart/page.tsx` | Fan art management |
+|| `/creator/glossary` | `app/creator/glossary/page.tsx` | Glossary management for creator |
+|| `/creator/living-world/[worldId]` | `app/creator/living-world/[worldId]/page.tsx` | Living World admin for creators |
+|| `/creator/moderation` | `app/creator/moderation/page.tsx` | Comment moderation queue |
+|| `/creator/monetization` | `app/creator/monetization/page.tsx` | Monetization settings and tracking |
+|| `/creator/profile/edit` | `app/creator/profile/edit/page.tsx` | Creator profile edit page |
+|| `/creator/series` | `app/creator/series/page.tsx` | Series manager UI |
+|| `/creator/settings` | `app/creator/settings/page.tsx` | Creator settings |
+|| `/creator/upload` | `app/creator/upload/page.tsx` | Upload page for creator |
+|| `/creator/work/[id]/chapters` | `app/creator/work/[id]/chapters/page.tsx` | Chapter management per work |
+|| `/creator/work/[id]/edit` | `app/creator/work/[id]/edit/page.tsx` | Work edit page |
+|| `/creator/work/[id]/suggestions` | `app/creator/work/[id]/suggestions/page.tsx` | Suggestion moderation queue |
+|| `/creator/works` | `app/creator/works/page.tsx` | List creator's works |
+|| `/creator/works/[id]/characters` | `app/creator/works/[id]/characters/page.tsx` | Character management per work |
+|| `/creator/works/[id]/collaborators` | `app/creator/works/[id]/collaborators/page.tsx` | Collaborator management per work |
+|| `/creator/works/[id]/glossary` | `app/creator/works/[id]/glossary/page.tsx` | Glossary management per work |
+|| `/creator/works/[id]/import` | `app/creator/works/[id]/import/page.tsx` | Import content into a work |
 
 ---
 
@@ -501,7 +527,7 @@ Key components by category:
 
 ---
 
-## Libraries (`src/lib/`) — 64 modules (+ test files)
+## Libraries (`src/lib/`) — 66 modules (+ test files)
 
 ### Core Services
 - `ContentValidationService.ts` — Content validation (maturity checks, image safety via Google Cloud Vision)

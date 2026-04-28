@@ -15,6 +15,11 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 | 105 (second occurrence) | 110 | Publishing flow options in editor | Duplicate of ID 105 (New user onboarding) |
 | 108 (second occurrence) | 111 | Rich text font-family support in editor toolbar | Duplicate of ID 108 (API keys to GitHub Secrets) |
 
+### Recent Documentation Fixes (April 28, 2026)
+
+- CODEBASE_MAP.md updated: Added missing Creator Hub pages section (23 pages), fixed lib count from 64→66
+- TASKS.md verified against actual codebase state — all TODO references confirmed accurate
+
 ---
 
 ## 🔴 Immediate / Blocking (do these now)
