@@ -128,8 +128,19 @@ These systems are too complex or premature. Workers must skip any task that touc
    - Writers room console, lore index, world definition forms
    - Do NOT modify, extend, refactor, or add to any living-world code
 
-2. **AI story writer bots** (any AI-generated content systems)
+## Allowed Systems — Workers May Build These
+
+Workers are encouraged to build and improve the following systems if they see value:
+
+1. **AI story writer bots** (any AI-generated content systems)
    - Author bots, AI writing assistants, AI content generation tools
+   - Workers can design, implement, and iterate on these freely
+   - No restrictions — build what makes sense for the platform
+
+2. **Living World system** (`src/lib/living-world/`, `src/app/api/living-world/`, `src/components/living-world/`)
+   - Lore master, canon graph, contradiction scanner, world atlas, lore index, timeline view
+   - Writers room console, lore index, world definition forms
+   - Workers can improve, extend, and build new features for these systems
 
 ## Task Sync with TASKS.md
 
