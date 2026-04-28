@@ -1,7 +1,7 @@
 # Chapturs Architecture Map
 
 ## Overview
-Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. ~300+ API routes across 40+ route groups. Core stack: Next.js, Prisma, Redis, S3/R2 storage, Stripe for payments.
+Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across 40+ route groups. Core stack: Next.js, Prisma, Redis, S3/R2 storage, Stripe for payments.
 
 ---
 
