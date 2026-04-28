@@ -5,7 +5,7 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 
 ---
 
-## Database Schema (Prisma — 2375 lines)
+## Database Schema (Prisma — 2375 lines, 89 models)
 
 ### Core Models
 - **User** — accounts, auth, roles (user/moderator/admin), premium status, ad support level
@@ -197,9 +197,15 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 || `api/reading-progress`, `reading-sessions` | Reading progress tracking and session management |
 
 ### Health Checks
-|| Route | Purpose |
-||-------|---------|
-|| `api/health`, `health-edge` | Application health monitoring (standard + edge) |
+||| Route | Purpose |
+|||-------|---------|
+||| `api/health`, `health-edge` | Application health monitoring (standard + edge) |
+
+### Testing & Tier 3 Deals
+||| Route | Purpose |
+|||-------|---------|
+||| `api/test/*`, `test-db/*`, `test-error-handling/*`, `test-node/*` | Test endpoints and database testing utilities |
+||| `api/tier3-deals/*` | Premium tier deal proposals from contributors |
 
 ---
 
@@ -244,19 +250,26 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 - **achievements/** — Points system and achievement logic (`points.ts`)
 - **ads/** — Ad eligibility and density calculation (`ad-eligibility.ts`, `density-calculator.ts`)
 - **analytics/view-counter.ts** — Page view counting with `viewCount` field
+- **cache/** — Caching utilities (Redis-based)
 - **digest/weeklyDigest.ts** — Weekly email digest batching
+- **email.ts** — Email sending service (Resend integration)
 - **emoji/** — Custom emoji system (`customEmojis.ts`, `emojiData.ts`)
 - **feedCache.ts** — Redis-based feed caching with intelligent invalidation
 - **image-processing.ts**, **images.ts** — Cover image processing and optimization
+- **logger.ts** — Application logging utility
+- **mockData.ts** — Mock data generators for testing
 - **notifications.ts** — In-app notification helpers
 - **observability/** — Monitoring logs (monetization, scheduler, world)
+- **payment.ts** — Payment processing utilities
 - **r2-usage.ts**, **r2.ts** — S3/R2 storage management
 - **rate-limit.ts** — Sliding-window rate limiter
 - **realtime.ts** — Real-time collaboration utilities
+- **redis.ts** — Redis client wrapper (raw fetch, no SDK)
 - **resolveDbUserId.ts** — Database user ID resolution helper
 - **sanitize.ts** — HTML/content sanitization
 - **scheduler/run-lock.ts** — Cron job distributed locking
 - **sectionVersioning.ts** — Section version management
+- **suggestions/** — Edit suggestion utilities
 - **selectionActionRegistry.tsx** — Reader selection action handlers
 - **supabase-edge.ts** — Supabase edge client utilities
 

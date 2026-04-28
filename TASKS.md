@@ -153,16 +153,17 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 
 ## 🔵 Phase 4 — Ecosystem Expansion
 
-| # | Task | Status | Notes |
-|---|------|--------|-------|
-| 44 | Reader highlight → suggest typo/wording fix | 🔶 | Suggestion submission route hardened with canonical transitions/validation + shared permission guards. Existing chapter reader selection flow submits to edit-suggestions; remaining refinement is dedicated ChapterBlockRenderer-native popover wiring. |
-| 45 | Creator accept/reject queue for reader suggestions | ✅ | Added grouped moderation queue API (`/api/creator/suggestions/queue`) + new `CreatorSuggestionQueue` UI and updated creator suggestion page integration. |
-| 46 | Series and Volumes grouping | ✅ | `Series`, `SeriesVolume`, `SeriesWork` Prisma models + migration SQL. API CRUD (`/api/series`, `/api/series/[id]`, `/api/series/[id]/works`). `SeriesManager` creator UI at `/creator/series`. Public reader page at `/series/[id]`. Series badges on story pages. |
-| 47 | Series subscription (one click covers all works in a set) | ✅ | `/api/series/[id]/subscribe` (POST idempotent bulk-bookmark, DELETE removes). `SeriesSubscribeButton` client component with session-aware CTA. |
-| 48 | Reader-to-reader recommendation ("finished X → also loved Y") | ✅ | `UserSignal(signalType='work_complete')` completion events via `POST /api/works/[id]/complete`. `src/lib/recommendations/reader-signals.ts` computes co-completion scores → `ContentSimilarity(similarityType='reader_to_reader')`. Integrated into `getRelatedWorks` cascade (layer 2b). Admin trigger extended; `reasonLabel` displayed on story pages. |
-| 49 | "Readers Also Enjoyed" block on story pages | ✅ | Smart cascade: author picks → collaborative signals → reader-to-reader co-completion → semantic LLM Jaccard → trending → popular. `WorkSemanticProfile` + `AuthorRecommendation` schema, `similarity.ts` service, `/api/works/[id]/related` (now returns `reasonCode` + `reasonLabel`). |
-| 49a | Author-curated "Readers Also Enjoyed" picks — Creator Hub UI | ✅ | Work-search autocomplete + pick list (max 4) added to `/creator/work/[id]/edit`. Auto-saves on add/remove. |
-| 49b | Collaborative signal cron/trigger — periodically call `computeCollaborativeSignals` | ✅ | `.github/workflows/recommendation-refresh.yml` cron `0 */6 * * *` → `POST /api/admin/collaborative-signals` with `x-scheduler-secret` header. Runs collaborative + reader-to-reader together. Add `ADMIN_SCHEDULER_SECRET` to GitHub Actions Secrets. |
+|| # | Task | Status | Notes |
+||---|------|--------|-------|
+|| 44 | Reader highlight → suggest typo/wording fix | 🔶 | Suggestion submission route hardened with canonical transitions/validation + shared permission guards. Existing chapter reader selection flow submits to edit-suggestions; remaining refinement is dedicated ChapterBlockRenderer-native popover wiring. `src/lib/suggestions/suggestion-permissions.ts` provides permission checks. |
+|| 45 | Creator accept/reject queue for reader suggestions | ✅ | Added grouped moderation queue API (`/api/creator/suggestions/queue`) + new `CreatorSuggestionQueue` UI and updated creator suggestion page integration. |
+|| 46 | Series and Volumes grouping | ✅ | `Series`, `SeriesVolume`, `SeriesWork` Prisma models + migration SQL. API CRUD (`/api/series`, `/api/series/[id]`, `/api/series/[id]/works`). `SeriesManager` creator UI at `/creator/series`. Public reader page at `/series/[id]`. Series badges on story pages. |
+|| 47 | Series subscription (one click covers all works in a set) | ✅ | `/api/series/[id]/subscribe` (POST idempotent bulk-bookmark, DELETE removes). `SeriesSubscribeButton` client component with session-aware CTA. |
+|| 48 | Reader-to-reader recommendation ("finished X → also loved Y") | ✅ | `UserSignal(signalType='work_complete')` completion events via `POST /api/works/[id]/complete`. `src/lib/recommendations/reader-signals.ts` computes co-completion scores → `ContentSimilarity(similarityType='reader_to_reader')`. Integrated into `getRelatedWorks` cascade (layer 2b). Admin trigger extended; `reasonLabel` displayed on story pages. |
+|| 49 | "Readers Also Enjoyed" block on story pages | ✅ | Smart cascade: author picks → collaborative signals → reader-to-reader co-completion → semantic LLM Jaccard → trending → popular. `WorkSemanticProfile` + `AuthorRecommendation` schema, `similarity.ts` service, `/api/works/[id]/related` (now returns `reasonCode` + `reasonLabel`). |
+|| 49a | Author-curated "Readers Also Enjoyed" picks — Creator Hub UI | ✅ | Work-search autocomplete + pick list (max 4) added to `/creator/work/[id]/edit`. Auto-saves on add/remove. |
+|| 49b | Collaborative signal cron/trigger — periodically call `computeCollaborativeSignals` | ✅ | `.github/workflows/recommendation-refresh.yml` cron `0 */6 * * *` → `POST /api/admin/collaborative-signals` with `x-scheduler-secret` header. Runs collaborative + reader-to-reader together. Add `ADMIN_SCHEDULER_SECRET` to GitHub Actions Secrets. |
+|| 116 | Tier 3 Deal proposals from contributors | ✅ | `Tier3Deal` Prisma model created. API at `/api/tier3-deals/[dealId]` for CRUD operations. Allows community contributors to propose premium tier deals. |
 
 ---
 

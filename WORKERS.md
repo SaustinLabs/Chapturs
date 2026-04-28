@@ -28,24 +28,33 @@
 │   ├── admin/              # Admin panel pages
 │   ├── contributor/        # Contributor profiles & boards
 │   └── ...                 # Other route groups (auth, browse, etc.)
-├── components/             # React components (.tsx) — 100+ files
-│   ├── ui/                 # Shared UI primitives
-│   ├── ads/                # Ad-related components
-│   ├── editor/             # TipTap editor extensions & converters
-│   ├── living-world/       # Living World UI (off-limits for workers)
-│   └── profile/            # Profile blocks, configs, editors
+├── components/             # React components (.tsx) — 155+ files
+│   ├── ui/                 # Shared UI primitives (7 files)
+│   ├── ads/                # Ad-related components (7 files)
+│   ├── editor/             # TipTap editor extensions & converters (3 files)
+│   ├── living-world/       # Living World UI (off-limits for workers, 6 files)
+│   ├── profile/            # Profile blocks, configs, editors (7 files)
+│   ├── auth/               # Auth components (2 files)
+│   ├── experimental/       # Experimental features: branching stories, visual novels, worldbuilding (4 files)
+│   ├── onboarding/         # Onboarding UI components (2 files)
+│   ├── story/              # Story page components (1 file)
+│   └── upload/             # Upload components (1 file)
 ├── hooks/                  # Custom React hooks (.ts/.tsx) — 4 files
-├── lib/                    # Business logic & utilities — 50+ files
-│   ├── api/                # API helpers (errorHandling, schemas, DataService)
-│   ├── database/           # PrismaService singleton + schema.sql
-│   ├── recommendations/    # Recommendation engine (ML-based)
-│   ├── living-world/       # Canon, contradiction scanner, lore master
-│   ├── quality-assessment/ # LLM-powered QA pipeline
-│   ├── achievements/       # Points system & achievement logic
-│   ├── ads/                # Ad eligibility & density calculator
-│   ├── digest/             # Weekly email digest batching
-│   ├── emoji/              # Custom emoji system
-│   └── observability/      # Monitoring logs (monetization, scheduler, world)
+├── lib/                    # Business logic & utilities — 63+ files
+│   ├── api/                # API helpers (errorHandling, schemas, DataService) — 6 files
+│   ├── database/           # PrismaService singleton + schema.sql — 2 files
+│   ├── recommendations/    # Recommendation engine (ML-based) — 6 files
+│   ├── living-world/       # Canon, contradiction scanner, lore master — 4 files
+│   ├── quality-assessment/ # LLM-powered QA pipeline — 5 files
+│   ├── achievements/       # Points system & achievement logic — 1 file
+│   ├── ads/                # Ad eligibility & density calculator — 2 files
+│   ├── analytics/          # Analytics utilities (view-counter) — 1 file
+│   ├── auth/               # Auth helpers — 1 file
+│   ├── cache/              # Caching utilities — 1 file
+│   ├── digest/             # Weekly email digest batching — 1 file
+│   ├── emoji/              # Custom emoji system — 2 files
+│   └── observability/      # Monitoring logs (monetization, scheduler, world) — 3 files
+│   └── suggestions/        # Edit suggestion utilities — 1 file
 ├── types/                  # TypeScript type definitions — 7 files
 └── auth.ts                 # NextAuth config
 ```
