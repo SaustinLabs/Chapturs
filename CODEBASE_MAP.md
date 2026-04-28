@@ -292,23 +292,40 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 - **index.ts** — Main type exports (User, Work, Author, etc.)
 - **next-auth.d.ts** — NextAuth type augmentation
 
-### Frontend Components (`src/components/`)
+### Frontend Components (`src/components/`) — 158 files total
 
 ### Reader Experience
 - **ChaptursReader.tsx** — Main reading interface
-- **ChapterBlockRenderer.tsx** — Renders individual content blocks
+- **ChapterBlockRenderer.tsx** — Renders individual content blocks with glossary/highlight support
 - **ChapterReactionBar.tsx** — Chapter-level reactions/comments toggle
 - **ChapterTopBar.tsx** — Navigation and chapter controls
 - **InfiniteFeed.tsx** — Infinite scroll feed with caching
 - **NewAndPromisingSection.tsx** — Horizontal strip of recent works on homepage
+- **TrendingPageClient.tsx** — Trending page client component with time filters
+- **MaturityGate.tsx** — R/NC-17 content interstitial gate
+- **TranslationPanel.tsx** — Translation banner with language selector and original toggle
+- **LanguageSelectorMenu.tsx** — Language selection dropdown for reader
+- **AudiobookSelectorMenu.tsx** — Audiobook playback controls
+- **StickyAudioScrubber.tsx** — Audio scrubber bar for audiobook playback
+- **ChunkRecovery.tsx** — Chapter chunk recovery UI for interrupted reads
+- **HtmlWithGlossary.tsx** — HTML rendering with glossary term highlights
+- **HtmlWithHighlights.tsx** — HTML rendering with reader highlight support
+- **InlineBlockComments.tsx** — Inline comments within chapter blocks
+- **MobileTextBox.tsx** — Mobile-friendly text display component
+- **NotificationBell.tsx** — In-app notification bell icon with unread count
+- **PageViewTracker.tsx** — Global page view tracking for analytics
+- **UserSync.tsx** — User session sync component
 
 ### Editor & Creator Tools
 - **ChaptursEditor.tsx** — Block-based writing editor (8 block types)
+- **ExperimentalEditor.tsx** — Experimental/legacy editor variant
 - **AdvancedUploader.tsx** — Story import/upload with parsing
 - **BlockEditors.tsx** — Individual block type editors
 - **ChapterEditor.tsx** — TipTap-based chapter editor with extensions
 - **RichTextEditor.tsx** — Rich text editing wrapper
 - **PrePublishChecklist.tsx** — Server-side validation checklist UI
+- **CoverUploadField.tsx** — Dedicated cover upload field for works
+- **EditorSidebar.tsx** — Editor sidebar with block management
 
 ### Community Features
 - **CommentSection.tsx**, **CommentItem.tsx**, **CommentForm.tsx** — Commenting system
@@ -317,6 +334,11 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 - **FeaturedAchievements.tsx** — Star-pin featured achievements
 - **FeedCard.tsx** — Core discovery card component (cover, title, genre badges)
 - **TranslationPanel.tsx** — Translation banner with language selector and original toggle
+- **ReportButton.tsx**, **ReportModal.tsx** — Content reporting UI
+- **RateWorkModal.tsx** — Work rating modal for readers
+- **QualityCelebration.tsx** — Quality assessment celebration UI
+- **QualityReportModal.tsx**, **QualityVoteModal.tsx** — QA voting/reporting UI
+- **ReviewQueue.tsx** — Review queue management component
 
 ### Creator Hub Components
 - **CreatorDashboard.tsx**, **CreatorDashboardNew.tsx** — Author dashboard views
@@ -324,6 +346,17 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 - **CreatorSuggestionQueue.tsx** — Reader edit suggestion moderation queue
 - **SeriesManager.tsx** — Series/volume grouping UI
 - **SeriesSubscribeButton.tsx** — One-click series subscription CTA
+- **CreatorAnalyticsDashboard.tsx** — Creator analytics view
+- **CreatorCommentModerationHub.tsx** — Comment moderation for creator works
+- **CreatorFanartPage.tsx** — Fan art review dashboard
+- **CreatorGlossaryPage.tsx** — Work-specific glossary management
+- **CreatorMonetizationHub.tsx** — Monetization settings and earnings view
+- **CreatorSuggestionsHub.tsx** — Reader edit suggestions moderation hub
+- **WorkCharactersPage.tsx**, **WorkCollaboratorsPage.tsx**, **WorkGlossaryPage.tsx** — Work-specific management pages
+- **StoryManagement.tsx** — Story-level management tools
+- **PremiumSubscriptionSettings.tsx** — Premium subscription configuration UI
+- **ReaderMonetizationSettings.tsx** — Reader-side monetization preferences
+- **ContributorHubToggleSettings.tsx** — Contributor hub toggle settings
 
 ### Admin & Moderation
 - **CommentModerationPanel.tsx** — Content moderation interface
@@ -333,8 +366,10 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 
 ### Profile & Social
 - **ProfileLayout.tsx**, **ProfileSidebar.tsx** — User profile layout system
-- **BlockGrid.tsx** — Profile block grid (text, links, social, works)
+- **BlockGrid.tsx**, **FeaturedSpace.tsx** — Profile block grid and featured content area
 - **WorkViewer.tsx** — Story detail page viewer
+- **BetaWelcome.tsx** — Beta welcome banner component
+- **BuildingInPublicStats.tsx** — Building-in-public statistics display
 
 ### UI Primitives & Layout
 - **AppLayout.tsx** — Main application shell with sidebar + content area
@@ -342,6 +377,7 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 - **Modal.tsx**, **Tooltip.tsx**, **Toast.tsx** — Shared UI primitives
 - **ErrorBoundary.tsx**, **FeedCardSkeleton.tsx**, **StoryPageSkeleton.tsx** — Loading/error states
 - **Footer.tsx** — Site footer component
+- **FeatureHint.tsx** — Feature hint/guide component
 
 ### Editor Extensions & Tools
 - **editor/ChapterEditor.tsx** — TipTap-based chapter editor with extensions
@@ -360,10 +396,6 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 ### Auth Components (`src/components/auth/`)
 - **UsernameGuard.tsx**, **UsernameSelectionModal.tsx** — Username selection flow
 
-### Editor UI (`src/components/editor/`)
-- **ChapterEditor.tsx** — TipTap-based chapter editor with extensions
-- **extensions.tsx** — TipTap extension definitions (font family, etc.)
-
 ### Experimental Features (`src/components/experimental/`)
 - **BranchingStoryMode.tsx**, **BranchingStoryModeSimple.tsx** — Branching narrative UI
 - **VisualNovelMode.tsx** — Visual novel-style reading mode
@@ -381,8 +413,8 @@ Next.js 15 app (App Router) with Prisma ORM on PostgreSQL. 172 API routes across
 - **TasteProfileSurvey.tsx** — Google Books taste discovery survey
 
 ### Profile Sub-components (`src/components/profile/`)
-- **profile/blocks/** — Block types: TextBox, ExternalLink, FavoriteAuthor, Support, DiscordInvite, TwitterFeed, TwitchChannel, YouTubeChannel, YouTubeVideo, WorkCard
-- **profile/config/** — Configuration editors for each block type
+- **profile/blocks/** — Block types: TextBox, ExternalLink, FavoriteAuthor, Support, DiscordInvite, TwitterFeed, TwitchChannel, YouTubeChannel, YouTubeVideo, WorkCard (12 block variants)
+- **profile/config/** — Configuration editors for each block type (10 config components)
 - **profile/editor/** — Profile editor UI (BlockPicker, EditableBlockGrid, etc.)
 
 ### Story Page Components (`src/components/story/`)

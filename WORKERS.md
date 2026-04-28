@@ -28,23 +28,25 @@
 │   ├── admin/              # Admin panel pages
 │   ├── contributor/        # Contributor profiles & boards
 │   └── ...                 # Other route groups (auth, browse, etc.)
-├── components/             # React components (.tsx) — 100+ files
-│   ├── ui/                 # Shared UI primitives
-│   ├── ads/                # Ad-related components
-│   ├── editor/             # TipTap editor extensions & converters
-│   └── profile/            # Profile blocks, configs, editors
+├── components/             # React components (.tsx/.ts) — 158 files
+│   ├── ui/                 # Shared UI primitives (Modal, Tooltip, Toast, etc.)
+│   ├── ads/                # Ad-related components (7 files)
+│   ├── editor/             # TipTap editor extensions & converters (3 files)
+│   ├── profile/            # Profile blocks/configs/editors (28 files)
+│   └── ...                 # Other components (reader, creator, admin, etc.)
 ├── hooks/                  # Custom React hooks (.ts/.tsx) — 4 files
-├── lib/                    # Business logic & utilities — 50+ files
+├── lib/                    # Business logic & utilities — 63 files (+ 15 subdirs)
 │   ├── api/                # API helpers (errorHandling, schemas, DataService)
 │   ├── database/           # PrismaService singleton + schema.sql
 │   ├── recommendations/    # Recommendation engine (ML-based)
 │   ├── living-world/       # Canon, contradiction scanner, lore master
-│   ├── quality-assessment/ # LLM-powered QA pipeline
+│   ├── quality-assessment/ # LLM-powered QA pipeline (+ types)
 │   ├── achievements/       # Points system & achievement logic
 │   ├── ads/                # Ad eligibility & density calculator
 │   ├── digest/             # Weekly email digest batching
-│   ├── emoji/              # Custom emoji system
-│   └── observability/      # Monitoring logs (monetization, scheduler, world)
+│   ├── emoji/              # Custom emoji system (customEmojis, emojiData)
+│   ├── observability/      # Monitoring logs (monetization, scheduler, world)
+│   └── analytics/          # View counter utilities
 ├── types/                  # TypeScript type definitions — 7 files
 └── auth.ts                 # NextAuth config
 ```

@@ -37,14 +37,14 @@ Summaries and indexes live under:
 - `docs/security/` — Security audit records
 
 ## Quick Stats
-| Metric | Count |
-|--------|-------|
-| API Routes | 172 |
-| Prisma Models | 89 |
-| Schema Lines | 2375 |
-| Source Files (src/) | 507 |
-| Components | 158 |
-| Libraries | 63 |
+|| Metric | Count ||
+|--------|-------||
+| API Routes | 172 ||
+| Prisma Models | 89 ||
+| Schema Lines | 2375 ||
+| Source Files (src/) | 511 ||
+| Components | 158 ||
+| Libraries | 66 ||
 
 ## Notes
 - Many documents include dates inside the files; filesystem timestamps may not reflect real chronology.
