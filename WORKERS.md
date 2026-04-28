@@ -85,6 +85,13 @@ The project uses a structured multi-agent development team orchestrated through 
 
 ## AI/LLM Workers (Runtime)
 
+### Gutenberg Import Worker
+- **Model**: OpenRouter (`meta-llama/llama-3.1-8b-instruct`)
+- **Location**: `src/lib/gutenberg-import/importer.ts`, `fetch-metadata.ts`, `generate-characters.ts`, `generate-glossary.ts`
+- **Function**: Imports public domain works from Project Gutenberg, generates AI character profiles and glossary entries
+- **Endpoint**: `POST /api/admin/import/gutenberg/route.ts`
+- **Admin UI**: `/admin/import/page.tsx` with `GutenbergImportForm.tsx` component
+
 ### Quality Assessment Worker
 - **Model**: `meta-llama/llama-3.3-70b-instruct` (configurable via `LLM_QA_MODEL`)
 - **Location**: `src/lib/quality-assessment/assessment-service.ts`, `llm-service.ts`
@@ -158,5 +165,6 @@ The project uses a structured multi-agent development team orchestrated through 
 | QA Worker (70B) | LLM runtime | ✅ Available | `meta-llama/llama-3.3-70b-instruct` |
 | Translation Worker (8B) | LLM runtime | ✅ Available | 10 languages, batch + chunked |
 | Lore Master Worker | LLM runtime | ✅ Available | Living World contradiction scanning |
+| Gutenberg Import Worker | LLM runtime | ✅ Available | Project Gutenberg import with AI character/glossary generation |
 | Redis Cache Worker | Background service | ✅ Available | Raw fetch, no SDK dependency |
 | Pusher Realtime | WebSocket service | ✅ Available | Live notifications and presence |

@@ -9,6 +9,9 @@
 ## ID Normalization Note
 
 Two duplicate IDs were resolved. No tasks were deleted or merged.
+## ID Normalization Note
+
+Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 | Old ID | New ID | Task | Reason |
 |--------|--------|------|--------|
@@ -17,9 +20,19 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 ### Recent Documentation Fixes (April 28, 2026)
 
-- CODEBASE_MAP.md updated: Fixed counts (173 API routes / 52 namespaces, 159 components, 74 lib modules), added gutenberg-import section, added admin component directory breakdown, fixed test pages reference
+- CODEBASE_MAP.md updated: Fixed counts (173 API routes / 50 namespaces, 159 components, 71 lib modules), added admin/import page entry, added missing Prisma models (ChapterReaction, CreatorFanContentSettings, EditSuggestion), fixed Admin APIs count to 17, fixed Creator APIs count to 13
 - TASKS.md verified against actual codebase state — all TODO references confirmed accurate
 - VISION.md updated: Added Gutenberg import pipeline to "Live / Implemented" and corrected "Partial / In Progress" status
+
+### Documentation Audit (April 28, 2026)
+
+- Verified page count: 76 pages total (23 Creator Hub + 53 public/auth/reader/admin)
+- Verified API routes: 173 route files across 50 top-level namespaces
+- Verified components: 159 .tsx/.ts files (+ subdirectories)
+- Verified lib modules: 71 files (+ test utilities)
+- Verified Prisma schema: 2,375 lines with 89 models (added missing ChapterReaction, CreatorFanContentSettings, EditSuggestion to docs)
+- Verified scripts: 9 files in scripts/ directory
+- Added missing `/admin/import/page.tsx` and `admin/import/gutenberg` API route to CODEBASE_MAP.md
 
 ---
 

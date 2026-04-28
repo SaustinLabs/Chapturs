@@ -28,7 +28,7 @@ Chapturs/
 
 ---
 
-## Pages (`src/app/[page]/`) — 75 pages (22 Creator Hub + 53 public/auth/reader/admin)
+## Pages (`src/app/[page]/`) — 76 pages (23 Creator Hub + 53 public/auth/reader/admin)
 
 ### Public Pages
 | Route | File | Description |
@@ -96,6 +96,7 @@ Chapturs/
 | `/admin/settings` | `app/admin/settings/page.tsx` | Site settings (email addresses, premium_enabled) |
 | `/admin/users` | `app/admin/users/page.tsx` | User management |
 | `/admin/validation-rules` | `app/admin/validation-rules/page.tsx` | Content validation rules |
+| `/admin/import` | `app/admin/import/page.tsx` | Gutenberg import admin UI |
 
 ### Join / Community Links
 | Route | File | Description |
@@ -154,9 +155,9 @@ Chapturs/
 
 ---
 
-## API Routes (`src/app/api/`) — 173 route files across 52 namespaces
+## API Routes (`src/app/api/`) — 173 route files across 50 namespaces
 
-### Admin APIs (16 routes)
+### Admin APIs (17 routes)
 - `admin/bootstrap` — PIN-based admin role activation
 - `admin/community-links` — Community referral link management
 - `admin/contests` / `[id]` — Contest CRUD
@@ -169,6 +170,7 @@ Chapturs/
 - `admin/validation-rules` / `invalidate` — Content validation rules + cache invalidation
 - `admin/ad-revenue` — Ad revenue tracking
 - `admin/collaborative-signals` — Trigger collaborative recommendation signal computation
+- `admin/import/gutenberg` — Gutenberg import pipeline orchestrator
 
 ### Achievement APIs (3 routes)
 - `achievements/[userId]` — Get user achievements/points
@@ -213,7 +215,7 @@ Chapturs/
 - `contributor/glossary/[workId]` — Glossary contributions per work
 - `contributor/qa-queue` / `qa-vote` — Quality assessment queue + voting
 
-### Creator APIs (14 routes)
+### Creator APIs (13 routes)
 - `creator/analytics` — Creator analytics dashboard
 - `creator/dashboard-stats` — Dashboard statistics
 - `creator/debug` — Debug endpoint
@@ -544,7 +546,7 @@ Key components by category:
 
 ---
 
-## Libraries (`src/lib/`) — 74 modules (+ test utilities)
+## Libraries (`src/lib/`) — 71 modules (+ test utilities)
 
 ### Core Services
 - `ContentValidationService.ts` — Content validation (maturity checks, image safety via Google Cloud Vision)
@@ -662,7 +664,7 @@ Key models in the schema (`prisma/schema.prisma`):
 - **User** / **UserProfile** — Core user model with role, adSupportLevel, isPremium, etc.
 - **Author** / **CreatorProfile** — Author profile and customizable creator profiles
 - **ContributorProfile** — Contributor hub profile
-- **Work** / **Section** / **SectionLock** / **SectionVersion** / **SectionEditSuggestion** / **SectionPresence** — Story and chapter data
+- **Work** / **Section** / **SectionLock** / **SectionVersion** / **SectionEditSuggestion** / **SectionPresence** / **ChapterReaction** — Story, chapter, and reaction data
 - **Series**, **SeriesVolume**, **SeriesWork** — Series grouping
 - **CharacterProfile**, **CharacterVersion**, **CharacterRelationship**, **GlossaryEntry**, **GlossaryDefinitionVersion** — Character/glossary tracking
 - **Comment**, **CommentLike**, **CommentReport**, **BlockComment** — Comment system variants
@@ -678,7 +680,7 @@ Key models in the schema (`prisma/schema.prisma`):
 - **CommunityLink**, **Contest**, **ContestEntry**, **Tier3Deal** — Community features
 - **Notification**, **Translation**, **TranslationSuggestion**, **TranslationVote**, **TranslatorProfile** — Translation system
 - **AuthorEarnings**, **WorkRating**, **TrendingMetric**, **SearchAnalytic** — Analytics
-- **SiteSettings**, **ValidationRule**, **ContentValidation**, **ABTestGroup**, **LLMUsageLog**, **ProfileBlock** — Platform management
+- **SiteSettings**, **ValidationRule**, **ContentValidation**, **ABTestGroup**, **LLMUsageLog**, **ProfileBlock**, **CreatorFanContentSettings**, **EditSuggestion** — Platform management
 
 ---
 
@@ -711,7 +713,7 @@ These should be removed or gated behind feature flags before production deployme
 
 ---
 
-## Scripts (`scripts/`) — 8 files (+ sql/ subdirectory)
+## Scripts (`scripts/`) — 9 files (+ sql/ subdirectory)
 
 ### Deployment & Operations
 - `process-queue.js` — Process queued jobs (QA queue, moderation queue)

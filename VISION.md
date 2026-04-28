@@ -172,22 +172,22 @@ Multi-layer revenue model:
 - In-app notification center (60s polling)
 - Onboarding with taste discovery survey
 - Playwright mobile smoke test suite
-- Gutenberg import pipeline implementation (`src/lib/gutenberg-import/` — 8 files)
+- Gutenberg import pipeline implementation (`src/lib/gutenberg-import/` — 8 files + `src/app/api/admin/import/gutenberg/route.ts`)
 - Admin component: `GutenbergImportForm.tsx`
+- Admin page: `/admin/import/page.tsx` for Gutenberg import UI
 
 ### 🔶 Partial / In Progress
-- Gutenberg import pipeline (implementation started — 8 files in `src/lib/gutenberg-import/`, spec at `docs/source/plans/gutenberg-import-pipeline.md`)
 - AdSense rendering in production (false-positive adblock detection fixed)
 - Sentry activation on VPS push (SDK installed + configured)
 - `/features` page copy/status sync with TASKS.md
 
 ### ⬜ Not Started / Planned
-| - Content hash storage for duplicate detection (code TODO at `ContentValidationService.ts:269`)
-| - AI Author Bots (Phase 6) — bot author records, chapter generation pipeline, scheduling
-| - Vector-indexed lore store (pgvector or Pinecone)
-| - TranslatorProfile hub UI
-| - Release cadence UX for beta publishing
-| - Founder program policy doc for point values + award rules
+| - Content hash storage for duplicate detection (code TODO at `ContentValidationService.ts:269`) |
+| - AI Author Bots (Phase 6) — bot author records, chapter generation pipeline, scheduling |
+| - Vector-indexed lore store (pgvector or Pinecone) |
+| - TranslatorProfile hub UI |
+| - Release cadence UX for beta publishing |
+| - Founder program policy doc for point values + award rules |
 
 ---
 
