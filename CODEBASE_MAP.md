@@ -15,9 +15,9 @@ Chapturs/
 │   │   └── *.tsx/*.ts            # 76 page components (flat under src/app/)
 │   ├── components/               # 92 root component files (+ subdirectories = 159 total)
 │   ├── lib/                      # 71 library/utility modules
-│   ├── hooks/                    # 5 custom React hooks
+│   ├── hooks/                    # 4 custom React hooks
 │   ├── types/                    # 7 TypeScript type definition files
-│   ├── __tests__/                # Jest unit tests (14 .ts/.tsx files)
+│   ├── __tests__/                # Jest unit tests (13 .ts files)
 │   └── auth-edge.ts              # Edge runtime auth utility
 ├── prisma/                       # Prisma schema + migrations + seed
 ├── docs/                         # Documentation source & summaries
@@ -42,6 +42,7 @@ Chapturs/
 - UI utility components at `src/components/ui/` (7 files) confirmed existing — not removed
 - Profile/blocks count is 12 (including index.ts); profile/config count is 11 (including index.ts)
 - Test APIs noted: 3 routes (`test-db`, `test-error-handling`, `test-node`) + 1 under `api/test/`
+- Hooks count corrected from "5" → "4 custom React hooks" (useEmojiAutocomplete, usePretext, useRecommendationTracking, useUser)
 
 ---
 
