@@ -33,11 +33,20 @@ Chapturs/
 
 ---
 
+## Documentation Audit (May 1, 2026 — Third Pass)
+
+- Health APIs count corrected from "(3 routes)" → "(2 routes)" based on actual file enumeration
+- Translations APIs count corrected from "(7 routes)" → "(5 routes)" based on actual file enumeration
+- Work APIs count corrected from "(42 routes)" → "(40 routes)" based on actual file enumeration
+- Series APIs count corrected from "(3 routes)" → "(4 routes)" based on actual file enumeration
+- Moderation APIs count corrected from "(2 routes)" → "(3 routes)" based on actual file enumeration
+- All namespace route counts verified against live codebase; total remains 173 across 50 namespaces
+
 ## Documentation Audit (May 1, 2026 — Second Pass)
 
 - All counts verified against live codebase: 76 pages ✅, 173 API routes ✅, 159 components ✅ (92 root + 67 subdirectory), 71 lib modules ✅, 50 top-level namespaces (46 production + 4 test) ✅
 - Creator Hub page count corrected from "23" → "22"; public/auth/reader/admin pages corrected from "53" → "54" (total still 76)
-- Work APIs count corrected from "(30+ routes)" → "(42 routes)" based on actual file enumeration
+- Work APIs count corrected from "(30+ routes)" → "(42 routes)" → "(40 routes)" based on actual file enumeration
 - Gutenberg import pipeline: confirmed 8 files in `src/lib/gutenberg-import/` (not 11 as previously stated)
 - All documented API routes verified present; all documented pages verified present
 - UI utility components at `src/components/ui/` (7 files) confirmed existing — not removed
@@ -270,7 +279,7 @@ Chapturs/
 ### Feed API (1 route)
 - `feed` — Discovery feed with community_genres cookie cold-start seeding
 
-### Health APIs (3 routes)
+### Health APIs (2 routes)
 - `health` — Health check endpoint
 - `health-edge` — Edge runtime health check endpoint
 
@@ -293,7 +302,7 @@ Chapturs/
 - `living-world/[worldId]/lore-master` — AI lore master agent endpoint
 - `living-world/[worldId]/votes` — World Council voting
 
-### Moderation APIs (2 routes)
+### Moderation APIs (3 routes)
 - `moderation/queue` / `[id]` — Content moderation queue + item management
 - `moderation/report` — Report submission
 
@@ -331,7 +340,7 @@ Chapturs/
 ### Search API (1 route)
 - `search` — Full-text search with publishedWithinDays param
 
-### Series APIs (3 routes)
+### Series APIs (4 routes)
 - `series` / `[id]` — Series CRUD + subscription endpoint (`[id]/subscribe`)
 - `series/[seriesId]/works` — List works in a series
 
@@ -354,7 +363,7 @@ Chapturs/
 ### Tier 3 Deal APIs (1 route)
 - `tier3-deals/[dealId]` — Advanced fan contribution deal management
 
-### Translation APIs (7 routes)
+### Translations APIs (5 routes)
 - `translations` — List translations for a work
 - `translations/[id]` — Get translation detail
 - `translations/submit` — Submit new translation
@@ -369,7 +378,7 @@ Chapturs/
 - `upload/parse-document` — Parse document for chapter content
 - `upload/request` — Request upload session
 
-### Work APIs (42 routes)
+### Work APIs (40 routes)
 - `works` / `[id]` — Work CRUD + detail retrieval
 - `works/[id]/assess` — Trigger quality assessment
 - `works/[id]/author-recommendations` — Author-curated companion works (max 4)
