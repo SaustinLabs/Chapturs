@@ -358,12 +358,84 @@ export class SignalTracker {
   }
 
   private static async storeRawSignal(signal: UserSignal): Promise<void> {
-    // Store in analytics table or time-series database
-    console.log('Storing signal:', signal.signalType, 'for user:', signal.userId)
+    try {
+      await prisma.userSignal.create({
+        data: {
+          userId: signal.userId,
+          workId: signal.workId ?? undefined,
+          authorId: signal.authorId ?? undefined,
+          signalType: signal.signalType,
+          value: signal.value,
+          metadata: signal.metadata as any,
+          timestamp: signal.timestamp,
+        },
+      })
+    } catch (err) {
+      // Signal persistence is best-effort — don't break the user flow
+      console.error('[SignalTracker] Failed to persist signal:', err)
+    }
   }
 
   private static async updateUserProfile(signal: UserSignal): Promise<void> {
-    // Update user preference profile based on significant signals
+    try {
+      const existing = await prisma.userProfile.upsert({
+        where: { userId: signal.userId },
+        create: {
+          userId: signal.userId,
+          genreAffinities: '{}',
+          formatPreferences: '{}',
+          qualityPreference: 0.5,
+          diversityPreference: 0.3,
+        },
+        update: {},
+      })
+
+      // Parse existing affinities
+      let genreAffinities: Record<string, number> = {}
+      let formatPreferences: Record<string, number> = {}
+
+      try {
+        genreAffinities = JSON.parse(existing.genreAffinities || '{}') as Record<string, number>
+      } catch { /* ignore malformed */ }
+      try {
+        formatPreferences = JSON.parse(existing.formatPreferences || '{}') as Record<string, number>
+      } catch { /* ignore malformed */ }
+
+      // Update genre affinity from GENRE_INTERACTION signal
+      if (signal.signalType === SignalType.GENRE_INTERACTION && signal.metadata?.genreContext) {
+        const genres = signal.metadata.genreContext as string[]
+        for (const genre of genres) {
+          genreAffinities[genre] = Math.min(1, (genreAffinities[genre] || 0.5) + signal.value * 0.1)
+        }
+      }
+
+      // Update format preference from FORMAT_PREFERENCE signal
+      if (signal.signalType === SignalType.FORMAT_PREFERENCE && signal.metadata?.formatType) {
+        const fmt = signal.metadata.formatType as string
+        formatPreferences[fmt] = Math.min(1, (formatPreferences[fmt] || 0.5) + signal.value * 0.1)
+      }
+
+      // Update quality preference from completion_rate / like signals
+      if (signal.signalType === SignalType.COMPLETION_RATE && signal.value > 0.7) {
+        const qp = Math.min(1, (existing.qualityPreference ?? 0.5) + 0.02 * signal.value)
+        await prisma.userProfile.update({
+          where: { userId: signal.userId },
+          data: { qualityPreference: qp, lastUpdated: new Date() },
+        })
+      }
+
+      // Persist updated JSON fields
+      await prisma.userProfile.update({
+        where: { userId: signal.userId },
+        data: {
+          genreAffinities: JSON.stringify(genreAffinities),
+          formatPreferences: JSON.stringify(formatPreferences),
+          lastUpdated: new Date(),
+        },
+      })
+    } catch (err) {
+      console.error('[SignalTracker] Failed to update user profile:', err)
+    }
   }
   
   private static isSignificantSignal(signal: UserSignal): boolean {

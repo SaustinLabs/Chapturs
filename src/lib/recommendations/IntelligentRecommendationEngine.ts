@@ -673,9 +673,39 @@ export class IntelligentRecommendationEngine {
   }
 
   private static async calculateTrendingScore(work: Work): Promise<number> {
-    // Calculate based on recent engagement velocity
-    // This would query recent likes, views, bookmarks
-    return Math.random() * 0.8 + 0.1 // Placeholder
+    // Calculate based on recent engagement velocity (likes + bookmarks in last 7 days)
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    
+    try {
+      const [recentLikes, recentBookmarks] = await Promise.all([
+        prisma.like.findMany({
+          where: { workId: work.id, createdAt: { gte: sevenDaysAgo } },
+          select: { id: true },
+        }),
+        prisma.bookmark.findMany({
+          where: { workId: work.id, createdAt: { gte: sevenDaysAgo } },
+          select: { id: true },
+        }),
+      ])
+
+      const recentEngagement = (recentLikes.length * 1.0) + (recentBookmarks.length * 1.5)
+      
+      // Normalize by work age to avoid bias toward older works
+      const daysSinceCreated = Math.max(1, (Date.now() - work.createdAt.getTime()) / (1000 * 60 * 60 * 24))
+      const decayFactor = Math.min(daysSinceCreated / 7, 5) // Cap at 5x age factor
+      
+      const velocityScore = recentEngagement / decayFactor
+      
+      // Blend with existing trending score if available (from work.trendingMetric)
+      const baseScore = (work as any).trendingMetric?.trendingScore ?? 0.3
+      
+      return Math.min(1, baseScore * 0.5 + velocityScore * 0.5)
+    } catch {
+      // Fallback to engagement-based heuristic if DB query fails
+      const likes = work.statistics?.likes || 0
+      const bookmarks = work.statistics?.bookmarks || 0
+      return Math.min(1, (likes * 0.3 + bookmarks * 0.5) / 20)
+    }
   }
   
   private static async getUserLikedWorks(userId: string): Promise<Work[]> {
