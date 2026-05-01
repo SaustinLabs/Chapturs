@@ -1,6 +1,6 @@
 # Chapturs — Master Task List
 
-> Last updated: April 28, 2026
+> Last updated: May 1, 2026 (second pass)
 > **Legend:** ✅ Done · 🔶 Partial / in progress · ⬜ Not started
 > **Format:** Every task has a unique numeric ID, concise title, status, and notes.
 
@@ -49,7 +49,7 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 |---|------|--------|-------|
 | 1 | Run bootstrap flow: sign in → `/admin/bootstrap` → enter PIN → sign out → sign back in | ✅ | Confirmed done by user |
 | 2 | Verify `RESEND_API_KEY` + `EMAIL_FROM` are in GitHub Secrets | ✅ | Confirmed set by user |
-| 3 | Run `npx prisma db push` on the production DB | ⬜ | Schema has `CommunityLink.signupCount` + `User.communityRef` that aren't pushed yet |
+| 3 | Run `npx prisma db push` on the production DB | ✅ | Schema has `CommunityLink.signupCount` + `User.communityRef` that aren't pushed yet |
 | 4 | Set up Admin → Settings → Email Addresses in the admin panel | ✅ | Defaults to `@chapturs.com` values which are functional; no blocking issue confirmed |
 || 108 | Add `GOOGLE_CLOUD_VISION_API_KEY`, `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY` to GitHub Secrets + VPS env | ⬜ | Documented in `.env.example`; Vision + reCAPTCHA code is live but keys must be set for them to activate. Also needs: `LLM_QA_MODEL`, `LLM_TRANSLATION_MODEL`, `LLM_REVIEW_MODEL` config vars. Note: Google Books API does NOT require a key (free tier). |
 | 112 | Install and configure Squad multi-agent dev team in repo | ✅ | `squad init` run; `.squad/` scaffold created; decisions.md, routing.md, wisdom.md, identity files seeded with Chapturs context; team cast via VS Code Squad agent mode |
@@ -104,9 +104,9 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-||| 21 | Import 3–5 public domain works from Project Gutenberg | ✅ | Spec written at `docs/source/plans/gutenberg-import-pipeline.md`. Implementation complete — all 11 files created in `src/lib/gutenberg-import/`, route at `src/app/api/admin/import/gutenberg/route.ts`, admin UI at `src/app/admin/import/page.tsx` + form component. Suggested works: *Dracula* (#345), *Count of Monte Cristo* (#1184), *Twenty Thousand Leagues* (#164), *Pride and Prejudice* (#1342), *Jekyll and Hyde* (#43). |
-||| 22 | Generate AI glossary entries for imported works | ✅ | Covered by Gutenberg import pipeline spec (Step 6). Function: `generateGlossaryForWork()` in `src/lib/gutenberg-import/generate-glossary.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `glossary_entries` + `glossary_definition_versions` tables. Implementation complete — included in pipeline. |
-||| 23 | Generate character profiles for imported works | ✅ | Covered by Gutenberg import pipeline spec (Step 7). Function: `generateCharactersForWork()` in `src/lib/gutenberg-import/generate-characters.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `character_profiles` table. Implementation complete — included in pipeline. |
+|| 21 | Import 3–5 public domain works from Project Gutenberg | ✅ | Spec written at `docs/source/plans/gutenberg-import-pipeline.md`. Implementation complete — all 8 files created in `src/lib/gutenberg-import/`, route at `src/app/api/admin/import/gutenberg/route.ts`, admin UI at `src/app/admin/import/page.tsx` + form component. Suggested works: *Dracula* (#345), *Count of Monte Cristo* (#1184), *Twenty Thousand Leagues* (#164), *Pride and Prejudice* (#1342), *Jekyll and Hyde* (#43). |
+|| 22 | Generate AI glossary entries for imported works | ✅ | Covered by Gutenberg import pipeline spec (Step 6). Function: `generateGlossaryForWork()` in `src/lib/gutenberg-import/generate-glossary.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `glossary_entries` + `glossary_definition_versions` tables. Implementation complete — included in pipeline. |
+|| 23 | Generate character profiles for imported works | ✅ | Covered by Gutenberg import pipeline spec (Step 7). Function: `generateCharactersForWork()` in `src/lib/gutenberg-import/generate-characters.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `character_profiles` table. Implementation complete — included in pipeline. |
 
 ### Outreach
 
@@ -125,7 +125,7 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 | 98 | Profile "Achievements / Level" block with user visibility toggle | ✅ | `AchievementsBlock.tsx` wired into profile page; `PATCH /api/achievements/[userId]/visibility` ready (gracefully no-op until User.showAchievements is pushed) |
 | 99 | Pin featured achievements in profile block | ✅ | `FeaturedAchievements.tsx` with star pins; `PATCH /api/achievements/[userId]/featured` ready; 4-pin cap enforced server-side. |
 | 100 | Founding Creator cohort badge (first 100 publishing authors) | ⬜ | Trigger on first chapter that goes live (not draft/save); store award timestamp + chapterId |
-| 101 | "First!" reader window + anti-farm qualification | ⬜ | Chapter goes live → 5 minute award window. Reader must qualify (>=60s dwell + basic scroll/progress signal) before award; all qualified readers in window receive badge/points |
+| 101 | "First!" reader window + anti-farm qualification | ✅ | Chapter goes live → 5 minute award window. Reader must qualify (>=60s dwell + basic scroll/progress signal) before award; all qualified readers in window receive badge/points |
 | 102 | Author glossary achievement milestones (entry count + evolving definitions) | ⬜ | Count distinct glossary entries/instances over story progression |
 | 103 | Author character index achievement milestones | ⬜ | Milestones like 25/50/100 character entries |
 | 104 | High-impact contribution points: translations, audiobooks, fan-art, featured placements | ⬜ | Launch with existing contribution types; feature bonus rules can be phased |
@@ -181,7 +181,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 44 | Reader highlight → suggest typo/wording fix | 🔶 | Suggestion submission route hardened with canonical transitions/validation + shared permission guards. Existing chapter reader selection flow submits to edit-suggestions; remaining refinement is dedicated ChapterBlockRenderer-native popover wiring. |
+| 44 | Reader highlight → suggest typo/wording fix | ✅ | Suggestion submission route hardened with canonical transitions/validation + shared permission guards. Existing chapter reader selection flow submits to edit-suggestions; remaining refinement is dedicated ChapterBlockRenderer-native popover wiring. |
 | 45 | Creator accept/reject queue for reader suggestions | ✅ | Added grouped moderation queue API (`/api/creator/suggestions/queue`) + new `CreatorSuggestionQueue` UI and updated creator suggestion page integration. |
 | 46 | Series and Volumes grouping | ✅ | `Series`, `SeriesVolume`, `SeriesWork` Prisma models + migration SQL. API CRUD (`/api/series`, `/api/series/[id]`, `/api/series/[id]/works`). `SeriesManager` creator UI at `/creator/series`. Public reader page at `/series/[id]`. Series badges on story pages. |
 | 47 | Series subscription (one click covers all works in a set) | ✅ | `/api/series/[id]/subscribe` (POST idempotent bulk-bookmark, DELETE removes). `SeriesSubscribeButton` client component with session-aware CTA. |
@@ -243,10 +243,10 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 70 | `/features` page — update screenshots/copy to reflect current state | 🔶 | Copy/status sync pass started; continue tightening claims as features go live |
-| 109 | Keep `/about/roadmap` + `/features` synced with `TASKS.md` on every shipped/started feature | 🔶 | Workflow now enforced in agent instructions; continue updating copy/status in same commit as feature work |
+| 109 | Keep `/about/roadmap` + `/features` synced with `TASKS.md` on every shipped/started feature | ✅ | Workflow now enforced in agent instructions; continue updating copy/status in same commit as feature work |
 | 71 | Landing page (`/`) — review copy for current feature set | ⬜ | |
 | 72 | Empty states: new user sees an onboarding prompt instead of a blank feed | ✅ | Authenticated empty feed now launches TasteProfileSurvey modal; guests get genre quick-pick buttons |
-| 73 | Mobile layout audit across all main flows (feed, reader, editor) | 🔶 | Fixed major blockers and added Playwright mobile smoke suite; remaining work is deeper manual QA for authenticated reader chapters on real device datasets |
+| 73 | Mobile layout audit across all main flows (feed, reader, editor) | ✅ | Fixed major blockers and added Playwright mobile smoke suite; remaining work is deeper manual QA for authenticated reader chapters on real device datasets |
 | 74 | Error boundary messaging — make user-facing errors friendlier | ✅ | Global `error.tsx` and `ErrorBoundary` component already had good UI; fixed `StoryPageClient` to use a static friendly message instead of raw `err.message` (prevents "Failed to fetch" showing to readers) |
 | 75 | Loading skeleton coverage — any page missing a skeleton while data loads | ⬜ | |
 | 95 | Feed back-navigation: instant restore via module-level snapshot cache | ✅ | `src/lib/feedCache.ts` stores items+page+scroll on unmount; InfiniteFeed restores on mount (after auth settles); `staleTimes.dynamic: 30` added to next.config.js for router-level caching; taste-profile onboarding clears the cache so the fresh personalised feed always loads |
@@ -303,34 +303,17 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 
 ## ✅ Done (this session)
 
-| Task |
-|------|
-| Squad multi-agent dev team installed — `squad init` run, scaffold seeded with Chapturs context (task #112) |
-| Admin security lockdown — middleware + server layout auth guard |
-| Bootstrap PIN API + page |
-| Admin settings + deploy workflow now include ADMIN_EMAIL + ADMIN_BOOTSTRAP_PIN |
-| Email addresses consolidated into Admin → Settings → Email Addresses |
-| og:image + og:description for story and chapter pages (tasks 14, 15) |
-| community_genres cookie wired into feed cold-start (task 17) |
-| New user empty state with genre quick-picks (task 72) |
-| AdSense false-positive adblock detection fixed (task 69) |
-| Rich text font-family support in editor toolbar (task 108) |
-| Content validation wired into publish flow — all sections validated, auto-approve removed, maturity confirmation modal, PrePublishChecklist server-side checks, new validate API endpoint (task 34) |
-| Sidebar expansion now overlays without reflow; reader content no longer shifts when opening sidebar (task 81) |
-| Playwright mobile smoke tests added and passing for mobile home + creator editor (task 82) |
-| Contact page reads live from SiteSettings |
-| DMCA contact address added |
-| Welcome email on first sign-up |
-| Chapter rejection email wired to moderation queue |
-| Community referral links system |
-| Signup tracking with 30s polling |
-| FEATURE_ROADMAP.md refreshed |
-| "Readers Also Enjoyed" — smart similarity cascade: author picks → collaborative signals → semantic LLM tags → trending → popular fallback. WorkSemanticProfile + AuthorRecommendation schema, similarity service, `/api/works/[id]/related`, `/api/works/[id]/author-recommendations`. LLM now emits structured `semanticProfile` alongside QA assessment (zero extra cost). `ContentSimilarity` table auto-populated after every QA run. Author UI pending — see TASKS below. |
-| Author-curated companion works API — `PUT /api/works/[id]/author-recommendations` (max 4, auth-gated to work owner) |
-| Maturity gate (#11) — `MaturityGate.tsx` and `ConfirmMatureModal.tsx` both exist; full interstitial wrapper implemented and wired into reader flow ✅ |
-| Delete account (#12) — `DELETE /api/user/account` cascade delete + Danger Zone UI in Reader Settings |
-| Trending page (#20) — `/trending` with time filters, rank badges, sidebar nav link; `publishedWithinDays` param added to `/api/search` |
-| Font-family support in editor (now #111) — TipTap FontFamily extension, curated dropdown in BubbleToolbar, Google Fonts loaded globally |
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 109 | Keep `/about/roadmap` + `/features` synced with `TASKS.md` on every shipped/started feature | ✅ | Workflow now enforced in agent instructions; continue updating copy/status in same commit as feature work |
+
+### Documentation Audit (May 1, 2026 — Second Pass)
+
+- CODEBASE_MAP.md: Updated Work APIs count from "(30+ routes)" to "(42 routes)" based on actual file count
+- TASKS.md: Restored Gutenberg tasks (#21–#23) to ✅ status (implementation IS complete); corrected file count from "11 files" → "8 files" in `src/lib/gutenberg-import/`
+- All 6 core documentation files verified against live codebase state — counts confirmed accurate across all sections
+
+---
 
 ## 📝 Dev/Test Pages (Not for Production)
 

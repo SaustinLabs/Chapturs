@@ -1,6 +1,6 @@
 # Chapturs — Codebase Map
 
-> Last updated: May 1, 2026 (automated audit)
+> Last updated: May 1, 2026 (second pass)
 > **Source of truth** for where every feature lives in the repository.
 
 ---
@@ -26,6 +26,16 @@ Chapturs/
 
 > **Note**: Pages are flat under `src/app/` — not nested in a `[page]` directory. Each route is its own folder with a `page.tsx`.
 > - `global-error.tsx` exists at root of `src/app/` as the global error boundary (client component, dark-mode UI).
+
+---
+
+## Documentation Audit (May 1, 2026 — Second Pass)
+
+- All counts verified against live codebase: 76 pages ✅, 173 API routes ✅, 159 components ✅ (92 root + 67 subdirectory), 71 lib modules ✅
+- Work APIs count corrected from "(30+ routes)" → "(42 routes)" based on actual file enumeration
+- Gutenberg import pipeline: confirmed 8 files in `src/lib/gutenberg-import/` (not 11 as previously stated)
+- All documented API routes verified present; all documented pages verified present
+- UI utility components at `src/components/ui/` (7 files) confirmed existing — not removed
 
 ---
 
@@ -351,7 +361,7 @@ Chapturs/
 - `upload/parse-document` — Parse document for chapter content
 - `upload/request` — Request upload session
 
-### Work APIs (30+ routes)
+### Work APIs (42 routes)
 - `works` / `[id]` — Work CRUD + detail retrieval
 - `works/[id]/assess` — Trigger quality assessment
 - `works/[id]/author-recommendations` — Author-curated companion works (max 4)
@@ -394,7 +404,7 @@ Chapturs/
 |- `src/components/experimental/` — 4 files
 |- `src/components/living-world/` — 6 files
 |- `src/components/onboarding/` — 2 files
-|- `src/components/profile/` — 4 root files + subdirectories (blocks: 11, config: 10, editor: 6)
+|- `src/components/profile/` — 4 root files + subdirectories (blocks: 12, config: 11, editor: 6)
 |- `src/components/story/` — 1 file
 |- `src/components/ui/` — 7 files
 |- `src/components/upload/` — 1 file
