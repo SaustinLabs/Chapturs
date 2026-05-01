@@ -25,6 +25,7 @@ Chapturs/
 ```
 
 > **Note**: Pages are flat under `src/app/` — not nested in a `[page]` directory. Each route is its own folder with a `page.tsx`.
+> - `global-error.tsx` exists at root of `src/app/` as the global error boundary (client component, dark-mode UI).
 
 ---
 
@@ -393,7 +394,7 @@ Chapturs/
 - `src/components/experimental/` — 4 files
 - `src/components/living-world/` — 6 files
 - `src/components/onboarding/` — 2 files
-- `src/components/profile/` — 4 root files + subdirectories (blocks: 12, config: 11, editor: 6)
+- `src/components/profile/` — 4 root files + subdirectories (blocks: 11, config: 10, editor: 6)
 - `src/components/story/` — 1 file
 - `src/components/ui/` — 7 files
 - `src/components/upload/` — 1 file
@@ -573,7 +574,7 @@ Key components by category:
 
 ### Collaboration
 - `collaborationActivity.ts` — Collaboration activity logging
-- `collaborationPatchValidation.js` / `.ts` — Patch validation for collaborative editing
+- `collaborationPatchValidation.ts` — Patch validation for collaborative editing
 
 ### Feed & Caching
 - `feedCache.ts` — Feed snapshot cache (stores items+page+scroll on unmount)

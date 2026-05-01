@@ -18,18 +18,18 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 ### Documentation Audit (May 1, 2026)
 
 - All documentation files reviewed against actual codebase state
-- CODEBASE_MAP.md: Removed stale `global-error.tsx` reference (file does not exist); confirmed all counts accurate (76 pages, 173 API routes, 159 components, 71 lib modules, 89 Prisma models)
+- CODEBASE_MAP.md: Confirmed all counts accurate (76 pages, 173 API routes, 159 components, 71 lib modules, 89 Prisma models); `global-error.tsx` confirmed present at `src/app/global-error.tsx`; profile/blocks count corrected to 11 (was listed as 12)
 - WORKERS.md: Date updated; squad directory structure verified against actual `.squad/` layout
 - TASKS.md: All task statuses and TODO references confirmed accurate
 - VISION.md: Status sections verified — all "Live / Implemented" items match codebase state
 - DESIGN.md: Design tokens verified against Tailwind config — no discrepancies found
 - README.md: Documentation index verified — all referenced files exist; `implementations-release.md` confirmed present in summaries/
 
-### Recent Documentation Fixes (April 28, 2026)
+### Recent Documentation Fixes (May 1, 2026)
 
-- CODEBASE_MAP.md updated: Fixed counts (173 API routes / 50 namespaces, 159 components, 71 lib modules), added admin/import page entry, added missing Prisma models (ChapterReaction, CreatorFanContentSettings, EditSuggestion), fixed Admin APIs count to 17, fixed Creator APIs count to 13
-- TASKS.md verified against actual codebase state — all TODO references confirmed accurate
-- VISION.md updated: Added Gutenberg import pipeline to "Live / Implemented" and corrected "Partial / In Progress" status
+- CODEBASE_MAP.md updated: Fixed `collaborationPatchValidation` extension (.ts only), corrected profile/blocks count to 11 and profile/config count to 10, added note about `global-error.tsx` global error boundary
+- TASKS.md verified against actual codebase state — all TODO references confirmed accurate; fixed incorrect "removed stale global-error.tsx" claim (file does exist)
+- VISION.md updated: Status sections verified — all "Live / Implemented" items match codebase state
 
 ### Documentation Audit (April 28, 2026)
 
