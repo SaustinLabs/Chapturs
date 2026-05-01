@@ -64,8 +64,8 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 |---|------|--------|-------|
 | 5 | Cloudflare Email Routing for all inboxes | ✅ | Done by user |
 | 6 | Confirm domain DNS is healthy (R2, Resend DKIM, CF email routing coexist) | ⬜ | Precautionary check only — no known conflict; tightly scoped audit |
-| 7 | Test welcome email end-to-end with a fresh signup | ⬜ | New code — verify Resend actually fires |
-| 8 | Test chapter rejection email end-to-end | ⬜ | New code — requires a moderation queue item |
+| 7 | Test welcome email end-to-end with a fresh signup | ✅ | New code — verify Resend actually fires |
+| 8 | Test chapter rejection email end-to-end | ✅ | New code — requires a moderation queue item |
 
 ### Legal & Content Policy
 
@@ -114,7 +114,7 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 |---|------|--------|-------|
 | 24 | Founding Creator Programme — identify 5–10 mid-tier targets on RoyalRoad/Wattpad | ⬜ | 1k–8k followers frustrated with current platforms |
 | 25 | Draft the founding creator pitch email | ⬜ | 70% rev share for 12 months + founding badge + direct dev access |
-| 26 | Generate community referral links for target communities (RoyalRoad LitRPG, Wattpad Romance etc.) | ⬜ | Use admin community links panel |
+| 26 | Generate community referral links for target communities (RoyalRoad LitRPG, Wattpad Romance etc.) | ✅ | Use admin community links panel |
 
 ### Founding Creators Program (Beta)
 
@@ -262,7 +262,7 @@ Schema (`WorkCollaborator`, `CollaborationActivity`) is in the DB. Only the UI a
 |---|------|--------|-------|
 | 76 | Set up uptime monitoring (UptimeRobot / Better Uptime — free tier) | ⬜ | |
 | 77 | Error reporting (Sentry free tier) — currently errors only go to console | 🔶 | Sentry SDK installed + configured (sentry.*.config.ts); `SENTRY_DSN` added to GitHub Secrets; graceful no-op if DSN not set. Deploy will activate on next VPS push. |
-| 78 | Review VPS resource usage — RAM / disk / CPU headroom before traffic | ⬜ | |
+| 78 | Review VPS resource usage — RAM / disk / CPU headroom before traffic | ✅ | |
 | 79 | Log rotation on PM2 — ensure server logs don't fill the disk | ⬜ | |
 | 113 | Cast Squad team via VS Code Agent mode (switch to Squad agent in Copilot Chat) | ✅ | Team cast: Danny (Lead), Linus (Frontend), Rusty (Backend), Basher (Tester), Scribe, Ralph. Universe: Ocean's Eleven. Charters + histories seeded with full Chapturs context. |
 
@@ -309,7 +309,7 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 
 ### Documentation Audit (May 1, 2026 — Second Pass)
 
-- CODEBASE_MAP.md: Updated Work APIs count from "(30+ routes)" to "(42 routes)" based on actual file count; added test API routes section; clarified namespace count as "50 production + 4 test"
+- CODEBASE_MAP.md: Updated Work APIs count from "(30+ routes)" to "(42 routes)" based on actual file count; added test API routes section; clarified namespace counts as "50 top-level (46 production + 4 test)"; updated Jest tests from "1 file" → "14 files (.ts)"; corrected src/ file count from "507" → "518 .tsx/.ts files"; added hooks/, types/, __tests__/, auth-edge.ts to directory structure
 - TASKS.md: Restored Gutenberg tasks (#21–#23) to ✅ status (implementation IS complete); corrected profile/blocks count from 11→12 and profile/config from 10→11; fixed contradictory UI utility components note
 - All 6 core documentation files verified against live codebase state — counts confirmed accurate across all sections
 

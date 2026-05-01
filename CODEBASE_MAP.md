@@ -9,12 +9,16 @@
 
 ```
 Chapturs/
-├── src/                          # Application source code (507 files)
+├── src/                          # Application source code (518 .tsx/.ts files)
 │   ├── app/                      # Next.js App Router pages & API routes
-│   │   ├── api/                  # 173 route files across 50 namespaces
+│   │   ├── api/                  # 173 route files across 50 top-level namespaces (46 production + 4 test)
 │   │   └── *.tsx/*.ts            # 76 page components (flat under src/app/)
 │   ├── components/               # 92 root component files (+ subdirectories = 159 total)
-│   └── lib/                      # 71 library/utility modules
+│   ├── lib/                      # 71 library/utility modules
+│   ├── hooks/                    # 5 custom React hooks
+│   ├── types/                    # 7 TypeScript type definition files
+│   ├── __tests__/                # Jest unit tests (14 .ts/.tsx files)
+│   └── auth-edge.ts              # Edge runtime auth utility
 ├── prisma/                       # Prisma schema + migrations + seed
 ├── docs/                         # Documentation source & summaries
 ├── public/                       # Static assets (images, logos, OG images)
@@ -31,7 +35,7 @@ Chapturs/
 
 ## Documentation Audit (May 1, 2026 — Second Pass)
 
-- All counts verified against live codebase: 76 pages ✅, 173 API routes ✅, 159 components ✅ (92 root + 67 subdirectory), 71 lib modules ✅
+- All counts verified against live codebase: 76 pages ✅, 173 API routes ✅, 159 components ✅ (92 root + 67 subdirectory), 71 lib modules ✅, 50 top-level namespaces (46 production + 4 test) ✅
 - Work APIs count corrected from "(30+ routes)" → "(42 routes)" based on actual file enumeration
 - Gutenberg import pipeline: confirmed 8 files in `src/lib/gutenberg-import/` (not 11 as previously stated)
 - All documented API routes verified present; all documented pages verified present
@@ -168,7 +172,7 @@ Chapturs/
 
 ---
 
-## API Routes (`src/app/api/`) — 173 route files across 50 production namespaces (+ 4 test namespaces)
+## API Routes (`src/app/api/`) — 173 route files across 50 top-level namespaces (46 production + 4 test)
 
 ### Admin APIs (17 routes)
 - `admin/bootstrap` — PIN-based admin role activation
@@ -709,8 +713,20 @@ Key models in the schema (`prisma/schema.prisma`):
 
 ## Tests (`__tests__/` + `tests/`)
 
-### Jest Unit Tests (`__tests__/`) — 1 file
-- `monetization.test.js` — Monetization-related tests (Stripe checkout, webhook)
+### Jest Unit Tests (`src/__tests__/`) — 14 files (.ts)
+- `achievements.test.ts` — Achievement system tests
+- `collaborator-revenue-share.test.ts` — Collaborator revenue share tests
+- `core.test.ts` — Core functionality tests
+- `payouts-flow.test.ts` — Payout flow tests
+- `points.test.ts` — Points ledger tests
+- `stripe-checkout.test.ts` — Stripe checkout tests
+- `stripe-webhook.test.ts` — Stripe webhook tests
+- `suggestions-activity.test.ts` — Suggestion activity tests
+- `suggestions-list.test.ts` — Suggestions list tests
+- `suggestions-permissions.test.ts` — Suggestion permission tests
+- `suggestions-propose.test.ts` — Suggestion propose tests
+- `suggestions-retract.test.ts` — Suggestion retract tests
+- `suggestions-review.test.ts` — Suggestion review tests
 
 ### Playwright E2E Tests (`tests/`) — 2 files
 - `achievements.spec.ts` — Achievement system end-to-end tests
