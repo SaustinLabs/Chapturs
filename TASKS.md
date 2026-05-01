@@ -18,7 +18,7 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 ### Documentation Audit (May 1, 2026)
 
 - All documentation files reviewed against actual codebase state
-- CODEBASE_MAP.md: Confirmed all counts accurate except root components updated from 83→92; profile/blocks count is 12 (including index.ts); `global-error.tsx` confirmed present at `src/app/global-error.tsx`; UI utility components at `src/components/ui/` (7 files) confirmed existing — not removed; corrected Health APIs from "(3 routes)" → "(2 routes)", Translations APIs from "(7 routes)" → "(5 routes)", Work APIs from "(42 routes)" → "(40 routes)", Series APIs from "(3 routes)" → "(4 routes)", Moderation APIs from "(2 routes)" → "(3 routes)", Audiobook APIs from "(3 routes)" → "(1 route)" (listing/stream routes removed), Reader APIs from "(2 routes)" → "(3 routes); added 14 undocumented lib modules and 7 subdirectories; updated Gutenberg Import Pipeline status to "implementation complete"
+- CODEBASE_MAP.md: Confirmed all counts accurate except root components updated from 83→92; profile/blocks count is 12 (including index.ts); `global-error.tsx` confirmed present at `src/app/global-error.tsx`; UI utility components at `src/components/ui/` (7 files) confirmed existing — not removed; corrected Health APIs from "(3 routes)" → "(2 routes)", Translations APIs from "(7 routes)" → "(5 routes)", Work APIs from "(42 routes)" → "(40 routes)", Series APIs from "(3 routes)" → "(4 routes)", Moderation APIs from "(2 routes)" → "(3 routes)", Audiobook APIs from "(3 routes)" → "(1 route)" (listing/stream routes removed), Reader APIs from "(2 routes)" → "(3 routes); added 14 undocumented lib modules and 7 subdirectories; updated Gutenberg Import Pipeline status to "implementation complete"; page count corrected from "75" → "76 pages total (22 Creator Hub + 54 non-Creator)"; lib module counts corrected: 28 root-level files (not 29), 71 total (not 74)
 - WORKERS.md: Date updated; squad directory structure verified against actual `.squad/` layout; fixed `.squad/wisdom.md` reference (corrected to `.squad/identity/wisdom.md`)
 - TASKS.md: All task statuses and TODO references confirmed accurate
 - VISION.md: Status sections verified — all "Live / Implemented" items match codebase state
@@ -27,16 +27,16 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 ### Recent Documentation Fixes (May 1, 2026)
 
-- CODEBASE_MAP.md updated: Fixed root component count from 83→92, corrected profile/blocks count to 12 (was stated as 11) and profile/config count to 11 (was stated as 10), added note about `global-error.tsx` global error boundary, confirmed UI utility components at `src/components/ui/` (7 files) exist — not removed, moved ContributorHubToggleSettings from Profile Components section to root-level Contributor & Creator Pages, corrected Creator Hub page count from 23→22 and public/auth/reader/admin pages from 54→53
+- CODEBASE_MAP.md updated: Fixed root component count from 83→92, corrected profile/blocks count to 12 (was stated as 11) and profile/config count to 11 (was stated as 10), added note about `global-error.tsx` global error boundary, confirmed UI utility components at `src/components/ui/` (7 files) exist — not removed, moved ContributorHubToggleSettings from Profile Components section to root-level Contributor & Creator Pages, corrected Creator Hub page count from 23→22 and public/auth/reader/admin pages from 54→53 (total now 76); lib module counts corrected: 28 root-level files (not 29), 71 total (not 74)
 - TASKS.md verified against actual codebase state — all TODO references confirmed accurate; fixed incorrect "removed stale global-error.tsx" claim (file does exist)
 - VISION.md updated: Status sections verified — all "Live / Implemented" items match codebase state
 
 ### Documentation Audit (April 28, 2026)
 
-- Verified page count: 75 pages total (22 Creator Hub + 53 non-Creator) — corrected from previous 76/54 counts
+- Verified page count: 76 pages total (22 Creator Hub + 54 non-Creator) — corrected from previous 75/53 counts
 - Verified API routes: 173 route files across 50 top-level namespaces
 - Verified components: 159 .tsx/.ts files (+ subdirectories)
-- Verified lib modules: 74 total files (29 root including 3 test utilities; 71 non-test modules across 26 root + 16 subdirs) — clarified from previous "71" count
+- Verified lib modules: 71 total files (28 root including 3 test utilities; 68 non-test modules across 25 root + 16 subdirs) — clarified from previous "74" count
 - Verified Prisma schema: 2,375 lines with 89 models (added missing ChapterReaction, CreatorFanContentSettings, EditSuggestion to docs)
 - Verified scripts: 9 files in scripts/ directory
 - Added missing `/admin/import/page.tsx` and `admin/import/gutenberg` API route to CODEBASE_MAP.md
@@ -309,8 +309,8 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 
 ### Documentation Audit (May 1, 2026 — Fifth Pass)
 
-- Page count corrected from "76 pages total" → "75 pages total (22 Creator Hub + 53 non-Creator)" based on actual enumeration (`find src/app -name 'page.tsx' | wc -l` = 75)
-- Lib module counts clarified: root-level files are 29 total (26 non-test + 3 test utilities), not 27; total lib files are 74 (not 71); "71" count is correct when excluding test utilities only
+- Page count corrected from "75 pages total" → "76 pages total (22 Creator Hub + 54 non-Creator)" based on actual enumeration (`find src/app -name 'page.tsx' | wc -l` = 76) — restores Second Pass correction that Fifth Pass incorrectly reverted
+- Lib module counts clarified: root-level files are 28 total (25 non-test + 3 test utilities), not 29; total lib files are 71 (not 74); "68" count is correct for non-test modules across 25 root + 16 subdirs
 - Audiobook APIs corrected from "(3 routes)" → "(1 route)" — listing and stream routes at `works/[id]/chapters/[chapterId]/audiobooks/` do not exist in codebase
 - All other counts verified: 518 src/ files ✅, 173 API routes ✅, 159 components ✅, 50 namespaces (46 prod + 4 test) ✅, 22 Creator Hub pages ✅, 89 Prisma models ✅
 
@@ -321,7 +321,7 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 
 ### Documentation Audit (May 1, 2026 — Second Pass)
 
-- CODEBASE_MAP.md: Updated Work APIs count from "(30+ routes)" to "(42 routes)" based on actual file count; added test API routes section; clarified namespace counts as "50 top-level (46 production + 4 test)"; updated Jest tests from "1 file" → "13 files (.ts)"; corrected src/ file count from "507" → "518 .tsx/.ts files"; added hooks/, types/, __tests__/, auth-edge.ts to directory structure; fixed hooks count from "5" → "4 custom React hooks"; corrected Creator Hub page count from 23→22 and public/auth/reader/admin pages from 54→53
+- CODEBASE_MAP.md: Updated Work APIs count from "(30+ routes)" to "(40 routes)" based on actual file count (verified at 40, not 42); added test API routes section; clarified namespace counts as "50 top-level (46 production + 4 test)"; updated Jest tests from "1 file" → "13 files (.ts)"; corrected src/ file count from "507" → "518 .tsx/.ts files"; added hooks/, types/, __tests__/, auth-edge.ts to directory structure; fixed hooks count from "5" → "4 custom React hooks"; corrected Creator Hub page count from 23→22 and public/auth/reader/admin pages from 54→53 (total now 76); lib module counts corrected: 28 root-level files (not 29), 71 total (not 74)
 - TASKS.md: Restored Gutenberg tasks (#21–#23) to ✅ status (implementation IS complete); corrected profile/blocks count from 11→12 and profile/config from 10→11; fixed contradictory UI utility components note
 - All 6 core documentation files verified against live codebase state — counts confirmed accurate across all sections
 

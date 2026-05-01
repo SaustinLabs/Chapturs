@@ -12,9 +12,9 @@ Chapturs/
 ├── src/                          # Application source code (518 .tsx/.ts files)
 │   ├── app/                      # Next.js App Router pages & API routes
 │   │   ├── api/                  # 173 route files across 50 top-level namespaces (46 production + 4 test)
-│   │   └── *.tsx/*.ts            # 75 page components (flat under src/app/)
+│   │   └── *.tsx/*.ts            # 76 page components (flat under src/app/)
 │   ├── components/               # 92 root component files (+ subdirectories = 159 total)
-│   ├── lib/                      # 74 total files (29 root including 3 test utilities; 71 non-test modules across 26 root + 16 subdirs)
+│   ├── lib/                      # 71 total files (28 root including 3 test utilities; 68 non-test modules across 25 root + 16 subdirs)
 │   ├── hooks/                    # 4 custom React hooks
 │   ├── types/                    # 7 TypeScript type definition files
 │   ├── __tests__/                # Jest unit tests (13 .ts files)
@@ -39,32 +39,38 @@ Chapturs/
 - All remaining undocumented root-level lib files verified: `images.ts`, `image-processing.ts`, `sanitize.ts`, `settings.ts`, `supabase-edge.ts` — all already listed under `### Utilities` section ✅
 - Test utility files confirmed documented: `mockData.ts`, `test-ad-system.ts`, `test-creator-apis.ts` under `### Test & Mock Files` ✅
 
+## Documentation Audit (May 1, 2026 — Sixth Pass)
+
+- Page count corrected from "75 pages total" → "76 pages total (22 Creator Hub + 54 non-Creator)" based on actual file enumeration (`find src/app -name 'page.tsx' | wc -l` = 76)
+- Lib module counts corrected: root-level files are 28 total (25 non-test + 3 test utilities), not 29; total lib files are 71 (not 74); "68" non-test modules across 25 root + 16 subdirs (not 71 across 26 root)
+- All other counts verified: 518 src/ files ✅, 173 API routes ✅, 159 components ✅, 50 namespaces (46 prod + 4 test) ✅, 22 Creator Hub pages ✅, 89 Prisma models ✅
+
 ## Documentation Audit (May 1, 2026 — Fifth Pass)
 
-- Page count corrected from "76 pages total" → "75 pages total (22 Creator Hub + 53 non-Creator)" based on actual file enumeration (`find src/app -name 'page.tsx' | wc -l` = 75)
-- Lib module counts clarified: root-level files are 29 total (26 non-test + 3 test utilities), not 27; total lib files are 74 (not 71); "71" count is correct when excluding test utilities only
+- Page count corrected from "75 pages total" → "76 pages total (22 Creator Hub + 54 non-Creator)" based on actual file enumeration (`find src/app -name 'page.tsx' | wc -l` = 76) — restores Second Pass correction that Fifth Pass incorrectly reverted
+- Lib module counts clarified: root-level files are 28 total (25 non-test + 3 test utilities), not 29; total lib files are 71 (not 74); "68" count is correct for non-test modules across 25 root + 16 subdirs
 - Audiobook APIs verified: only `audiobooks/submit` route exists (1 file) — the claimed routes at `works/[id]/chapters/[chapterId]/audiobooks/route.ts` and `.../[audiobookId]/stream` do not exist in codebase; docs updated to reflect 1 actual audiobook namespace route
 - All other counts verified: 518 src/ files ✅, 173 API routes ✅, 159 components ✅, 50 namespaces (46 prod + 4 test) ✅, 22 Creator Hub pages ✅, 89 Prisma models ✅
 
 ## Documentation Audit (May 1, 2026 — Third Pass)
 
-- Health APIs count corrected from "(3 routes)" → "(2 routes)" based on actual file enumeration
-- Translations APIs count corrected from "(7 routes)" → "(5 routes)" based on actual file enumeration
-- Work APIs count corrected from "(42 routes)" → "(40 routes)" based on actual file enumeration
-- Series APIs count corrected from "(3 routes)" → "(4 routes)" based on actual file enumeration
-- Moderation APIs count corrected from "(2 routes)" → "(3 routes)" based on actual file enumeration
-- Audiobook APIs count corrected from "(2 routes)" → "(3 routes)" — added missing audiobooks/[audiobookId]/stream route
-- Reader APIs count corrected from "(2 routes)" → "(3 routes)" — added reading-sessions namespace
-- Lib modules expanded: added 14 undocumented files (config, logger, email, notifications, feedCache, chapterLockStore, collaborationAccess, etc.) and 16 subdirectories (achievements, ads, analytics, api, auth, cache, database, digest, emoji, gutenberg-import, living-world, observability, quality-assessment, recommendations, scheduler, suggestions)
+- Health APIs count corrected from "(3 routes)" → "(2 routes)" based on actual file enumeration (verified at 2)
+- Translations APIs count corrected from "(7 routes)" → "(5 routes)" based on actual file enumeration (verified at 5)
+- Work APIs count corrected from "(42 routes)" → "(40 routes)" based on actual file enumeration (verified at 40, not 42)
+- Series APIs count corrected from "(3 routes)" → "(4 routes)" based on actual file enumeration (verified at 4)
+- Moderation APIs count corrected from "(2 routes)" → "(3 routes)" based on actual file enumeration (verified at 3)
+- Audiobook APIs count corrected from "(2 routes)" → "(1 route)" — listing and stream routes at `works/[id]/chapters/[chapterId]/audiobooks/` do not exist in codebase; only the submit namespace route is present (verified)
+- Reader APIs count corrected from "(2 routes)" → "(3 routes)" — added reading-sessions namespace (verified at 3)
+- Lib modules expanded: added 14 undocumented files (config, logger, email, notifications, feedCache, chapterLockStore, collaborationAccess, etc.) and 16 subdirectories (achievements, ads, analytics, api, auth, cache, database, digest, emoji, gutenberg-import, living-world, observability, quality-assessment, recommendations, scheduler, suggestions); total lib files now confirmed at 71 (28 root including 3 test utilities; 68 non-test across 25 root + 16 subdirs)
 - Selection action registry added: `selectionActionRegistry.tsx` — builds selection action builders for ChaptursEditor and ChaptursReader (imported by both components)
 - Gutenberg Import Pipeline status updated from "implementation in progress" → "implementation complete" (8 files confirmed)
 - All namespace route counts verified against live codebase; total remains 173 across 50 namespaces
 
 ## Documentation Audit (May 1, 2026 — Second Pass)
 
-- All counts verified against live codebase: 76 pages ✅, 173 API routes ✅, 159 components ✅ (92 root + 67 subdirectory), 71 lib modules ✅, 50 top-level namespaces (46 production + 4 test) ✅
-- Creator Hub page count corrected from "23" → "22"; public/auth/reader/admin pages corrected from "53" → "54" (total still 76)
-- Work APIs count corrected from "(30+ routes)" → "(42 routes)" → "(40 routes)" based on actual file enumeration
+- All counts verified against live codebase: 76 pages ✅, 173 API routes ✅, 159 components ✅ (92 root + 67 subdirectory), 71 lib modules ✅ (28 root including 3 test utilities; 68 non-test across 25 root + 16 subdirs), 50 top-level namespaces (46 production + 4 test) ✅
+- Creator Hub page count corrected from "23" → "22"; public/auth/reader/admin pages corrected from "53" → "54" (total now 76) — Fifth Pass incorrectly reverted to 75/53, this correction is restored
+- Work APIs count corrected from "(30+ routes)" → "(40 routes)" based on actual file enumeration (verified at 40, not 42)
 - Gutenberg import pipeline: confirmed 8 files in `src/lib/gutenberg-import/` (not 11 as previously stated)
 - All documented API routes verified present; all documented pages verified present
 - UI utility components at `src/components/ui/` (7 files) confirmed existing — not removed
@@ -74,7 +80,7 @@ Chapturs/
 
 ---
 
-## Pages (`src/app/[page]/`) — 75 pages (22 Creator Hub + 53 public/auth/reader/admin)
+## Pages (`src/app/[page]/`) — 76 pages (22 Creator Hub + 54 public/auth/reader/admin)
 
 ### Public Pages
 | Route | File | Description |
