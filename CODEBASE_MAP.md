@@ -12,8 +12,8 @@ Chapturs/
 ├── src/                          # Application source code (507 files)
 │   ├── app/                      # Next.js App Router pages & API routes
 │   │   ├── api/                  # 173 route files across 50 namespaces
-│   │   └── *.tsx/*.ts            # 75 page components (flat under src/app/)
-│   ├── components/               # 159 .tsx/.ts component files (+ subdirectories)
+│   │   └── *.tsx/*.ts            # 76 page components (flat under src/app/)
+│   ├── components/               # 92 root component files (+ subdirectories = 159 total)
 │   └── lib/                      # 71 library/utility modules
 ├── prisma/                       # Prisma schema + migrations + seed
 ├── docs/                         # Documentation source & summaries
@@ -383,21 +383,21 @@ Chapturs/
 
 ---
 
-## Components (`src/components/`) — 159 .tsx/.ts files (+ subdirectories)
+## Components (`src/components/`) — 159 total (92 root + 67 in subdirectories) .tsx/.ts files
 
 ### Component Directory Breakdown
-|- `src/components/` (root) — 83 component files
-- `src/components/admin/` — 1 file: `GutenbergImportForm.tsx`
-- `src/components/ads/` — 7 files
-- `src/components/auth/` — 2 files
-- `src/components/editor/` — 3 files
-- `src/components/experimental/` — 4 files
-- `src/components/living-world/` — 6 files
-- `src/components/onboarding/` — 2 files
-- `src/components/profile/` — 4 root files + subdirectories (blocks: 11, config: 10, editor: 6)
-- `src/components/story/` — 1 file
-- `src/components/ui/` — 7 files
-- `src/components/upload/` — 1 file
+||- `src/components/` (root) — 92 component files
+|- `src/components/admin/` — 1 file: `GutenbergImportForm.tsx`
+|- `src/components/ads/` — 7 files
+|- `src/components/auth/` — 2 files
+|- `src/components/editor/` — 3 files
+|- `src/components/experimental/` — 4 files
+|- `src/components/living-world/` — 6 files
+|- `src/components/onboarding/` — 2 files
+|- `src/components/profile/` — 4 root files + subdirectories (blocks: 11, config: 10, editor: 6)
+|- `src/components/story/` — 1 file
+|- `src/components/ui/` — 7 files
+|- `src/components/upload/` — 1 file
 
 Key components by category:
 
@@ -521,27 +521,31 @@ Key components by category:
 - `TasteProfileSurvey.tsx` — Taste profile survey modal for new users
 
 ### Profile Components (`profile/`)
-- `BlockGrid.tsx` / `FeaturedSpace.tsx` — Profile layout components
-- `ContributorHubToggleSettings.tsx` — Contributor hub toggle settings
+|- `BlockGrid.tsx` / `FeaturedSpace.tsx` — Profile layout components
 
-### UI Utilities
-- `AppLayout.tsx` — Main app layout wrapper with sidebar
-- `Sidebar.tsx` — Navigation sidebar component
-- `EditorSidebar.tsx` — Editor-specific sidebar
-- `EmojiPicker.tsx` — Emoji picker for comments/reactions
-- `ErrorBoundary.tsx` — Error boundary component (error handling at app level)
-- `NotificationBell.tsx` — Notification bell with unread count
-- `PageViewTracker.tsx` — Page view tracking component
-- `ReaderMonetizationSettings.tsx` — Reader ad density settings
-- `ReportButton.tsx` / `ReportModal.tsx` — Content reporting UI
-- `StickyAudioScrubber.tsx` — Audio playback scrubber
-- `WorkCharactersPage.tsx` / `WorkCollaboratorsPage.tsx` / `WorkGlossaryPage.tsx` — Work detail pages
-- `WorkRatingSystem.tsx` / `WorkViewer.tsx` — Work rating and viewing components
-- `FeatureHint.tsx` / `FeedCardSkeleton.tsx` / `Footer.tsx` / `Modal.tsx` / `StoryPageSkeleton.tsx` / `Toast.tsx` / `Tooltip.tsx` — UI utility components
-- `MobileTextBox.tsx` — Mobile-friendly text box component
-- `PretextClampText.tsx` — Text clamping utility for previews
-- `UserSync.tsx` — User sync component
-- `WeeklyDigestToggle.tsx` — Weekly digest opt-in toggle
+### UI Utilities (root)
+|- `AppLayout.tsx` — Main app layout wrapper with sidebar
+|- `Sidebar.tsx` — Navigation sidebar component
+|- `EditorSidebar.tsx` — Editor-specific sidebar
+|- `EmojiPicker.tsx` — Emoji picker for comments/reactions
+|- `ErrorBoundary.tsx` — Error boundary component (error handling at app level)
+|- `NotificationBell.tsx` — Notification bell with unread count
+|- `PageViewTracker.tsx` — Page view tracking component
+|- `ReaderMonetizationSettings.tsx` — Reader ad density settings
+|- `ReportButton.tsx` / `ReportModal.tsx` — Content reporting UI
+|- `StickyAudioScrubber.tsx` — Audio playback scrubber
+|- `WorkCharactersPage.tsx` / `WorkCollaboratorsPage.tsx` / `WorkGlossaryPage.tsx` — Work detail pages
+|- `WorkRatingSystem.tsx` / `WorkViewer.tsx` — Work rating and viewing components
+|- `MobileTextBox.tsx` — Mobile-friendly text box component
+|- `PretextClampText.tsx` — Text clamping utility for previews
+|- `UserSync.tsx` — User sync component
+|- `WeeklyDigestToggle.tsx` — Weekly digest opt-in toggle
+
+### Contributor & Creator Pages (root)
+|- `ContributorHubToggleSettings.tsx` — Contributor hub toggle settings
+|- `CreatorCharactersPage.tsx` — Work-specific character management page
+|- `CreatorFanartPage.tsx` — Fan art management for creators
+|- `CreatorGlossaryPage.tsx` — Glossary management for creators
 
 ### Upload Components (`upload/`)
 - `ImageUpload.tsx` — Image upload component with progress tracking

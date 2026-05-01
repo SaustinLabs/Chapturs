@@ -18,7 +18,7 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 ### Documentation Audit (May 1, 2026)
 
 - All documentation files reviewed against actual codebase state
-- CODEBASE_MAP.md: Confirmed all counts accurate (76 pages, 173 API routes, 159 components, 71 lib modules, 89 Prisma models); `global-error.tsx` confirmed present at `src/app/global-error.tsx`; profile/blocks count corrected to 11 (was listed as 12)
+- CODEBASE_MAP.md: Confirmed all counts accurate except root components updated from 83→92; profile/blocks count corrected to 11 (.tsx only); `global-error.tsx` confirmed present at `src/app/global-error.tsx`; removed non-existent UI utility components (FeatureHint, FeedCardSkeleton, Footer, Modal, StoryPageSkeleton, Toast, Tooltip)
 - WORKERS.md: Date updated; squad directory structure verified against actual `.squad/` layout
 - TASKS.md: All task statuses and TODO references confirmed accurate
 - VISION.md: Status sections verified — all "Live / Implemented" items match codebase state
@@ -27,7 +27,7 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 ### Recent Documentation Fixes (May 1, 2026)
 
-- CODEBASE_MAP.md updated: Fixed `collaborationPatchValidation` extension (.ts only), corrected profile/blocks count to 11 and profile/config count to 10, added note about `global-error.tsx` global error boundary
+- CODEBASE_MAP.md updated: Fixed root component count from 83→92, corrected profile/blocks count to 11 and profile/config count to 10, added note about `global-error.tsx` global error boundary, removed non-existent UI utility components (FeatureHint, FeedCardSkeleton, Footer, Modal, StoryPageSkeleton, Toast, Tooltip), moved ContributorHubToggleSettings from Profile Components section to root-level Contributor & Creator Pages
 - TASKS.md verified against actual codebase state — all TODO references confirmed accurate; fixed incorrect "removed stale global-error.tsx" claim (file does exist)
 - VISION.md updated: Status sections verified — all "Live / Implemented" items match codebase state
 
