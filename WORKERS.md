@@ -28,14 +28,15 @@ The project uses a structured multi-agent development team orchestrated through 
 - `.squad/config.json` — Agent orchestration configuration (version 1)
 - `.squad/team.md` — Team roster and project context
 - `.squad/routing.md` — Work routing rules and handoff protocols
-- `.squad/decisions.md` — Architecture and design decisions log
-- `.squad/wisdom.md` — Lessons learned, patterns, and anti-patterns
+- `.squad/decisions.md` / `decisions/` — Architecture and design decisions log
+- `.squad/wisdom.md` / `identity/wisdom.md` — Lessons learned, patterns, and anti-patterns
 - `.squad/ceremonies.md` — Team ceremonies (standups, retrospectives)
 - `.squad/log/` — Session logs directory
 - `.squad/orchestration-log/` — Orchestration event log
-- `.squad/templates/` — Agent prompt templates
-- `.squad/identity/` — Agent identity files
-- `.squad/casting/` — Agent casting documents
+- `.squad/templates/` — Agent prompt templates (casting, ceremonies, charter, constraint-tracking, cooperative-rate-limiting, copilot-instructions, identity, issue-lifecycle, keda-scaler, machine-capabilities, mcp-config, multi-agent-format, orchestration-log, package.json, plugin-marketplace, roster, routing, run-output, schedule, scribe-charter, skill, skills, squad.agent.md, workflows)
+- `.squad/identity/` — Agent identity files (now.md, wisdom.md)
+- `.squad/casting/` — Agent casting documents (history.json, policy.json, registry.json)
+- `.squad/agents/` — Individual agent directories: basher/, danny/, linus/, ralph/, rusty/, scribe/
 
 ---
 
@@ -172,6 +173,7 @@ The project uses a structured multi-agent development team orchestrated through 
 ### Documentation Audit (May 1, 2026)
 
 - All worker entries verified against actual codebase state
-- `.squad/` directory structure confirmed: agents/, casting/, ceremonies.md, config.json, decisions.md, identity/, log/, orchestration-log/, routing.md, team.md, templates/ all present and match docs
+- `.squad/` directory structure confirmed: agents/, casting/, ceremonies.md, config.json, decisions.md / `decisions/inbox/`, identity/, log/, orchestration-log/, routing.md, team.md, templates/ all present and match docs (including subdirectories: skills/, workflows/)
 - GitHub Actions workflows (6 files) confirmed matching WORKERS.md listing
 - External worker scripts verified — 9 files in scripts/ directory including auditor.py, echo_worker.py, hermes_worker.py
+- Test workers noted: `scripts/test-db.ts`, `scripts/test-deploy.sh` for development testing

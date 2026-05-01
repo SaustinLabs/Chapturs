@@ -36,6 +36,8 @@ Chapturs/
 - Gutenberg import pipeline: confirmed 8 files in `src/lib/gutenberg-import/` (not 11 as previously stated)
 - All documented API routes verified present; all documented pages verified present
 - UI utility components at `src/components/ui/` (7 files) confirmed existing — not removed
+- Profile/blocks count is 12 (including index.ts); profile/config count is 11 (including index.ts)
+- Test APIs noted: 3 routes (`test-db`, `test-error-handling`, `test-node`) + 1 under `api/test/`
 
 ---
 
@@ -166,7 +168,7 @@ Chapturs/
 
 ---
 
-## API Routes (`src/app/api/`) — 173 route files across 50 namespaces
+## API Routes (`src/app/api/`) — 173 route files across 50 production namespaces (+ 4 test namespaces)
 
 ### Admin APIs (17 routes)
 - `admin/bootstrap` — PIN-based admin role activation
@@ -384,12 +386,17 @@ Chapturs/
 - `works/[id]/sections/[sectionId]/schedule` — Schedule chapter publication
 - `works/[id]/sections/[sectionId]/suggestions` / `[suggestionId]` — Edit suggestions per section
 - `works/[id]/sections/[sectionId]/versions` — Section version history
-- `works/[id]/validate` — Pre-publish validation dry-run
-- `works/[id]/view` — Track chapter view count
-- `works/ad-settings` — Work-level ad settings
-- `works/drafts` — List work drafts
-- `works/publish` — Publish a work (with content validation)
-- `works/user/[userId]` — Get works by user ID
+|- `works/[id]/validate` — Pre-publish validation dry-run
+|- `works/[id]/view` — Track chapter view count
+|- `works/ad-settings` — Work-level ad settings
+|- `works/drafts` — List work drafts
+|- `works/publish` — Publish a work (with content validation)
+|- `works/user/[userId]` — Get works by user ID
+
+### Test APIs (3 routes — not for production)
+- `test-db` — Database connectivity test endpoint
+- `test-error-handling` — Error handling test endpoint
+- `test-node` — Node.js environment test endpoint
 
 ---
 

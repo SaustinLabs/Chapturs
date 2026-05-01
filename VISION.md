@@ -205,6 +205,7 @@ Multi-layer revenue model:
 
 ## Document History
 
+- **May 1, 2026**: Second-pass audit — verified all "Live / Implemented" items against codebase state; confirmed accuracy of status sections; noted test API routes and corrected profile/blocks count to 12
 - **May 1, 2026**: Automated audit — verified all "Live / Implemented" items against codebase state; confirmed accuracy of status sections
 - **April 28, 2026**: Created — synthesized from DESIGN.md, WRITERS_ROOM_VISION.md, MEMORY.md, TASKS.md, and actual codebase state
 - **Previous**: No dedicated VISION.md existed; vision was scattered across multiple documents
