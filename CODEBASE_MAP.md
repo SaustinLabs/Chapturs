@@ -1,6 +1,6 @@
 # Chapturs — Codebase Map
 
-|> Last updated: May 1, 2026 (fourth pass)
+||> Last updated: May 1, 2026 (fifth pass)
 > **Source of truth** for where every feature lives in the repository.
 
 ---
@@ -12,9 +12,9 @@ Chapturs/
 ├── src/                          # Application source code (518 .tsx/.ts files)
 │   ├── app/                      # Next.js App Router pages & API routes
 │   │   ├── api/                  # 173 route files across 50 top-level namespaces (46 production + 4 test)
-│   │   └── *.tsx/*.ts            # 76 page components (flat under src/app/)
+│   │   └── *.tsx/*.ts            # 75 page components (flat under src/app/)
 │   ├── components/               # 92 root component files (+ subdirectories = 159 total)
-│   ├── lib/                      # 71 library/utility modules (27 root + 16 subdirs)
+│   ├── lib/                      # 74 total files (29 root including 3 test utilities; 71 non-test modules across 26 root + 16 subdirs)
 │   ├── hooks/                    # 4 custom React hooks
 │   ├── types/                    # 7 TypeScript type definition files
 │   ├── __tests__/                # Jest unit tests (13 .ts files)
@@ -38,6 +38,13 @@ Chapturs/
 - `selectionActionRegistry.tsx` confirmed present in lib/ Utilities section (already documented at line ~720); removed duplicate entry from Section Management section
 - All remaining undocumented root-level lib files verified: `images.ts`, `image-processing.ts`, `sanitize.ts`, `settings.ts`, `supabase-edge.ts` — all already listed under `### Utilities` section ✅
 - Test utility files confirmed documented: `mockData.ts`, `test-ad-system.ts`, `test-creator-apis.ts` under `### Test & Mock Files` ✅
+
+## Documentation Audit (May 1, 2026 — Fifth Pass)
+
+- Page count corrected from "76 pages total" → "75 pages total (22 Creator Hub + 53 non-Creator)" based on actual file enumeration (`find src/app -name 'page.tsx' | wc -l` = 75)
+- Lib module counts clarified: root-level files are 29 total (26 non-test + 3 test utilities), not 27; total lib files are 74 (not 71); "71" count is correct when excluding test utilities only
+- Audiobook APIs verified: only `audiobooks/submit` route exists (1 file) — the claimed routes at `works/[id]/chapters/[chapterId]/audiobooks/route.ts` and `.../[audiobookId]/stream` do not exist in codebase; docs updated to reflect 1 actual audiobook namespace route
+- All other counts verified: 518 src/ files ✅, 173 API routes ✅, 159 components ✅, 50 namespaces (46 prod + 4 test) ✅, 22 Creator Hub pages ✅, 89 Prisma models ✅
 
 ## Documentation Audit (May 1, 2026 — Third Pass)
 
@@ -67,7 +74,7 @@ Chapturs/
 
 ---
 
-## Pages (`src/app/[page]/`) — 76 pages (22 Creator Hub + 54 public/auth/reader/admin)
+## Pages (`src/app/[page]/`) — 75 pages (22 Creator Hub + 53 public/auth/reader/admin)
 
 ### Public Pages
 | Route | File | Description |
@@ -232,10 +239,9 @@ Chapturs/
 - `auth/set-username` — Set username (onboarding step 1)
 - `auth/sync-user` — Sync user profile data
 
-### Audiobook APIs (3 routes)
+### Audiobook APIs (1 route)
 - `audiobooks/submit` — Submit audiobook for a chapter
-- `works/[id]/chapters/[chapterId]/audiobooks/route.ts` — List audiobooks for a chapter
-- `works/[id]/chapters/[chapterId]/audiobooks/[audiobookId]/stream` — Stream audiobook audio
+- Note: Previously documented routes at `works/[id]/chapters/[chapterId]/audiobooks/route.ts` and `.../[audiobookId]/stream` do not exist in codebase; only the submit namespace route is present
 
 ### Bookmark APIs (1 route)
 - `bookmarks` — Create/remove bookmarks
