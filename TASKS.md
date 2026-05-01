@@ -1,6 +1,6 @@
 # Chapturs — Master Task List
 
-> Last updated: May 1, 2026 (second pass)
+|> Last updated: May 1, 2026 (fourth pass)
 > **Legend:** ✅ Done · 🔶 Partial / in progress · ⬜ Not started
 > **Format:** Every task has a unique numeric ID, concise title, status, and notes.
 
@@ -151,7 +151,7 @@ These are literal `// TODO` comments in the codebase:
 |---|------|-------|--------|-------|
 | 30 | `src/lib/r2-usage.ts:227` | Admin alert when R2 storage budget threshold hit | ✅ | Added \`notifyAdminStorageAlert\` and implemented in \`r2-usage.ts\` |
 | 31 | `src/lib/ContentValidationService.ts:269` | Store content hashes for duplicate detection | ⬜ | |
-| 32 | `src/lib/ContentValidationService.ts:463` | Image safety API integration | ✅ | Google Cloud Vision SafeSearch — flags adult/violence/racy LIKELY+ images; graceful fallback to URL check if key absent |
+| 32 | `src/lib/ContentValidationService.ts:460` | Image safety API integration | ✅ | Google Cloud Vision SafeSearch — flags adult/violence/racy LIKELY+ images; graceful fallback to URL check if key absent |
 | 33 | `src/lib/analytics/view-counter.ts:187` | Add `viewCount` field to Section model in Prisma schema | ✅ | Implemented DB logic in \`view-counter.ts\` to use \`viewCount\` field which was already in schema |
 | 34 | `src/app/api/works/publish/route.ts` | Wire content validation checks into publish flow | ✅ | Validates ALL sections (not just first); removed auto-approve; mature content confirmation modal wired; PrePublishChecklist calls server validation; new `/api/works/[id]/validate` dry-run endpoint. |
 | 80 | `src/app/api/user/taste-profile/route.ts` | `workCount < 12` gate suppresses onboarding survey on sparse platform | ✅ | Lowered to `workCount < 3` — survey now fires with minimal seeded content |
@@ -306,6 +306,11 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 109 | Keep `/about/roadmap` + `/features` synced with `TASKS.md` on every shipped/started feature | ✅ | Workflow now enforced in agent instructions; continue updating copy/status in same commit as feature work |
+
+### Documentation Audit (May 1, 2026 — Fourth Pass)
+
+- CODEBASE_MAP.md: Added fourth-pass audit section; confirmed selectionActionRegistry.tsx already documented in lib/ Utilities section ✅
+- TASKS.md: Fixed image safety API line reference from `ContentValidationService.ts:463` → `ContentValidationService.ts:460` (actual function start)
 
 ### Documentation Audit (May 1, 2026 — Second Pass)
 

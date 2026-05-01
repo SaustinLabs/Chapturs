@@ -1,6 +1,6 @@
 # Chapturs — Codebase Map
 
-> Last updated: May 1, 2026 (second pass)
+|> Last updated: May 1, 2026 (fourth pass)
 > **Source of truth** for where every feature lives in the repository.
 
 ---
@@ -33,6 +33,12 @@ Chapturs/
 
 ---
 
+## Documentation Audit (May 1, 2026 — Fourth Pass)
+
+- `selectionActionRegistry.tsx` confirmed present in lib/ Utilities section (already documented at line ~720); removed duplicate entry from Section Management section
+- All remaining undocumented root-level lib files verified: `images.ts`, `image-processing.ts`, `sanitize.ts`, `settings.ts`, `supabase-edge.ts` — all already listed under `### Utilities` section ✅
+- Test utility files confirmed documented: `mockData.ts`, `test-ad-system.ts`, `test-creator-apis.ts` under `### Test & Mock Files` ✅
+
 ## Documentation Audit (May 1, 2026 — Third Pass)
 
 - Health APIs count corrected from "(3 routes)" → "(2 routes)" based on actual file enumeration
@@ -43,6 +49,7 @@ Chapturs/
 - Audiobook APIs count corrected from "(2 routes)" → "(3 routes)" — added missing audiobooks/[audiobookId]/stream route
 - Reader APIs count corrected from "(2 routes)" → "(3 routes)" — added reading-sessions namespace
 - Lib modules expanded: added 14 undocumented files (config, logger, email, notifications, feedCache, chapterLockStore, collaborationAccess, etc.) and 16 subdirectories (achievements, ads, analytics, api, auth, cache, database, digest, emoji, gutenberg-import, living-world, observability, quality-assessment, recommendations, scheduler, suggestions)
+- Selection action registry added: `selectionActionRegistry.tsx` — builds selection action builders for ChaptursEditor and ChaptursReader (imported by both components)
 - Gutenberg Import Pipeline status updated from "implementation in progress" → "implementation complete" (8 files confirmed)
 - All namespace route counts verified against live codebase; total remains 173 across 50 namespaces
 
