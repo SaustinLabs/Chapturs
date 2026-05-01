@@ -1,7 +1,15 @@
-# Chapturs — Codebase Map
+|# Chapturs — Codebase Map
+|
+|||> Last updated: May 1, 2026 (seventh pass)
+|> **Source of truth** for where every feature lives in the repository.
 
-||> Last updated: May 1, 2026 (fifth pass)
-> **Source of truth** for where every feature lives in the repository.
+---
+
+## Documentation Audit (May 1, 2026 — Seventh Pass)
+
+- Audiobook APIs corrected from "(1 route)" → "(3 routes)": `audiobooks/submit` + nested `works/[id]/chapters/[chapterId]/audiobooks/route.ts` + `.../[audiobookId]/stream/route.ts` all confirmed present in codebase; removed incorrect "do not exist" note
+- Test APIs corrected from "(3 routes)" → "(4 routes)": added `test/moderation` endpoint (verified at 4)
+- All other counts verified: 76 pages ✅, 173 API routes ✅, 159 components ✅, 50 namespaces (46 prod + 4 test) ✅, 89 Prisma models ✅
 
 ---
 
@@ -245,9 +253,10 @@ Chapturs/
 - `auth/set-username` — Set username (onboarding step 1)
 - `auth/sync-user` — Sync user profile data
 
-### Audiobook APIs (1 route)
-- `audiobooks/submit` — Submit audiobook for a chapter
-- Note: Previously documented routes at `works/[id]/chapters/[chapterId]/audiobooks/route.ts` and `.../[audiobookId]/stream` do not exist in codebase; only the submit namespace route is present
+### Audiobook APIs (3 routes)
+- `audiobooks/submit` — Submit audiobook for a chapter (standalone namespace)
+- `works/[id]/chapters/[chapterId]/audiobooks/route.ts` — List audiobooks for a chapter
+- `works/[id]/chapters/[chapterId]/audiobooks/[audiobookId]/stream/route.ts` — Stream an audiobook file
 
 ### Bookmark APIs (1 route)
 - `bookmarks` — Create/remove bookmarks
@@ -431,10 +440,11 @@ Chapturs/
 |- `works/publish` — Publish a work (with content validation)
 |- `works/user/[userId]` — Get works by user ID
 
-### Test APIs (3 routes — not for production)
+### Test APIs (4 routes — not for production)
 - `test-db` — Database connectivity test endpoint
 - `test-error-handling` — Error handling test endpoint
 - `test-node` — Node.js environment test endpoint
+- `test/moderation` — Moderation testing page endpoint
 
 ---
 

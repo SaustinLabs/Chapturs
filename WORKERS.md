@@ -82,6 +82,8 @@ The project uses a structured multi-agent development team orchestrated through 
 | R2 URL Fixer | `scripts/fix-r2-urls.js` | Fix R2 image URL references in database |
 | SQL Utilities | `scripts/sql/` | SQL utility scripts directory |
 
+> **Note**: 10 files total in scripts/ (including sql/ subdirectory). Previously documented as "9 files".
+
 ---
 
 ## AI/LLM Workers (Runtime)
@@ -175,14 +177,14 @@ The project uses a structured multi-agent development team orchestrated through 
 - All worker entries re-verified against actual codebase state; no changes needed ✅
 - `.squad/` directory structure confirmed: all files match docs including subdirectories (skills/, workflows/)
 - GitHub Actions workflows (6 files) confirmed matching WORKERS.md listing
-- External worker scripts verified — 9 files in scripts/ directory
+- External worker scripts verified — 10 files in scripts/ directory (including sql/ subdirectory)
 
 ### Documentation Audit (May 1, 2026)
 
 - All worker entries verified against actual codebase state
 - `.squad/` directory structure confirmed: agents/, casting/, ceremonies.md, config.json, decisions.md / `decisions/inbox/`, identity/, log/, orchestration-log/, routing.md, team.md, templates/ all present and match docs (including subdirectories: skills/, workflows/)
 - GitHub Actions workflows (6 files) confirmed matching WORKERS.md listing
-- External worker scripts verified — 9 files in scripts/ directory including auditor.py, echo_worker.py, hermes_worker.py
+- External worker scripts verified — 10 files in scripts/ directory including auditor.py, echo_worker.py, hermes_worker.py (sql/ subdirectory included)
 - Test workers noted: `scripts/test-db.ts`, `scripts/test-deploy.sh` for development testing
 - Fixed: `.squad/wisdom.md` corrected to `.squad/identity/wisdom.md` (not at root level)
 - Added: `.squad/decisions/inbox/` subdirectory noted in docs
