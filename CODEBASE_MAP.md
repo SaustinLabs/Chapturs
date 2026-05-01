@@ -1,6 +1,6 @@
 # Chapturs — Codebase Map
 
-> Last updated: April 28, 2026 (automated audit)
+> Last updated: May 1, 2026 (automated audit)
 > **Source of truth** for where every feature lives in the repository.
 
 ---
@@ -528,7 +528,7 @@ Key components by category:
 - `Sidebar.tsx` — Navigation sidebar component
 - `EditorSidebar.tsx` — Editor-specific sidebar
 - `EmojiPicker.tsx` — Emoji picker for comments/reactions
-- `ErrorBoundary.tsx` / `global-error.tsx` — Error boundary components
+- `ErrorBoundary.tsx` — Error boundary component (error handling at app level)
 - `NotificationBell.tsx` — Notification bell with unread count
 - `PageViewTracker.tsx` — Page view tracking component
 - `ReaderMonetizationSettings.tsx` — Reader ad density settings

@@ -15,6 +15,16 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 | 105 (second occurrence) | 110 | Publishing flow options in editor | Duplicate of ID 105 (New user onboarding) |
 | 108 (second occurrence) | 111 | Rich text font-family support in editor toolbar | Duplicate of ID 108 (API keys to GitHub Secrets) |
 
+### Documentation Audit (May 1, 2026)
+
+- All documentation files reviewed against actual codebase state
+- CODEBASE_MAP.md: Removed stale `global-error.tsx` reference (file does not exist); confirmed all counts accurate (76 pages, 173 API routes, 159 components, 71 lib modules, 89 Prisma models)
+- WORKERS.md: Date updated; squad directory structure verified against actual `.squad/` layout
+- TASKS.md: All task statuses and TODO references confirmed accurate
+- VISION.md: Status sections verified — all "Live / Implemented" items match codebase state
+- DESIGN.md: Design tokens verified against Tailwind config — no discrepancies found
+- README.md: Documentation index verified — all referenced files exist; `implementations-release.md` confirmed present in summaries/
+
 ### Recent Documentation Fixes (April 28, 2026)
 
 - CODEBASE_MAP.md updated: Fixed counts (173 API routes / 50 namespaces, 159 components, 71 lib modules), added admin/import page entry, added missing Prisma models (ChapterReaction, CreatorFanContentSettings, EditSuggestion), fixed Admin APIs count to 17, fixed Creator APIs count to 13

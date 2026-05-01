@@ -1,6 +1,6 @@
 # Chapturs — Workers & Agents Reference
 
-> Last updated: April 28, 2026
+> Last updated: May 1, 2026
 > **Purpose**: Document all workers, agents, and automated systems that operate within or against the Chapturs codebase.
 
 ---
@@ -168,3 +168,10 @@ The project uses a structured multi-agent development team orchestrated through 
 | Gutenberg Import Worker | LLM runtime | ✅ Available | Project Gutenberg import with AI character/glossary generation |
 | Redis Cache Worker | Background service | ✅ Available | Raw fetch, no SDK dependency |
 | Pusher Realtime | WebSocket service | ✅ Available | Live notifications and presence |
+
+### Documentation Audit (May 1, 2026)
+
+- All worker entries verified against actual codebase state
+- `.squad/` directory structure confirmed: agents/, casting/, ceremonies.md, config.json, decisions.md, identity/, log/, orchestration-log/, routing.md, team.md, templates/ all present and match docs
+- GitHub Actions workflows (6 files) confirmed matching WORKERS.md listing
+- External worker scripts verified — 9 files in scripts/ directory including auditor.py, echo_worker.py, hermes_worker.py

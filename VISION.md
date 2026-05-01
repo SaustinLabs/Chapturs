@@ -1,6 +1,6 @@
 # Chapturs — Product Vision
 
-> Last updated: April 28, 2026
+> Last updated: May 1, 2026
 > *"Creator-first webnovel platform. Dual Reader/Creator hubs."*
 
 ---
@@ -205,5 +205,6 @@ Multi-layer revenue model:
 
 ## Document History
 
+- **May 1, 2026**: Automated audit — verified all "Live / Implemented" items against codebase state; confirmed accuracy of status sections
 - **April 28, 2026**: Created — synthesized from DESIGN.md, WRITERS_ROOM_VISION.md, MEMORY.md, TASKS.md, and actual codebase state
 - **Previous**: No dedicated VISION.md existed; vision was scattered across multiple documents
