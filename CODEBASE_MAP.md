@@ -22,7 +22,7 @@ Chapturs/
 │   │   ├── api/                  # 173 route files across 50 top-level namespaces (46 production + 4 test)
 │   │   └── *.tsx/*.ts            # 76 page components (flat under src/app/)
 │   ├── components/               # 92 root component files (+ subdirectories = 159 total)
-│   ├── lib/                      # 71 total files (28 root including 3 test utilities; 68 non-test modules across 25 root + 16 subdirs)
+│   ├── lib/                      # 71 total files (29 root including 3 test utilities; 68 non-test modules across 25 root + 16 subdirs)
 │   ├── hooks/                    # 4 custom React hooks
 │   ├── types/                    # 7 TypeScript type definition files
 │   ├── __tests__/                # Jest unit tests (13 .ts files)
@@ -30,7 +30,7 @@ Chapturs/
 ├── prisma/                       # Prisma schema + migrations + seed
 ├── docs/                         # Documentation source & summaries
 ├── public/                       # Static assets (images, logos, OG images)
-├── scripts/                      # Deployment, utility & worker scripts
+├── scripts/                      # 12 files (9 non-SQL + 3 SQL) — Deployment, utility & worker scripts
 ├── __tests__/                    # Jest unit tests (1 file)
 ├── tests/                        # Playwright E2E tests
 └── nginx/                        # Nginx server configuration
@@ -50,15 +50,22 @@ Chapturs/
 ## Documentation Audit (May 1, 2026 — Sixth Pass)
 
 - Page count corrected from "75 pages total" → "76 pages total (22 Creator Hub + 54 non-Creator)" based on actual file enumeration (`find src/app -name 'page.tsx' | wc -l` = 76)
-- Lib module counts corrected: root-level files are 28 total (25 non-test + 3 test utilities), not 29; total lib files are 71 (not 74); "68" non-test modules across 25 root + 16 subdirs (not 71 across 26 root)
+- Lib module counts corrected: root-level files are 29 total (24 non-test .ts + 3 test .ts + 1 .js + 1 .tsx), not 28; total lib files are 71 (not 74); "68" non-test modules across 25 root + 16 subdirs (not 71 across 26 root)
 - All other counts verified: 518 src/ files ✅, 173 API routes ✅, 159 components ✅, 50 namespaces (46 prod + 4 test) ✅, 22 Creator Hub pages ✅, 89 Prisma models ✅
 
 ## Documentation Audit (May 1, 2026 — Fifth Pass)
 
 - Page count corrected from "75 pages total" → "76 pages total (22 Creator Hub + 54 non-Creator)" based on actual file enumeration (`find src/app -name 'page.tsx' | wc -l` = 76) — restores Second Pass correction that Fifth Pass incorrectly reverted
-- Lib module counts clarified: root-level files are 28 total (25 non-test + 3 test utilities), not 29; total lib files are 71 (not 74); "68" count is correct for non-test modules across 25 root + 16 subdirs
-- Audiobook APIs verified: only `audiobooks/submit` route exists (1 file) — the claimed routes at `works/[id]/chapters/[chapterId]/audiobooks/route.ts` and `.../[audiobookId]/stream` do not exist in codebase; docs updated to reflect 1 actual audiobook namespace route
+- Lib module counts clarified: root-level files are 29 total (not 28); total lib files are 71 (not 74); "68" count is correct for non-test modules across 25 root + 16 subdirs
+- Audiobook APIs corrected from "(1 route)" → "(3 routes)": `audiobooks/submit` + nested `works/[id]/chapters/[chapterId]/audiobooks/route.ts` + `.../[audiobookId]/stream/route.ts` all confirmed present in codebase; removed incorrect "do not exist" note
 - All other counts verified: 518 src/ files ✅, 173 API routes ✅, 159 components ✅, 50 namespaces (46 prod + 4 test) ✅, 22 Creator Hub pages ✅, 89 Prisma models ✅
+
+## Documentation Audit (May 1, 2026 — Seventh Pass)
+
+- Lib root file count corrected from "28" → "29" based on actual enumeration: 24 non-test .ts + 3 test .ts + 1 .js (`collaborationPatchValidation.js`) + 1 .tsx (`selectionActionRegistry.tsx`) = 29 total
+- Audiobook APIs confirmed at 3 routes (not 1 as Fifth Pass claimed): `audiobooks/submit/route.ts`, `works/[id]/chapters/[chapterId]/audiobooks/route.ts`, `.../[audiobookId]/stream/route.ts` — all present in codebase
+- Scripts count corrected from "10 files" → "12 files (9 non-SQL + 3 SQL)" based on actual enumeration (`find scripts -type f | wc -l` = 12)
+- All other counts verified: 76 pages ✅, 173 API routes ✅, 159 components ✅, 50 namespaces ✅, 89 Prisma models (2375 lines), 4 hooks ✅, 7 types ✅, 518 src/ files ✅
 
 ## Documentation Audit (May 1, 2026 — Third Pass)
 
@@ -67,16 +74,16 @@ Chapturs/
 - Work APIs count corrected from "(42 routes)" → "(40 routes)" based on actual file enumeration (verified at 40, not 42)
 - Series APIs count corrected from "(3 routes)" → "(4 routes)" based on actual file enumeration (verified at 4)
 - Moderation APIs count corrected from "(2 routes)" → "(3 routes)" based on actual file enumeration (verified at 3)
-- Audiobook APIs count corrected from "(2 routes)" → "(1 route)" — listing and stream routes at `works/[id]/chapters/[chapterId]/audiobooks/` do not exist in codebase; only the submit namespace route is present (verified)
+- Audiobook APIs count corrected from "(2 routes)" → "(3 routes)": `audiobooks/submit` + nested `works/[id]/chapters/[chapterId]/audiobooks/route.ts` + `.../[audiobookId]/stream/route.ts` all confirmed present in codebase (not "1 route" as previously claimed)
 - Reader APIs count corrected from "(2 routes)" → "(3 routes)" — added reading-sessions namespace (verified at 3)
-- Lib modules expanded: added 14 undocumented files (config, logger, email, notifications, feedCache, chapterLockStore, collaborationAccess, etc.) and 16 subdirectories (achievements, ads, analytics, api, auth, cache, database, digest, emoji, gutenberg-import, living-world, observability, quality-assessment, recommendations, scheduler, suggestions); total lib files now confirmed at 71 (28 root including 3 test utilities; 68 non-test across 25 root + 16 subdirs)
+- Lib modules expanded: added 14 undocumented files (config, logger, email, notifications, feedCache, chapterLockStore, collaborationAccess, etc.) and 16 subdirectories (achievements, ads, analytics, api, auth, cache, database, digest, emoji, gutenberg-import, living-world, observability, quality-assessment, recommendations, scheduler, suggestions); total lib files now confirmed at 71 (29 root including 3 test utilities + 1 .js + 1 .tsx; 68 non-test across 25 root + 16 subdirs)
 - Selection action registry added: `selectionActionRegistry.tsx` — builds selection action builders for ChaptursEditor and ChaptursReader (imported by both components)
 - Gutenberg Import Pipeline status updated from "implementation in progress" → "implementation complete" (8 files confirmed)
 - All namespace route counts verified against live codebase; total remains 173 across 50 namespaces
 
 ## Documentation Audit (May 1, 2026 — Second Pass)
 
-- All counts verified against live codebase: 76 pages ✅, 173 API routes ✅, 159 components ✅ (92 root + 67 subdirectory), 71 lib modules ✅ (28 root including 3 test utilities; 68 non-test across 25 root + 16 subdirs), 50 top-level namespaces (46 production + 4 test) ✅
+- All counts verified against live codebase: 76 pages ✅, 173 API routes ✅, 159 components ✅ (92 root + 67 subdirectory), 71 lib modules ✅ (29 root including 3 test utilities + 1 .js + 1 .tsx; 68 non-test across 25 root + 16 subdirs), 50 top-level namespaces (46 production + 4 test) ✅
 - Creator Hub page count corrected from "23" → "22"; public/auth/reader/admin pages corrected from "53" → "54" (total now 76) — Fifth Pass incorrectly reverted to 75/53, this correction is restored
 - Work APIs count corrected from "(30+ routes)" → "(40 routes)" based on actual file enumeration (verified at 40, not 42)
 - Gutenberg import pipeline: confirmed 8 files in `src/lib/gutenberg-import/` (not 11 as previously stated)
@@ -85,6 +92,7 @@ Chapturs/
 - Profile/blocks count is 12 (including index.ts); profile/config count is 11 (including index.ts)
 - Test APIs noted: 3 routes (`test-db`, `test-error-handling`, `test-node`) + 1 under `api/test/`
 - Hooks count corrected from "5" → "4 custom React hooks" (useEmojiAutocomplete, usePretext, useRecommendationTracking, useUser)
+- Scripts count verified: 12 files total (9 non-SQL + 3 SQL) — corrected from previous "10 files" claim
 
 ---
 

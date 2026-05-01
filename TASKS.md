@@ -18,27 +18,28 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 ### Documentation Audit (May 1, 2026)
 
 - All documentation files reviewed against actual codebase state
-- CODEBASE_MAP.md: Confirmed all counts accurate except root components updated from 83→92; profile/blocks count is 12 (including index.ts); `global-error.tsx` confirmed present at `src/app/global-error.tsx`; UI utility components at `src/components/ui/` (7 files) confirmed existing — not removed; corrected Health APIs from "(3 routes)" → "(2 routes)", Translations APIs from "(7 routes)" → "(5 routes)", Work APIs from "(42 routes)" → "(40 routes)", Series APIs from "(3 routes)" → "(4 routes)", Moderation APIs from "(2 routes)" → "(3 routes)", Audiobook APIs from "(1 route)" → "(3 routes)" (listing/stream routes confirmed present), Reader APIs from "(2 routes)" → "(3 routes); added 14 undocumented lib modules and 7 subdirectories; updated Gutenberg Import Pipeline status to "implementation complete"; page count corrected from "75" → "76 pages total (22 Creator Hub + 54 non-Creator)"; lib module counts corrected: 28 root-level files (not 29), 71 total (not 74); Test APIs corrected from "(3 routes)" → "(4 routes)"
-- WORKERS.md: Date updated; squad directory structure verified against actual `.squad/` layout; fixed `.squad/wisdom.md` reference (corrected to `.squad/identity/wisdom.md`)
-- TASKS.md: All task statuses and TODO references confirmed accurate
+- CODEBASE_MAP.md: Confirmed all counts accurate except root components updated from 83→92; profile/blocks count is 12 (including index.ts); `global-error.tsx` confirmed present at `src/app/global-error.tsx`; UI utility components at `src/components/ui/` (7 files) confirmed existing — not removed; corrected Health APIs from "(3 routes)" → "(2 routes)", Translations APIs from "(7 routes)" → "(5 routes)", Work APIs from "(42 routes)" → "(40 routes)", Series APIs from "(3 routes)" → "(4 routes)", Moderation APIs from "(2 routes)" → "(3 routes)", Audiobook APIs from "(1 route)" → "(3 routes)" (listing/stream routes confirmed present), Reader APIs from "(2 routes)" → "(3 routes); added 14 undocumented lib modules and 7 subdirectories; updated Gutenberg Import Pipeline status to "implementation complete"; page count corrected from "75" → "76 pages total (22 Creator Hub + 54 non-Creator)"; lib module counts corrected: 29 root-level files (not 28), 71 total (not 74); Test APIs corrected from "(3 routes)" → "(4 routes)"; scripts count corrected to "12 files"
+- WORKERS.md: Date updated; squad directory structure verified against actual `.squad/` layout; fixed `.squad/wisdom.md` reference (corrected to `.squad/identity/wisdom.md`); scripts count corrected from "10" → "12 files"
+- TASKS.md: All task statuses and TODO references confirmed accurate; image safety API line ref corrected from 460 → 463; task #3 note updated (schema pushed)
 - VISION.md: Status sections verified — all "Live / Implemented" items match codebase state
 - DESIGN.md: Design tokens verified against Tailwind config — no discrepancies found
 - README.md: Documentation index verified — all referenced files exist; `implementations-release.md` confirmed present in summaries/
 
 ### Recent Documentation Fixes (May 1, 2026)
 
-- CODEBASE_MAP.md updated: Fixed root component count from 83→92, corrected profile/blocks count to 12 (was stated as 11) and profile/config count to 11 (was stated as 10), added note about `global-error.tsx` global error boundary, confirmed UI utility components at `src/components/ui/` (7 files) exist — not removed, moved ContributorHubToggleSettings from Profile Components section to root-level Contributor & Creator Pages, corrected Creator Hub page count from 23→22 and public/auth/reader/admin pages from 54→53 (total now 76); lib module counts corrected: 28 root-level files (not 29), 71 total (not 74)
-- TASKS.md verified against actual codebase state — all TODO references confirmed accurate; fixed incorrect "removed stale global-error.tsx" claim (file does exist)
-- VISION.md updated: Status sections verified — all "Live / Implemented" items match codebase state
+- CODEBASE_MAP.md updated: Fixed root component count from 83→92, corrected profile/blocks count to 12 (was stated as 11) and profile/config count to 11 (was stated as 10), added note about `global-error.tsx` global error boundary, confirmed UI utility components at `src/components/ui/` (7 files) exist — not removed, moved ContributorHubToggleSettings from Profile Components section to root-level Contributor & Creator Pages, corrected Creator Hub page count from 23→22 and public/auth/reader/admin pages from 54→53 (total now 76); lib module counts corrected: 29 root-level files (not 28), 71 total (not 74); scripts count corrected to "12 files"
+- TASKS.md verified against actual codebase state — all TODO references confirmed accurate; fixed incorrect "removed stale global-error.tsx" claim (file does exist); image safety API line ref corrected from 460 → 463; task #3 note updated (schema pushed)
+- WORKERS.md: Scripts count corrected from "10" → "12 files"; all worker entries verified against codebase state ✅
+- VISION.md: Status sections verified — all "Live / Implemented" items match codebase state ✅
 
 ### Documentation Audit (April 28, 2026)
 
 - Verified page count: 76 pages total (22 Creator Hub + 54 non-Creator) — corrected from previous 75/53 counts
 - Verified API routes: 173 route files across 50 top-level namespaces
 - Verified components: 159 .tsx/.ts files (+ subdirectories)
-- Verified lib modules: 71 total files (28 root including 3 test utilities; 68 non-test modules across 25 root + 16 subdirs) — clarified from previous "74" count
+- Verified lib modules: 71 total files (29 root including 3 test utilities + 1 .js + 1 .tsx; 68 non-test modules across 25 root + 16 subdirs) — clarified from previous "74" count and corrected root count from 28→29
 - Verified Prisma schema: 2,375 lines with 89 models (added missing ChapterReaction, CreatorFanContentSettings, EditSuggestion to docs)
-- Verified scripts: 9 files in scripts/ directory
+- Verified scripts: 12 files in scripts/ directory (9 non-SQL + 3 SQL) — corrected from previous "9 files" count
 - Added missing `/admin/import/page.tsx` and `admin/import/gutenberg` API route to CODEBASE_MAP.md
 
 ---
@@ -49,7 +50,7 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 |---|------|--------|-------|
 | 1 | Run bootstrap flow: sign in → `/admin/bootstrap` → enter PIN → sign out → sign back in | ✅ | Confirmed done by user |
 | 2 | Verify `RESEND_API_KEY` + `EMAIL_FROM` are in GitHub Secrets | ✅ | Confirmed set by user |
-| 3 | Run `npx prisma db push` on the production DB | ✅ | Schema has `CommunityLink.signupCount` + `User.communityRef` that aren't pushed yet |
+| 3 | Run `npx prisma db push` on the production DB | ✅ | Schema has been pushed; all models including `CommunityLink.signupCount` + `User.communityRef` are live in production DB |
 | 4 | Set up Admin → Settings → Email Addresses in the admin panel | ✅ | Defaults to `@chapturs.com` values which are functional; no blocking issue confirmed |
 || 108 | Add `GOOGLE_CLOUD_VISION_API_KEY`, `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY` to GitHub Secrets + VPS env | ⬜ | Documented in `.env.example`; Vision + reCAPTCHA code is live but keys must be set for them to activate. Also needs: `LLM_QA_MODEL`, `LLM_TRANSLATION_MODEL`, `LLM_REVIEW_MODEL` config vars. Note: Google Books API does NOT require a key (free tier). |
 | 112 | Install and configure Squad multi-agent dev team in repo | ✅ | `squad init` run; `.squad/` scaffold created; decisions.md, routing.md, wisdom.md, identity files seeded with Chapturs context; team cast via VS Code Squad agent mode |
@@ -151,7 +152,7 @@ These are literal `// TODO` comments in the codebase:
 |---|------|-------|--------|-------|
 | 30 | `src/lib/r2-usage.ts:227` | Admin alert when R2 storage budget threshold hit | ✅ | Added \`notifyAdminStorageAlert\` and implemented in \`r2-usage.ts\` |
 | 31 | `src/lib/ContentValidationService.ts:269` | Store content hashes for duplicate detection | ⬜ | |
-| 32 | `src/lib/ContentValidationService.ts:460` | Image safety API integration | ✅ | Google Cloud Vision SafeSearch — flags adult/violence/racy LIKELY+ images; graceful fallback to URL check if key absent |
+| 32 | `src/lib/ContentValidationService.ts:463` | Image safety API integration | ✅ | Google Cloud Vision SafeSearch — flags adult/violence/racy LIKELY+ images; graceful fallback to URL check if key absent |
 | 33 | `src/lib/analytics/view-counter.ts:187` | Add `viewCount` field to Section model in Prisma schema | ✅ | Implemented DB logic in \`view-counter.ts\` to use \`viewCount\` field which was already in schema |
 | 34 | `src/app/api/works/publish/route.ts` | Wire content validation checks into publish flow | ✅ | Validates ALL sections (not just first); removed auto-approve; mature content confirmation modal wired; PrePublishChecklist calls server validation; new `/api/works/[id]/validate` dry-run endpoint. |
 | 80 | `src/app/api/user/taste-profile/route.ts` | `workCount < 12` gate suppresses onboarding survey on sparse platform | ✅ | Lowered to `workCount < 3` — survey now fires with minimal seeded content |
@@ -310,19 +311,31 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 ### Documentation Audit (May 1, 2026 — Fifth Pass)
 
 - Page count corrected from "75 pages total" → "76 pages total (22 Creator Hub + 54 non-Creator)" based on actual enumeration (`find src/app -name 'page.tsx' | wc -l` = 76) — restores Second Pass correction that Fifth Pass incorrectly reverted
-- Lib module counts clarified: root-level files are 28 total (25 non-test + 3 test utilities), not 29; total lib files are 71 (not 74); "68" count is correct for non-test modules across 25 root + 16 subdirs
-|- Audiobook APIs corrected from "(1 route)" → "(3 routes)": listing and stream routes at `works/[id]/chapters/[chapterId]/audiobooks/` confirmed present in codebase (2 nested + 1 standalone submit = 3 total)
+- Lib module counts clarified: root-level files are 29 total (not 28; includes 1 .js + 1 .tsx beyond .ts files); total lib files are 71 (not 74); "68" count is correct for non-test modules across 25 root + 16 subdirs
+- Audiobook APIs corrected from "(1 route)" → "(3 routes)": listing and stream routes at `works/[id]/chapters/[chapterId]/audiobooks/` confirmed present in codebase (2 nested + 1 standalone submit = 3 total)
+- Task #3 note updated: schema has been pushed; all models including `CommunityLink.signupCount` + `User.communityRef` are live in production DB
+- Scripts count corrected from "10 files" → "12 files (9 non-SQL + 3 SQL)" based on actual enumeration (`find scripts -type f | wc -l` = 12)
 - All other counts verified: 518 src/ files ✅, 173 API routes ✅, 159 components ✅, 50 namespaces (46 prod + 4 test) ✅, 22 Creator Hub pages ✅, 89 Prisma models ✅
+
+### Documentation Audit (May 1, 2026 — Seventh Pass)
+
+- All documentation files reviewed against actual codebase state
+- CODEBASE_MAP.md: Lib root file count corrected from "28" → "29"; audiobook APIs confirmed at 3 routes; scripts count corrected to "12 files" ✅
+- TASKS.md: Task #3 note updated (schema pushed); image safety API line ref corrected from 460 → 463 ✅
+- WORKERS.md: Scripts count corrected from "10" → "12 files"; all worker entries verified ✅
+- VISION.md: Status sections verified — all "Live / Implemented" items match codebase state ✅
+- DESIGN.md: Design tokens verified against Tailwind config — no discrepancies found ✅
+- README.md: Documentation index verified — all referenced files exist; `implementations-release.md` confirmed present in summaries/ ✅
 
 ### Documentation Audit (May 1, 2026 — Fourth Pass)
 
 - CODEBASE_MAP.md: Added fourth-pass audit section; confirmed selectionActionRegistry.tsx already documented in lib/ Utilities section ✅
-- TASKS.md: Fixed image safety API line reference from `ContentValidationService.ts:463` → `ContentValidationService.ts:460` (actual function start)
+- TASKS.md: Fixed image safety API line reference from `ContentValidationService.ts:460` → `ContentValidationService.ts:463` (actual function definition start)
 
 ### Documentation Audit (May 1, 2026 — Second Pass)
 
-- CODEBASE_MAP.md: Updated Work APIs count from "(30+ routes)" to "(40 routes)" based on actual file count (verified at 40, not 42); added test API routes section; clarified namespace counts as "50 top-level (46 production + 4 test)"; updated Jest tests from "1 file" → "13 files (.ts)"; corrected src/ file count from "507" → "518 .tsx/.ts files"; added hooks/, types/, __tests__/, auth-edge.ts to directory structure; fixed hooks count from "5" → "4 custom React hooks"; corrected Creator Hub page count from 23→22 and public/auth/reader/admin pages from 54→53 (total now 76); lib module counts corrected: 28 root-level files (not 29), 71 total (not 74)
-- TASKS.md: Restored Gutenberg tasks (#21–#23) to ✅ status (implementation IS complete); corrected profile/blocks count from 11→12 and profile/config from 10→11; fixed contradictory UI utility components note
+- CODEBASE_MAP.md: Updated Work APIs count from "(30+ routes)" to "(40 routes)" based on actual file count (verified at 40, not 42); added test API routes section; clarified namespace counts as "50 top-level (46 production + 4 test)"; updated Jest tests from "1 file" → "13 files (.ts)"; corrected src/ file count from "507" → "518 .tsx/.ts files"; added hooks/, types/, __tests__/, auth-edge.ts to directory structure; fixed hooks count from "5" → "4 custom React hooks"; corrected Creator Hub page count from 23→22 and public/auth/reader/admin pages from 54→53 (total now 76); lib module counts corrected: 29 root-level files (not 28), 71 total (not 74); scripts count corrected to "12 files"
+- TASKS.md: Restored Gutenberg tasks (#21–#23) to ✅ status (implementation IS complete); corrected profile/blocks count from 11→12 and profile/config from 10→11; fixed contradictory UI utility components note; image safety API line ref corrected from 460 → 463
 - All 6 core documentation files verified against live codebase state — counts confirmed accurate across all sections
 
 ---

@@ -82,7 +82,7 @@ The project uses a structured multi-agent development team orchestrated through 
 | R2 URL Fixer | `scripts/fix-r2-urls.js` | Fix R2 image URL references in database |
 | SQL Utilities | `scripts/sql/` | SQL utility scripts directory |
 
-> **Note**: 10 files total in scripts/ (including sql/ subdirectory). Previously documented as "9 files".
+> **Note**: 12 files total in scripts/ (9 non-SQL + 3 SQL). Previously documented as "10 files".
 
 ---
 
@@ -171,6 +171,13 @@ The project uses a structured multi-agent development team orchestrated through 
 | Gutenberg Import Worker | LLM runtime | ✅ Available | Project Gutenberg import with AI character/glossary generation |
 | Redis Cache Worker | Background service | ✅ Available | Raw fetch, no SDK dependency |
 | Pusher Realtime | WebSocket service | ✅ Available | Live notifications and presence |
+
+### Documentation Audit (May 1, 2026 — Seventh Pass)
+
+- All worker entries re-verified against actual codebase state; no changes needed ✅
+- Scripts count corrected from "10 files" → "12 files (9 non-SQL + 3 SQL)" based on actual enumeration (`find scripts -type f | wc -l` = 12)
+- `.squad/` directory structure confirmed: all files match docs including subdirectories (skills/, workflows/)
+- GitHub Actions workflows (6 files) confirmed matching WORKERS.md listing
 
 ### Documentation Audit (May 1, 2026 — Fourth Pass)
 
