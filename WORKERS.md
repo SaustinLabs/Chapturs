@@ -28,8 +28,8 @@ The project uses a structured multi-agent development team orchestrated through 
 - `.squad/config.json` — Agent orchestration configuration (version 1)
 - `.squad/team.md` — Team roster and project context
 - `.squad/routing.md` — Work routing rules and handoff protocols
-- `.squad/decisions.md` / `decisions/` — Architecture and design decisions log
-- `.squad/wisdom.md` / `identity/wisdom.md` — Lessons learned, patterns, and anti-patterns
+- `.squad/decisions.md` / `decisions/` — Architecture and design decisions log (includes `decisions/inbox/` subdirectory)
+- `.squad/identity/wisdom.md` — Lessons learned, patterns, and anti-patterns (at `.squad/identity/`, not root-level)
 - `.squad/ceremonies.md` — Team ceremonies (standups, retrospectives)
 - `.squad/log/` — Session logs directory
 - `.squad/orchestration-log/` — Orchestration event log
@@ -177,3 +177,5 @@ The project uses a structured multi-agent development team orchestrated through 
 - GitHub Actions workflows (6 files) confirmed matching WORKERS.md listing
 - External worker scripts verified — 9 files in scripts/ directory including auditor.py, echo_worker.py, hermes_worker.py
 - Test workers noted: `scripts/test-db.ts`, `scripts/test-deploy.sh` for development testing
+- Fixed: `.squad/wisdom.md` corrected to `.squad/identity/wisdom.md` (not at root level)
+- Added: `.squad/decisions/inbox/` subdirectory noted in docs

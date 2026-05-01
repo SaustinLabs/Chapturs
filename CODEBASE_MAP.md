@@ -14,7 +14,7 @@ Chapturs/
 │   │   ├── api/                  # 173 route files across 50 top-level namespaces (46 production + 4 test)
 │   │   └── *.tsx/*.ts            # 76 page components (flat under src/app/)
 │   ├── components/               # 92 root component files (+ subdirectories = 159 total)
-│   ├── lib/                      # 71 library/utility modules
+│   ├── lib/                      # 71 library/utility modules (27 root + 16 subdirs)
 │   ├── hooks/                    # 4 custom React hooks
 │   ├── types/                    # 7 TypeScript type definition files
 │   ├── __tests__/                # Jest unit tests (13 .ts files)
@@ -40,6 +40,10 @@ Chapturs/
 - Work APIs count corrected from "(42 routes)" → "(40 routes)" based on actual file enumeration
 - Series APIs count corrected from "(3 routes)" → "(4 routes)" based on actual file enumeration
 - Moderation APIs count corrected from "(2 routes)" → "(3 routes)" based on actual file enumeration
+- Audiobook APIs count corrected from "(2 routes)" → "(3 routes)" — added missing audiobooks/[audiobookId]/stream route
+- Reader APIs count corrected from "(2 routes)" → "(3 routes)" — added reading-sessions namespace
+- Lib modules expanded: added 14 undocumented files (config, logger, email, notifications, feedCache, chapterLockStore, collaborationAccess, etc.) and 7 subdirectories (achievements, ads, analytics, api, auth, cache, database, digest, emoji, gutenberg-import, living-world, observability, quality-assessment, recommendations, scheduler, suggestions)
+- Gutenberg Import Pipeline status updated from "implementation in progress" → "implementation complete" (8 files confirmed)
 - All namespace route counts verified against live codebase; total remains 173 across 50 namespaces
 
 ## Documentation Audit (May 1, 2026 — Second Pass)
@@ -221,7 +225,7 @@ Chapturs/
 - `auth/set-username` — Set username (onboarding step 1)
 - `auth/sync-user` — Sync user profile data
 
-### Audiobook APIs (2 routes)
+### Audiobook APIs (3 routes)
 - `audiobooks/submit` — Submit audiobook for a chapter
 - `works/[id]/chapters/[chapterId]/audiobooks/route.ts` — List audiobooks for a chapter
 - `works/[id]/chapters/[chapterId]/audiobooks/[audiobookId]/stream` — Stream audiobook audio
@@ -332,7 +336,7 @@ Chapturs/
 - `quality-assessment/queue` — QA queue management
 - `quality-assessment/stats` — QA statistics dashboard
 
-### Reader APIs (2 routes)
+### Reader APIs (3 routes)
 - `reader/stats` — Reading statistics per user/work
 - `reading-progress` — Reading progress tracking
 - `reading-sessions` — Reading session management
@@ -660,13 +664,38 @@ Key components by category:
 - `digest/weeklyDigest.ts` — Weekly email digest generation
 - `scheduler/run-lock.ts` — Distributed lock for scheduled tasks
 
+### Configuration & Logging
+- `config.ts` — Environment configuration and validation
+- `logger.ts` — Simple logging utility (production console output)
+- `resolveDbUserId.ts` — User ID resolution from DB
+
+### Email & Notifications
+- `email.ts` — Email notification utility (Resend HTTP API)
+- `notifications.ts` — In-app notification utilities
+
+### Feed & Caching
+- `feedCache.ts` — Module-level feed state cache for instant back-navigation
+- `cache/social-cache.ts` — Social data caching layer
+
+### Collaboration
+- `chapterLockStore.ts` — Chapter locking store (database-backed)
+- `collaborationAccess.ts` — Collaborator access permission checks
+- `collaborationActivity.ts` — Collaboration activity logging
+- `collaborationPatchValidation.ts` — Patch validation for collaborative edits
+
+### Section Management
+- `sectionVersioning.ts` — Section version tracking and management
+
+### Database
+- `database/PrismaService.ts` — Prisma service singleton
+
 ### Emoji System
 - `emoji/customEmojis.ts` / `emoji/emojiData.ts` — Custom emoji definitions and data
 
 ### Suggestions
 - `suggestions/suggestion-permissions.ts` — Edit suggestion permission checks
 
-### Gutenberg Import Pipeline (spec written, implementation in progress)
+### Gutenberg Import Pipeline (8 files — implementation complete)
 - `gutenberg-import/bot-user.ts` — Bot author record creation
 - `gutenberg-import/fetch-metadata.ts` — Fetch metadata from Google Books API
 - `gutenberg-import/generate-characters.ts` — AI character profile generation

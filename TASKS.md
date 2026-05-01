@@ -18,8 +18,8 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 ### Documentation Audit (May 1, 2026)
 
 - All documentation files reviewed against actual codebase state
-- CODEBASE_MAP.md: Confirmed all counts accurate except root components updated from 83→92; profile/blocks count is 12 (including index.ts); `global-error.tsx` confirmed present at `src/app/global-error.tsx`; UI utility components at `src/components/ui/` (7 files) confirmed existing — not removed; corrected Health APIs from "(3 routes)" → "(2 routes)", Translations APIs from "(7 routes)" → "(5 routes)", Work APIs from "(42 routes)" → "(40 routes)", Series APIs from "(3 routes)" → "(4 routes)", Moderation APIs from "(2 routes)" → "(3 routes)"
-- WORKERS.md: Date updated; squad directory structure verified against actual `.squad/` layout
+- CODEBASE_MAP.md: Confirmed all counts accurate except root components updated from 83→92; profile/blocks count is 12 (including index.ts); `global-error.tsx` confirmed present at `src/app/global-error.tsx`; UI utility components at `src/components/ui/` (7 files) confirmed existing — not removed; corrected Health APIs from "(3 routes)" → "(2 routes)", Translations APIs from "(7 routes)" → "(5 routes)", Work APIs from "(42 routes)" → "(40 routes)", Series APIs from "(3 routes)" → "(4 routes)", Moderation APIs from "(2 routes)" → "(3 routes)", Audiobook APIs from "(2 routes)" → "(3 routes)", Reader APIs from "(2 routes)" → "(3 routes); added 14 undocumented lib modules and 7 subdirectories; updated Gutenberg Import Pipeline status to "implementation complete"
+- WORKERS.md: Date updated; squad directory structure verified against actual `.squad/` layout; fixed `.squad/wisdom.md` reference (corrected to `.squad/identity/wisdom.md`)
 - TASKS.md: All task statuses and TODO references confirmed accurate
 - VISION.md: Status sections verified — all "Live / Implemented" items match codebase state
 - DESIGN.md: Design tokens verified against Tailwind config — no discrepancies found
@@ -63,7 +63,7 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 5 | Cloudflare Email Routing for all inboxes | ✅ | Done by user |
-| 6 | Confirm domain DNS is healthy (R2, Resend DKIM, CF email routing coexist) | ⬜ | Precautionary check only — no known conflict; tightly scoped audit |
+| 6 | Confirm domain DNS is healthy (R2, Resend DKIM, CF email routing coexist) | ✅ | Precautionary check only — no known conflict; tightly scoped audit |
 | 7 | Test welcome email end-to-end with a fresh signup | ✅ | New code — verify Resend actually fires |
 | 8 | Test chapter rejection email end-to-end | ✅ | New code — requires a moderation queue item |
 
