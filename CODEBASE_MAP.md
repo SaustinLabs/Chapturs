@@ -713,7 +713,7 @@ Key models in the schema (`prisma/schema.prisma`):
 
 ## Tests (`__tests__/` + `tests/`)
 
-### Jest Unit Tests (`src/__tests__/`) — 14 files (.ts)
+### Jest Unit Tests (`src/__tests__/`) — 13 files (.ts)
 - `achievements.test.ts` — Achievement system tests
 - `collaborator-revenue-share.test.ts` — Collaborator revenue share tests
 - `core.test.ts` — Core functionality tests
