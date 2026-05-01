@@ -42,7 +42,7 @@ Chapturs/
 - Moderation APIs count corrected from "(2 routes)" → "(3 routes)" based on actual file enumeration
 - Audiobook APIs count corrected from "(2 routes)" → "(3 routes)" — added missing audiobooks/[audiobookId]/stream route
 - Reader APIs count corrected from "(2 routes)" → "(3 routes)" — added reading-sessions namespace
-- Lib modules expanded: added 14 undocumented files (config, logger, email, notifications, feedCache, chapterLockStore, collaborationAccess, etc.) and 7 subdirectories (achievements, ads, analytics, api, auth, cache, database, digest, emoji, gutenberg-import, living-world, observability, quality-assessment, recommendations, scheduler, suggestions)
+- Lib modules expanded: added 14 undocumented files (config, logger, email, notifications, feedCache, chapterLockStore, collaborationAccess, etc.) and 16 subdirectories (achievements, ads, analytics, api, auth, cache, database, digest, emoji, gutenberg-import, living-world, observability, quality-assessment, recommendations, scheduler, suggestions)
 - Gutenberg Import Pipeline status updated from "implementation in progress" → "implementation complete" (8 files confirmed)
 - All namespace route counts verified against live codebase; total remains 173 across 50 namespaces
 
