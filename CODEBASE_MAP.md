@@ -36,6 +36,7 @@ Chapturs/
 ## Documentation Audit (May 1, 2026 — Second Pass)
 
 - All counts verified against live codebase: 76 pages ✅, 173 API routes ✅, 159 components ✅ (92 root + 67 subdirectory), 71 lib modules ✅, 50 top-level namespaces (46 production + 4 test) ✅
+- Creator Hub page count corrected from "23" → "22"; public/auth/reader/admin pages corrected from "53" → "54" (total still 76)
 - Work APIs count corrected from "(30+ routes)" → "(42 routes)" based on actual file enumeration
 - Gutenberg import pipeline: confirmed 8 files in `src/lib/gutenberg-import/` (not 11 as previously stated)
 - All documented API routes verified present; all documented pages verified present
@@ -46,7 +47,7 @@ Chapturs/
 
 ---
 
-## Pages (`src/app/[page]/`) — 76 pages (23 Creator Hub + 53 public/auth/reader/admin)
+## Pages (`src/app/[page]/`) — 76 pages (22 Creator Hub + 54 public/auth/reader/admin)
 
 ### Public Pages
 | Route | File | Description |
