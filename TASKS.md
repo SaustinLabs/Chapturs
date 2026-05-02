@@ -1,14 +1,15 @@
 # Chapturs — Master Task List
 
-||> Last updated: May 1, 2026 (tenth pass)
+||> Last updated: May 1, 2026 (eleventh pass)
 > **Legend:** ✅ Done · 🔶 Partial / in progress · ⬜ Not started
 > **Format:** Every task has a unique numeric ID, concise title, status, and notes.
 
 ---
 
-## Documentation Audit (May 1, 2026 — Tenth Pass)
+## Documentation Audit (May 1, 2026 — Eleventh Pass)
 
-- TASKS.md Gutenberg file count corrected from "11" → "8" in task #21 note; all 8 files in `src/lib/gutenberg-import/` verified present ✅
+- Lib subdirectory file count corrected from "43" → "45": actual enumeration confirms 45 files across 16 subdirectories; grand total lib files corrected from "72" → "74" (29 root + 45 subdir) ✅
+- Ad APIs count corrected from "(2 routes + config)" → "(3 routes)": `ads/impression`, `ads/placements`, `ads/placements/[id]` all confirmed present; `default-ads/config` listed separately as configuration endpoint ✅
 - All other task statuses and TODO references confirmed accurate against live codebase ✅
 - Image safety API line ref at ContentValidationService.ts:463 confirmed correct ✅
 - Task #32 status updated — Google Cloud Vision SafeSearch implementation is live with graceful fallback ✅

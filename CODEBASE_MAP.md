@@ -5,13 +5,11 @@
 
 ---
 
-## Documentation Audit (May 1, 2026 — Tenth Pass)
+## Documentation Audit (May 1, 2026 — Eleventh Pass)
 
-- Lib total file count corrected from "71" → "72": actual enumeration confirms 29 root files + 43 subdirectory files = 72 total; non-test modules confirmed at 69 across 26 root + 16 subdirs (not 68 across 25 root as previously stated)
-- TASKS.md Gutenberg file count corrected from "11" → "8" — all 8 files in `src/lib/gutenberg-import/` verified present; task #21 note updated accordingly
-- All other counts re-verified: 76 pages ✅, 173 API routes ✅, 159 components (92 root + 67 subdirs) ✅, 50 namespaces (46 prod + 4 test) ✅, 89 Prisma models ✅, 12 scripts (9 non-SQL + 3 SQL) ✅, 4 hooks ✅, 7 types ✅
-- Unused dependency noted: `@upstash/redis` listed in package.json but code uses raw fetch() — no actual SDK usage found
-- DESIGN.md tokens verified against tailwind.config.js — design spec is standalone (not wired into Tailwind config which remains minimal)
+- Lib subdirectory file count corrected from "43" → "45": actual enumeration confirms 45 files across 16 subdirectories; grand total lib files corrected from "72" → "74" (29 root + 45 subdir); non-test modules confirmed at 69 across 24 root .ts + 16 subdirs (excluding test files and .js/.tsx) ✅
+- Ad APIs count corrected from "(2 routes + config)" → "(3 routes)": `ads/impression`, `ads/placements`, `ads/placements/[id]` all confirmed present; `default-ads/config` listed separately as configuration endpoint ✅
+- All other counts verified: 76 pages ✅, 173 API routes ✅, 159 components (92 root + 67 subdirs) ✅, 50 namespaces (46 prod + 4 test) ✅, 89 Prisma models ✅, 12 scripts ✅, 4 hooks ✅, 7 types ✅
 
 ---
 
@@ -32,7 +30,7 @@ Chapturs/
 │   │   ├── api/                  # 173 route files across 50 top-level namespaces (46 production + 4 test)
 │   │   └── *.tsx/*.ts            # 76 page components (flat under src/app/)
 │   ├── components/               # 92 root component files (+ subdirectories = 159 total)
-│   ├── lib/                      # 72 total files (29 root including 3 test utilities; 69 non-test modules across 26 root + 16 subdirs)
+│   ├── lib/                      # 74 total files (29 root including 3 test utilities; 69 non-test modules across 24 root .ts + 16 subdirs)
 │   ├── hooks/                    # 4 custom React hooks
 │   ├── types/                    # 7 TypeScript type definition files
 │   ├── __tests__/                # Jest unit tests (13 .ts files)
@@ -265,7 +263,7 @@ Chapturs/
 - `achievements/[userId]/featured` — Pin/unpin featured achievements (4-pin cap)
 - `achievements/[userId]/visibility` — Toggle achievement visibility on profile
 
-### Ad APIs (2 routes + config)
+### Ad APIs (3 routes)
 - `ads/impression` — Track ad impressions
 - `ads/placements` / `[id]` — Ad placement management
 - `default-ads/config` — Default ad configuration settings
@@ -645,7 +643,7 @@ Key components by category:
 
 ---
 
-## Libraries (`src/lib/`) — 72 modules (+ test utilities)
+## Libraries (`src/lib/`) — 74 modules (+ test utilities)
 
 ### Core Services
 - `ContentValidationService.ts` — Content validation (maturity checks, image safety via Google Cloud Vision)

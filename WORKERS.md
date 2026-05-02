@@ -1,14 +1,15 @@
 # Chapturs — Workers & Agents Reference
 
-> Last updated: May 1, 2026 (tenth pass)
+> Last updated: May 1, 2026 (eleventh pass)
 
-## Documentation Audit (May 1, 2026 — Tenth Pass)
+## Documentation Audit (May 1, 2026 — Eleventh Pass)
 
 - All worker entries re-verified against actual codebase state; no changes needed ✅
 - Scripts count confirmed at 12 files (9 non-SQL + 3 SQL) ✅
 - `.squad/` directory structure verified — 101 files total across all subdirectories ✅
 - GitHub Actions workflows (6 .yml files) confirmed matching WORKERS.md listing ✅
 - Template file listing corrected — `identity`, `skills`, `workflows` are directories not individual files; added missing templates (`casting-history.json`, `casting-policy.json`, `casting-registry.json`, `history.md`, `ralph-circuit-breaker.md`, `ralph-triage.js`, `schedule.json`) ✅
+- Lib subdirectory file count corrected from "43" → "45"; grand total lib files now 74 (29 root + 45 subdir) ✅
 > **Purpose**: Document all workers, agents, and automated systems that operate within or against the Chapturs codebase.
 
 ---

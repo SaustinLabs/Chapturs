@@ -1,14 +1,15 @@
 # Chapturs — Product Vision
 
-> Last updated: May 1, 2026 (tenth pass)
+> Last updated: May 1, 2026 (eleventh pass)
 
-## Documentation Audit (May 1, 2026 — Tenth Pass)
+## Documentation Audit (May 1, 2026 — Eleventh Pass)
 
 - All "Live / Implemented" items re-verified against codebase state; no discrepancies found ✅
 - Gutenberg import pipeline confirmed at 8 files + route + admin UI ✅
 - Premium subscription infrastructure (`premium_enabled: false`) confirmed in SiteSettings ✅
 - Ad support system with density controls verified present ✅
 - Creator payout flow (state machine + admin UI) confirmed pending staging tests ✅
+- Lib subdirectory file count corrected from "43" → "45"; grand total lib files now 74 (29 root + 45 subdir); Ad APIs corrected to "(3 routes)" ✅
 > *"Creator-first webnovel platform. Dual Reader/Creator hubs."*
 
 ---
