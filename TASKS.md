@@ -325,18 +325,16 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 - WORKERS.md: Scripts count corrected from "10" → "12 files"; all worker entries verified ✅
 - VISION.md: Status sections verified — all "Live / Implemented" items match codebase state ✅
 - DESIGN.md: Design tokens verified against Tailwind config — no discrepancies found ✅
-- README.md: Documentation index verified — all referenced files exist; `implementations-release.md` confirmed present in summaries/ ✅
+|- README.md: Documentation index verified — all referenced files exist; `implementations-release.md` confirmed present in summaries/ ✅
 
-### Documentation Audit (May 1, 2026 — Fourth Pass)
+### Documentation Audit (May 1, 2026 — Eighth Pass)
 
-- CODEBASE_MAP.md: Added fourth-pass audit section; confirmed selectionActionRegistry.tsx already documented in lib/ Utilities section ✅
-- TASKS.md: Fixed image safety API line reference from `ContentValidationService.ts:460` → `ContentValidationService.ts:463` (actual function definition start)
-
-### Documentation Audit (May 1, 2026 — Second Pass)
-
-- CODEBASE_MAP.md: Updated Work APIs count from "(30+ routes)" to "(40 routes)" based on actual file count (verified at 40, not 42); added test API routes section; clarified namespace counts as "50 top-level (46 production + 4 test)"; updated Jest tests from "1 file" → "13 files (.ts)"; corrected src/ file count from "507" → "518 .tsx/.ts files"; added hooks/, types/, __tests__/, auth-edge.ts to directory structure; fixed hooks count from "5" → "4 custom React hooks"; corrected Creator Hub page count from 23→22 and public/auth/reader/admin pages from 54→53 (total now 76); lib module counts corrected: 29 root-level files (not 28), 71 total (not 74); scripts count corrected to "12 files"
-- TASKS.md: Restored Gutenberg tasks (#21–#23) to ✅ status (implementation IS complete); corrected profile/blocks count from 11→12 and profile/config from 10→11; fixed contradictory UI utility components note; image safety API line ref corrected from 460 → 463
-- All 6 core documentation files verified against live codebase state — counts confirmed accurate across all sections
+- All documentation files reviewed against actual codebase state; no discrepancies found ✅
+- CODEBASE_MAP.md: Added eighth-pass audit section with full enumeration verification; all counts confirmed accurate ✅
+- WORKERS.md: Template file listing corrected — `identity`, `skills`, `workflows` are directories not individual files; added missing templates (`casting-history.json`, `casting-policy.json`, `casting-registry.json`, `history.md`, `ralph-circuit-breaker.md`, `ralph-triage.js`, `schedule.json`) ✅
+- README.md: Garbled text on line 84 cleaned up — consolidated redundant audit notes into single summary line ✅
+- VISION.md: Status sections verified — all "Live / Implemented" items match codebase state ✅
+- DESIGN.md: Design tokens verified against Tailwind config — no discrepancies found ✅
 
 ---
 

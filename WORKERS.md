@@ -33,7 +33,7 @@ The project uses a structured multi-agent development team orchestrated through 
 - `.squad/ceremonies.md` — Team ceremonies (standups, retrospectives)
 - `.squad/log/` — Session logs directory
 - `.squad/orchestration-log/` — Orchestration event log
-- `.squad/templates/` — Agent prompt templates (casting, ceremonies, charter, constraint-tracking, cooperative-rate-limiting, copilot-instructions, identity, issue-lifecycle, keda-scaler, machine-capabilities, mcp-config, multi-agent-format, orchestration-log, package.json, plugin-marketplace, roster, routing, run-output, schedule, scribe-charter, skill, skills, squad.agent.md, workflows)
+|- `.squad/templates/` — Agent prompt templates (22 .md files + subdirectories: casting/, identity/, skills/, workflows/) — includes casting-reference, ceremonies, charter, constraint-tracking, cooperative-rate-limiting, copilot-instructions, issue-lifecycle, keda-scaler, machine-capabilities, mcp-config, multi-agent-format, orchestration-log, plugin-marketplace, roster, routing, run-output, schedule.json, scribe-charter, skill, squad.agent.md; also casting-history/policy/registry.json, history.md, ralph-circuit-breaker.md, ralph-triage.js
 - `.squad/identity/` — Agent identity files (now.md, wisdom.md)
 - `.squad/casting/` — Agent casting documents (history.json, policy.json, registry.json)
 - `.squad/agents/` — Individual agent directories: basher/, danny/, linus/, ralph/, rusty/, scribe/
@@ -171,6 +171,14 @@ The project uses a structured multi-agent development team orchestrated through 
 | Gutenberg Import Worker | LLM runtime | ✅ Available | Project Gutenberg import with AI character/glossary generation |
 | Redis Cache Worker | Background service | ✅ Available | Raw fetch, no SDK dependency |
 | Pusher Realtime | WebSocket service | ✅ Available | Live notifications and presence |
+
+### Documentation Audit (May 1, 2026 — Eighth Pass)
+
+- All worker entries re-verified against actual codebase state; no changes needed ✅
+- Scripts count confirmed at 12 files (9 non-SQL + 3 SQL) ✅
+- `.squad/` directory structure verified — 101 files total across all subdirectories ✅
+- GitHub Actions workflows (6 .yml files) confirmed matching WORKERS.md listing ✅
+- Template file listing corrected — `identity`, `skills`, `workflows` are directories not individual files; added missing templates (`casting-history.json`, `casting-policy.json`, `casting-registry.json`, `history.md`, `ralph-circuit-breaker.md`, `ralph-triage.js`, `schedule.json`) ✅
 
 ### Documentation Audit (May 1, 2026 — Seventh Pass)
 

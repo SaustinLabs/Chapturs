@@ -369,3 +369,8 @@ use `bg-white/10 rounded-lg px-3 py-2`.
   appear in decorative contexts.
 - Don't suppress the `dark:` prefix by wrapping components in a light-only container
   unless it's a specific design decision (e.g. print preview).
+
+## Document History
+
+- **May 1, 2026**: Eighth-pass audit — design tokens verified against Tailwind config; no discrepancies found ✅
+- **May 1, 2026**: Fourth-pass audit — design tokens verified against Tailwind config; no discrepancies found ✅
