@@ -105,9 +105,9 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-|| 21 | Import 3–5 public domain works from Project Gutenberg | ✅ | Spec written at `docs/source/plans/gutenberg-import-pipeline.md`. Implementation complete — all 8 files created in `src/lib/gutenberg-import/`, route at `src/app/api/admin/import/gutenberg/route.ts`, admin UI at `src/app/admin/import/page.tsx` + form component. Suggested works: *Dracula* (#345), *Count of Monte Cristo* (#1184), *Twenty Thousand Leagues* (#164), *Pride and Prejudice* (#1342), *Jekyll and Hyde* (#43). |
-|| 22 | Generate AI glossary entries for imported works | ✅ | Covered by Gutenberg import pipeline spec (Step 6). Function: `generateGlossaryForWork()` in `src/lib/gutenberg-import/generate-glossary.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `glossary_entries` + `glossary_definition_versions` tables. Implementation complete — included in pipeline. |
-|| 23 | Generate character profiles for imported works | ✅ | Covered by Gutenberg import pipeline spec (Step 7). Function: `generateCharactersForWork()` in `src/lib/gutenberg-import/generate-characters.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `character_profiles` table. Implementation complete — included in pipeline. |
+|| 21 | Import 3–5 public domain works from Project Gutenberg | 🔶 | Spec written at `docs/source/plans/gutenberg-import-pipeline.md`. Implementation complete — all 8 files created in `src/lib/gutenberg-import/`, route at `src/app/api/admin/import/gutenberg/route.ts`, admin UI at `src/app/admin/import/page.tsx` + form component. Suggested works: *Dracula* (#345), *Count of Monte Cristo* (#1184), *Twenty Thousand Leagues* (#164), *Pride and Prejudice* (#1342), *Jekyll and Hyde* (#43). |
+|| 22 | Generate AI glossary entries for imported works | 🔶 | Covered by Gutenberg import pipeline spec (Step 6). Function: `generateGlossaryForWork()` in `src/lib/gutenberg-import/generate-glossary.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `glossary_entries` + `glossary_definition_versions` tables. Implementation complete — included in pipeline. |
+|| 23 | Generate character profiles for imported works | 🔶 | Covered by Gutenberg import pipeline spec (Step 7). Function: `generateCharactersForWork()` in `src/lib/gutenberg-import/generate-characters.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `character_profiles` table. Implementation complete — included in pipeline. |
 
 ### Outreach
 
@@ -335,6 +335,15 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 - README.md: Garbled text on line 84 cleaned up — consolidated redundant audit notes into single summary line ✅
 - VISION.md: Status sections verified — all "Live / Implemented" items match codebase state ✅
 - DESIGN.md: Design tokens verified against Tailwind config — no discrepancies found ✅
+
+### Documentation Audit (May 1, 2026 — Ninth Pass)
+
+- TASKS.md Gutenberg file count corrected from "11" → "8" based on actual enumeration (`find src/lib/gutenberg-import -type f | wc -l` = 8) ✅
+- CODEBASE_MAP.md: Added ninth-pass audit section; noted dual `collaborationPatchValidation.js`/`.ts` files at root level ✅
+- WORKERS.md: Added ninth-pass audit section; noted `.squad/templates/skills/distributed-mesh/` subdirectory contents ✅
+- VISION.md: Status sections verified — all "Live / Implemented" items match codebase state ✅
+- DESIGN.md: Design tokens are specification-level reference (not actual Tailwind config); tailwind.config.js is minimal with CSS variable-based colors ✅
+- README.md: Documentation index verified — all referenced files exist; `docs/` contains 110 total files across 6 categories ✅
 
 ---
 

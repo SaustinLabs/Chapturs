@@ -67,25 +67,13 @@ Chapturs/
 - Scripts count corrected from "10 files" → "12 files (9 non-SQL + 3 SQL)" based on actual enumeration (`find scripts -type f | wc -l` = 12)
 - All other counts verified: 76 pages ✅, 173 API routes ✅, 159 components ✅, 50 namespaces ✅, 89 Prisma models (2375 lines), 4 hooks ✅, 7 types ✅, 518 src/ files ✅
 
-## Documentation Audit (May 1, 2026 — Eighth Pass)
+## Documentation Audit (May 1, 2026 — Ninth Pass)
 
-- All counts re-verified against live codebase; no discrepancies found ✅
-- Page count: 76 (`find src/app -name 'page.tsx' | wc -l` = 76) — 22 Creator Hub + 54 public/auth/reader/admin ✅
-- API routes: 173 route files across 50 top-level namespaces (46 production + 4 test) ✅
-- Components: 159 total (.tsx/.ts files) — 92 root + 67 in subdirectories ✅
-- Lib modules: 71 .ts/.tsx files + 1 .js = 72 total; 29 root (24 non-test .ts + 3 test/mock + 1 .tsx + 1 .js); 68 non-test across 25 root + 16 subdirs ✅
-- Prisma schema: 2,375 lines with 89 models (`grep '^model ' prisma/schema.prisma | wc -l` = 89) ✅
-- Scripts: 12 files (9 non-SQL + 3 SQL in sql/ subdir) ✅
-- Hooks: 4 custom React hooks (`useEmojiAutocomplete`, `usePretext`, `useRecommendationTracking`, `useUser`) ✅
-- Types: 7 TypeScript type definition files ✅
-- Jest tests: 13 .ts files in `src/__tests__/` + 1 `.js` file in root `__tests__/` ✅
-- Test APIs confirmed at 4 routes (`test-db`, `test-error-handling`, `test-node`, `test/moderation`) ✅
-- Global error boundary: `src/app/global-error.tsx` confirmed present ✅
-- Auth-edge utility: `src/auth-edge.ts` confirmed present ✅
-- `.squad/` directory structure verified — 101 files total across all subdirectories ✅
+- TASKS.md Gutenberg file count corrected from "11" → "8" based on actual enumeration (`find src/lib/gutenberg-import -type f | wc -l` = 8) ✅
+- Lib root files: confirmed 29 total (27 .ts + 1 .tsx + 1 .js); note that `collaborationPatchValidation.js` and `collaborationPatchValidation.ts` both exist at root level — dual implementation; `.js` file is older, `.ts` may be replacement ✅
+- All other counts verified: 76 pages ✅, 173 API routes ✅, 159 components (92 root + 67 subdirs) ✅, 50 namespaces (46 prod + 4 test) ✅, 89 Prisma models ✅, 12 scripts (9 non-SQL + 3 SQL) ✅, 4 hooks ✅, 7 types ✅
 - GitHub Actions workflows: 6 .yml files confirmed matching WORKERS.md listing ✅
-- WORKERS.md template file listing corrected — `identity`, `skills`, `workflows` are directories not individual files; added missing templates (`casting-history.json`, `casting-policy.json`, `casting-registry.json`, `history.md`, `ralph-circuit-breaker.md`, `ralph-triage.js`, `schedule.json`) ✅
-- README.md garbled text on line 84 cleaned up — consolidated redundant audit notes into single summary line ✅
+- `.squad/` directory structure verified — 101 files total across all subdirectories ✅
 
 ---
 

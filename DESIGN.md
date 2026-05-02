@@ -373,4 +373,5 @@ use `bg-white/10 rounded-lg px-3 py-2`.
 ## Document History
 
 - **May 1, 2026**: Eighth-pass audit — design tokens verified against Tailwind config; no discrepancies found ✅
+- **May 1, 2026**: Ninth-pass audit — design tokens are specification-level reference (not actual Tailwind config); tailwind.config.js is minimal with CSS variable-based colors (`--background`, `--foreground` only); Inter font loaded via @fontsource-variable/inter; no hex values hardcoded in components ✅
 - **May 1, 2026**: Fourth-pass audit — design tokens verified against Tailwind config; no discrepancies found ✅

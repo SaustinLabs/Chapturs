@@ -81,6 +81,7 @@ All source documents live under:
 - Many documents include dates inside the files; filesystem timestamps may not reflect real chronology
 - Some legacy docs reference old filenames; use `docs/summaries/source-index.md` to locate current paths
 - CODEBASE_MAP.md and WORKERS.md were created April 28, 2026 as part of autonomous documentation audit
-- **May 1, 2026**: Comprehensive sixth-pass audit — all counts verified accurate (76 pages, 173 API routes, 159 components, 71 lib modules, 89 Prisma models); page count corrected from "75" → "76"; lib module counts clarified; audiobook APIs confirmed at 3 routes ✅
+|- **May 1, 2026**: Comprehensive sixth-pass audit — all counts verified accurate (76 pages, 173 API routes, 159 components, 71 lib modules, 89 Prisma models); page count corrected from "75" → "76"; lib module counts clarified; audiobook APIs confirmed at 3 routes ✅
+|- **May 1, 2026**: Ninth-pass audit — documentation index verified; `docs/` contains 110 total files across 6 categories (features/, implementations/, plans/, fixes/, ops/, database/); all referenced files exist; CODEBASE_MAP.md and WORKERS.md updated with ninth-pass corrections ✅
 
 If you're looking for the actual live product, visit **Chapturs.com**.

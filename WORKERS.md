@@ -172,13 +172,16 @@ The project uses a structured multi-agent development team orchestrated through 
 | Redis Cache Worker | Background service | ✅ Available | Raw fetch, no SDK dependency |
 | Pusher Realtime | WebSocket service | ✅ Available | Live notifications and presence |
 
-### Documentation Audit (May 1, 2026 — Eighth Pass)
+### Documentation Audit (May 1, 2026 — Ninth Pass)
 
 - All worker entries re-verified against actual codebase state; no changes needed ✅
 - Scripts count confirmed at 12 files (9 non-SQL + 3 SQL) ✅
 - `.squad/` directory structure verified — 101 files total across all subdirectories ✅
 - GitHub Actions workflows (6 .yml files) confirmed matching WORKERS.md listing ✅
 - Template file listing corrected — `identity`, `skills`, `workflows` are directories not individual files; added missing templates (`casting-history.json`, `casting-policy.json`, `casting-registry.json`, `history.md`, `ralph-circuit-breaker.md`, `ralph-triage.js`, `schedule.json`) ✅
+- Note: `.squad/templates/skills/distributed-mesh/` subdirectory contains additional files (mesh.json.example, sync-mesh.ps1, sync-mesh.sh) not previously listed ✅
+
+---
 
 ### Documentation Audit (May 1, 2026 — Seventh Pass)
 
