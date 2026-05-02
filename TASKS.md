@@ -1,8 +1,17 @@
 # Chapturs — Master Task List
 
-||> Last updated: May 1, 2026 (fifth pass)
+||> Last updated: May 1, 2026 (tenth pass)
 > **Legend:** ✅ Done · 🔶 Partial / in progress · ⬜ Not started
 > **Format:** Every task has a unique numeric ID, concise title, status, and notes.
+
+---
+
+## Documentation Audit (May 1, 2026 — Tenth Pass)
+
+- TASKS.md Gutenberg file count corrected from "11" → "8" in task #21 note; all 8 files in `src/lib/gutenberg-import/` verified present ✅
+- All other task statuses and TODO references confirmed accurate against live codebase ✅
+- Image safety API line ref at ContentValidationService.ts:463 confirmed correct ✅
+- Task #32 status updated — Google Cloud Vision SafeSearch implementation is live with graceful fallback ✅
 
 ---
 
