@@ -72,11 +72,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-      userId: updatedUser.id,
-      newUsername: updatedUser.username,
-      email: updatedUser.email
-    })
-
     return NextResponse.json({
       success: true,
       user: updatedUser

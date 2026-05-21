@@ -70,13 +70,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-      found: !!draft, 
-      draftId, 
-      authorId: author.id,
-      draftStatus: draft?.status,
-      sectionsCount: draft?.sections?.length 
-    })
-
     if (!draft) {
       // Let's check if the work exists at all and what its status is
       const anyWork = await prisma.work.findUnique({
@@ -231,9 +224,6 @@ export async function POST(request: NextRequest) {
     const assessmentResult = await assessWorkSynchronously(draftId, publishedWork.sections[0]?.id)
     
     if (assessmentResult.success && assessmentResult.assessment) {
-        tier: assessmentResult.assessment.qualityTier,
-        score: assessmentResult.assessment.overallScore,
-      })
     } else if (assessmentResult.rateLimited) {
       console.warn('[PUBLISH] Assessment rate-limited, will retry later:', assessmentResult.message)
     } else {
