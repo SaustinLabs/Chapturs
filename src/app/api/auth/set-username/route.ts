@@ -1,7 +1,7 @@
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '../../../../../auth'
+import { auth } from '@/auth'
 import { prisma } from '@/lib/database/PrismaService'
 
 export async function POST(request: NextRequest) {
@@ -72,7 +72,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    console.log('✁EUsername updated:', {
       userId: updatedUser.id,
       newUsername: updatedUser.username,
       email: updatedUser.email

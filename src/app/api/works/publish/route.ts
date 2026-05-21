@@ -1,7 +1,7 @@
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '../../../../../auth'
+import { auth } from '@/auth'
 import { prisma } from '@/lib/database/PrismaService'
 import { 
   createErrorResponse, 
@@ -34,17 +34,14 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth()
     if (!session?.user?.id) {
-      console.log('[PUBLISH] Unauthorized - no session user')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
     const { draftId, publishData } = body
 
-    console.log('[PUBLISH] Request received:', { draftId, publishData, userId: session.user.id })
 
     if (!draftId) {
-      console.log('[PUBLISH] No draft ID provided')
       return NextResponse.json(
         { error: 'Draft ID is required' },
         { status: 400 }
@@ -56,10 +53,8 @@ export async function POST(request: NextRequest) {
       where: { userId: session.user.id }
     })
 
-    console.log('[PUBLISH] Author lookup:', { authorId: author?.id, userId: session.user.id })
 
     if (!author) {
-      console.log('[PUBLISH] No author profile found')
       return NextResponse.json({ error: 'Author profile not found' }, { status: 404 })
     }
 
@@ -75,7 +70,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    console.log('[PUBLISH] Draft lookup result:', { 
       found: !!draft, 
       draftId, 
       authorId: author.id,
@@ -89,18 +83,14 @@ export async function POST(request: NextRequest) {
         where: { id: draftId },
         select: { id: true, status: true, authorId: true }
       })
-      console.log('[PUBLISH] Work exists check:', anyWork)
       
       if (!anyWork) {
-        console.log('[PUBLISH] ERROR: Work not found at all')
         return NextResponse.json({ error: 'Draft not found' }, { status: 404 })
       }
       if (anyWork.authorId !== author.id) {
-        console.log('[PUBLISH] ERROR: Author mismatch')
         return NextResponse.json({ error: 'Not your draft' }, { status: 403 })
       }
       if (anyWork.status !== 'unpublished') {
-        console.log('[PUBLISH] ERROR: Work status is not unpublished:', anyWork.status)
         return NextResponse.json({ error: `Work is already ${anyWork.status}` }, { status: 400 })
       }
       
@@ -238,11 +228,9 @@ export async function POST(request: NextRequest) {
     })
 
     // Run quality assessment synchronously (after validation passed)
-    console.log('[PUBLISH] Running quality assessment...')
     const assessmentResult = await assessWorkSynchronously(draftId, publishedWork.sections[0]?.id)
     
     if (assessmentResult.success && assessmentResult.assessment) {
-      console.log('[PUBLISH] Assessment completed:', {
         tier: assessmentResult.assessment.qualityTier,
         score: assessmentResult.assessment.overallScore,
       })

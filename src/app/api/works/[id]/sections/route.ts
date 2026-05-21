@@ -1,7 +1,7 @@
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '../../../../../../auth'
+import { auth } from '@/auth'
 import DatabaseService, { prisma } from '../../../../../lib/database/PrismaService'
 import { ContentValidationService } from '../../../../../lib/ContentValidationService'
 import { logCollaborationActivity } from '../../../../../lib/collaborationActivity'

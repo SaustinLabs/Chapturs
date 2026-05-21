@@ -42,7 +42,7 @@ export default async function SeriesPage({ params }: Props) {
         select: {
           id: true,
           userId: true,
-          user: { select: { name: true, image: true, username: true, displayName: true } },
+          user: { select: { displayName: true, avatar: true, username: true } },
         },
       },
       volumes: { orderBy: { orderIndex: 'asc' } },

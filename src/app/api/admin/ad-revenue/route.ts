@@ -1,7 +1,7 @@
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth-edge'
+import { auth } from '@/auth'
 import { prisma } from '@/lib/database/PrismaService'
 
 function buildMonthKeys(count: number) {

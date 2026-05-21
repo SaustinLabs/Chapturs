@@ -14,7 +14,7 @@ import {
   ApiErrorType
 } from '@/lib/api/errorHandling'
 import { z } from 'zod'
-import { auth } from '../../../../auth'
+import { auth } from '@/auth'
 
 const testSchema = z.object({
   message: z.string().min(1, 'Message is required'),

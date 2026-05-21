@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
 
     const translations = await prisma.translation.findMany({
       where: {
-        isReviewed: status === 'reviewed',
-        language: language || undefined
+        status: status === 'all' ? undefined : status,
+        ...(language ? { language } : {})
       },
       include: {
         section: {

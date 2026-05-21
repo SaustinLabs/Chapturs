@@ -2,7 +2,7 @@ export const runtime = 'nodejs'
 
 import crypto from 'crypto'
 import { NextResponse } from 'next/server'
-import { auth } from '@/auth-edge'
+import { auth } from '@/auth'
 import { prisma } from '@/lib/database/PrismaService'
 import { getCreatorPayoutsEnabled } from '@/lib/settings'
 

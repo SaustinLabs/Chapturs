@@ -1,7 +1,7 @@
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '../../../../auth'
+import { auth } from '@/auth'
 import PrismaService from '../../../lib/database/PrismaService'
 import { prisma } from '@/lib/database/PrismaService'
 import { 
@@ -32,8 +32,6 @@ export async function POST(request: NextRequest) {
     const session = await auth()
     requireAuth(session)
 
-    console.log('[POST /api/works] Creating work for user:', session.user.id, session.user.email)
-    console.log('[POST /api/works] Session user ID:', session.user.id)
 
     // Validation
     const validatedData = await validateRequest(request, createWorkSchema)
@@ -61,13 +59,11 @@ export async function POST(request: NextRequest) {
         where: { email: session.user.email }
       })
       if (user) {
-        console.log('[POST /api/works] Found user by email fallback:', user.id)
       }
     }
 
     if (!user) {
       // True new user: create them
-      console.log('User not found in database, creating user:', session.user.email)
       const emailFallback = session.user.email ?? `user_${session.user.id}@unknown.invalid`
       user = await prisma.user.create({
         data: {
@@ -87,7 +83,6 @@ export async function POST(request: NextRequest) {
     })
 
     if (!author) {
-      console.log('[POST /api/works] Author profile not found, creating for user:', user.id)
       // Create author profile automatically
       author = await prisma.author.create({
         data: {
@@ -96,13 +91,10 @@ export async function POST(request: NextRequest) {
           socialLinks: '[]',
         }
       })
-      console.log('[POST /api/works] Created author with ID:', author.id, 'for userId:', author.userId)
     } else {
-      console.log('[POST /api/works] Found existing author with ID:', author.id, 'for userId:', author.userId)
     }
 
     // Create work using Prisma directly for better type safety
-    console.log('[POST /api/works] Creating work with authorId:', author.id)
     const work = await prisma.work.create({
       data: {
         title,
@@ -134,15 +126,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    console.log('[POST /api/works] ✁EWork created successfully!')
-    console.log('[POST /api/works] Work ID:', work.id)
-    console.log('[POST /api/works] Work authorId:', work.authorId)
-    console.log('[POST /api/works] Work title:', work.title)
-    console.log('[POST /api/works] Author ID:', work.author.id)
-    console.log('[POST /api/works] Author userId:', work.author.userId)
-    console.log('[POST /api/works] Session user.id:', session.user.id)
-    console.log('[POST /api/works] Session user.email:', session.user.email)
-    console.log('[POST /api/works] ✁EIDs match:', work.author.userId === session.user.id ? 'YES' : `NO - author.userId=${work.author.userId} vs session.user.id=${session.user.id}`)
 
     const response = createSuccessResponse({
       work: {
@@ -205,18 +188,15 @@ export async function GET(request: NextRequest) {
     const session = await auth()
     requireAuth(session)
 
-    console.log('GET /api/works - Fetching for user:', session.user.id)
 
     // Get the author profile for this user
     let author = await prisma.author.findUnique({
       where: { userId: session.user.id }
     })
     
-    console.log('Author profile found:', author?.id)
     
     if (!author) {
       // Return empty works list if no author profile exists yet
-      console.log('No author profile found for user:', session.user.id)
       const response = createSuccessResponse({
         works: [],
         total: 0,
@@ -227,7 +207,6 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user's works directly with Prisma for better performance
-    console.log('Fetching works for author:', author.id)
     const works = await prisma.work.findMany({
       where: { authorId: author.id },
       include: {
@@ -253,7 +232,6 @@ export async function GET(request: NextRequest) {
       orderBy: { updatedAt: 'desc' }
     })
 
-    console.log('Found works for author:', author.id, 'Count:', works.length)
 
     const response = createSuccessResponse({
       works: works.map((work: any) => {

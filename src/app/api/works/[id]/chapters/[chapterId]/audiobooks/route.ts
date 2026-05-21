@@ -10,7 +10,6 @@ export async function GET(
   try {
     const { id, chapterId } = await params
 
-    console.log('[AUDIO_API] Fetching audiobooks for:', { id, chapterId })
 
     // Fetch all audiobooks for this chapter
     let audiobooks: any[] = []
@@ -36,7 +35,6 @@ export async function GET(
           { qualityOverall: 'desc' },
         ],
       })
-      console.log('[AUDIO_API] Found', audiobooks.length, 'audiobooks')
     } catch (dbError) {
       console.error('[AUDIO_API] Database error:', dbError)
       audiobooks = []
@@ -71,7 +69,6 @@ export async function GET(
       isPlaying: false,
     }))
 
-    console.log('[AUDIO_API] Returning', formattedAudiobooks.length, 'audiobooks')
 
     return NextResponse.json({
       currentDefault,

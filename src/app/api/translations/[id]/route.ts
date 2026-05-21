@@ -25,9 +25,8 @@ export async function GET(
   try {
     const translation = await prisma.translation.findUnique({
       where: { id },
-      include: {
-        section: true
-      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      include: { section: true } as any
     })
 
     if (!translation) throw new ApiError('Translation not found', 404, ApiErrorType.NOT_FOUND_ERROR)
@@ -61,9 +60,8 @@ export async function PATCH(
     const translation = await prisma.translation.update({
       where: { id },
       data: {
-        content: content || undefined,
-        isReviewed: isReviewed !== undefined ? isReviewed : undefined,
-        reviewedBy: isReviewed ? session.user.id : undefined
+        text: content || undefined,
+        status: isReviewed ? 'approved' : undefined,
       }
     })
 

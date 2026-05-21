@@ -2,7 +2,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
-import { auth } from '@/auth-edge'
+import { auth } from '@/auth'
 
 // POST /api/comments/[id]/report - Report inappropriate comment
 export async function POST(

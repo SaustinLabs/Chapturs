@@ -1,7 +1,7 @@
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '../../../../../../../auth'
+import { auth } from '@/auth'
 import DatabaseService, { prisma } from '../../../../../../lib/database/PrismaService'
 import { resolveDbUserId } from '@/lib/resolveDbUserId'
 import { assessWorkSynchronously } from '@/lib/quality-assessment/assessment-sync'
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest, props: RouteParams) {
       workId: section.workId,
       title: section.title,
       chapterNumber: section.chapterNumber ?? 1,
-      orderIndex: section.orderIndex ?? 0,
+      orderIndex: section.chapterNumber ?? 0,
       content,
       wordCount: section.wordCount || 0,
       estimatedReadTime: Math.ceil((section.wordCount || 0) / 200),
@@ -222,7 +222,6 @@ export async function PATCH(request: NextRequest, props: RouteParams) {
       const isFirstChapter = publishedCount === 1 // the section we just updated is now counted
 
       if (isFirstChapter) {
-        console.log('[SECTIONS] First chapter published, running LLM assessment for:', { workId, sectionId })
         try {
           assessment = await assessWorkSynchronously(workId, sectionId)
           rateLimited = assessment.rateLimited || false

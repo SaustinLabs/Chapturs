@@ -1,7 +1,7 @@
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '../../../../auth'
+import { auth } from '@/auth'
 import DatabaseService from '@/lib/database/PrismaService'
 import { prisma } from '@/lib/database/PrismaService'
 import { 
@@ -152,7 +152,7 @@ export async function GET(request: NextRequest) {
                 include: {
                   sections: {
                     where: { status: 'published' },
-                    orderBy: { orderIndex: 'asc' },
+                    orderBy: { chapterNumber: 'asc' },
                     select: {
                       id: true,
                       title: true,

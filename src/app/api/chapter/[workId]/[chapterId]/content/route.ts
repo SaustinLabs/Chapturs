@@ -5,7 +5,7 @@ import { prisma } from '@/lib/database/PrismaService'
 import { translateOnDemand, translateBatchChunked } from '@/lib/translation'
 
 // Short-lived in-memory cache keyed by `${workId}:${chapterId}:${lang}`
-const aiCache = new Map<string, { content: any[]; translatedTitle: string; translationId?: string }>()
+const aiCache = new Map<string, { translatedContent: any[]; translatedTitle: string; translationId?: string }>()
 
 // ---------------------------------------------------------------------------
 // Rate limiter — max 20 translation calls per IP per hour
@@ -144,7 +144,7 @@ export async function GET(
 
     // Generate AI translation
     const originalTitle = section.title
-    const originalContent = section.content as any[]
+    const originalContent = (typeof section.content === 'string' ? JSON.parse(section.content) : section.content) as any[]
     const { translatedTitle, translatedContent } = await generateAITranslation(
       originalTitle,
       originalContent,

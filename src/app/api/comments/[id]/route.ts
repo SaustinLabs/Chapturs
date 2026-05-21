@@ -2,7 +2,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
-import { auth } from '@/auth-edge'
+import { auth } from '@/auth'
 import { createNotification } from '@/lib/notifications'
 
 // PATCH /api/comments/[id] - Update comment

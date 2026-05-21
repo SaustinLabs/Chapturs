@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/auth-edge'
+import { auth } from '@/auth'
 
 export const runtime = 'nodejs'
 

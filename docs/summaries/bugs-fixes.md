@@ -4,7 +4,7 @@
 - Source: docs/source/fixes/ACCESS_DENIED_DEBUG.md. Root causes: missing DATABASE_URL/DIRECT_URL in Vercel, missing Prisma client generation, schema not pushed. Suggested fixes: add env vars in Vercel, ensure `postinstall` runs `prisma generate`, run `npx prisma db push`, check function logs at `/api/auth/callback/google`.
 
 **Creator Works Missing in Hub**
-- Sources: docs/source/fixes/PR_SUMMARY.md, docs/source/fixes/QUICK_START_FIX.md, docs/source/fixes/CREATOR_WORKS_FIX_GUIDE.md, docs/source/fixes/CREATOR_WORKS_INVESTIGATION.md, CREATOR_WORKS_ISSUE_DEBUG.md. Root cause: works linked to a different author profile/user ID. Fix via diagnostic endpoint `/api/creator/debug` and migration endpoint `/api/creator/fix-works`. Important: remove these debug endpoints after resolution (security risk).
+- Sources: docs/source/fixes/PR_SUMMARY.md, docs/source/fixes/QUICK_START_FIX.md, docs/source/fixes/CREATOR_WORKS_FIX_GUIDE.md, docs/source/fixes/CREATOR_WORKS_INVESTIGATION.md, CREATOR_WORKS_ISSUE_DEBUG.md. Root cause: works linked to a different author profile/user ID. Fix via diagnostic endpoint `/api/creator/debug` and migration endpoint `/api/creator/fix-works`. **These debug endpoints have been removed** (security risk).
 
 **Character Profile 500 Error**
 - Source: docs/source/fixes/CHARACTER_PROFILE_FIX_SUMMARY.md. Root cause: missing character tables in production. Fix: apply migration `prisma/migrations/20251014000000_add_character_system/migration.sql` via `npx prisma migrate deploy` or Supabase SQL Editor. API route improved with Zod validation and explicit error handling. See docs/source/database/CHARACTER_SYSTEM_MIGRATION.md and docs/source/testing/MANUAL_TESTING_CHARACTER_PROFILE.md.

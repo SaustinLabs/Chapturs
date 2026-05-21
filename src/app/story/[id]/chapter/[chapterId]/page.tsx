@@ -30,6 +30,10 @@ import { MessageSquare, Send, Sparkles, Edit3, Globe } from 'lucide-react'
 import ReportButton from '@/components/ReportButton'
 import AdSlot from '@/components/ads/AdSlot'
 import ChapterReactionBar from '@/components/ChapterReactionBar'
+import ChapterReaderSettings, { ReaderSettings, DEFAULT_READER_SETTINGS } from '@/components/ChapterReaderSettings'
+import ChapterTranslationBanner from '@/components/ChapterTranslationBanner'
+import ChapterMobileGlossary from '@/components/ChapterMobileGlossary'
+import ContinuousScrollReader from '@/components/ContinuousScrollReader'
 
 interface ReaderCharacter {
   id: string
@@ -87,6 +91,13 @@ export default function ChapterPage() {
   const { data: session } = useSession()
   const storyId = params?.id as string
   const chapterId = params?.chapterId as string
+  
+  // Detect scroll mode from URL
+  const [scrollMode, setScrollMode] = useState(false)
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search)
+    setScrollMode(sp.get('mode') === 'scroll')
+  }, [])
   
   const [work, setWork] = useState<Work | null>(null)
   const [section, setSection] = useState<Section | null>(null)
@@ -251,7 +262,6 @@ export default function ChapterPage() {
               const glossaryData = await glossaryRes.json()
               const entries = glossaryData?.entries || []
               setGlossaryTerms(entries)
-              try { (window as any).__CURRENT_GLOSSARY_TERMS__ = entries } catch (e) {}
             }
 
             // Handle characters
@@ -259,7 +269,6 @@ export default function ChapterPage() {
               const charactersData = await charactersRes.json()
               const characters = charactersData?.characters || []
               setCharacters(characters)
-              try { (window as any).__CURRENT_CHARACTERS__ = characters } catch (e) {}
             }
 
             // Handle section content
@@ -1108,6 +1117,27 @@ export default function ChapterPage() {
     )
   }
 
+  // Continuous scroll mode
+  if (scrollMode) {
+    return (
+      <ContinuousScrollReader
+        storyId={storyId}
+        initialChapterId={chapterId}
+        work={work}
+        allSections={allSections}
+        initialSection={section}
+        initialGlossary={glossaryTerms}
+        initialCharacters={characters}
+        onTogglePaginated={() => {
+          router.replace(`/story/${storyId}/chapter/${chapterId}`)
+          setScrollMode(false)
+        }}
+      />
+    )
+  }
+
+  // Paginated mode (original)
+
   return (
     <AppLayout>
       {/* Fan Content Top Bar */}
@@ -1229,6 +1259,17 @@ export default function ChapterPage() {
               </button>
               <div className="h-4 border-l border-gray-300 dark:border-gray-600"></div>
               <button
+                onClick={() => {
+                  router.replace(`/story/${storyId}/chapter/${chapterId}?mode=scroll`)
+                  setScrollMode(true)
+                }}
+                className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                title="Read all chapters in one continuous page"
+              >
+                <span className="text-sm">📜 Scroll</span>
+              </button>
+              <div className="h-4 border-l border-gray-300 dark:border-gray-600"></div>
+              <button
                 onClick={() => setShowChapterList(!showChapterList)}
                 className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               >
@@ -1278,121 +1319,31 @@ export default function ChapterPage() {
             </h2>
           </div>
 
-          {/* Translation banner — shown when a translation is active */}
-          {targetLanguage !== 'en' && (
-            <div className="mt-4 space-y-2">
-              {/* Row 1: info + show original */}
-              <div className="flex items-center justify-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                <span>
-                  🌐 Translated from{' '}
-                  <span className="font-medium text-gray-700 dark:text-gray-300">English</span>
-                  {' '}to{' '}
-                  <span className="font-medium text-gray-700 dark:text-gray-300">
-                    {new Intl.DisplayNames(['en'], { type: 'language' }).of(targetLanguage) ?? targetLanguage.toUpperCase()}
-                  </span>
-                </span>
-                <button
-                  onClick={() => {
-                    setTargetLanguage('en')
-                    setDetectedLanguage('en')
-                    setTranslationId(null)
-                    setTranslationRating(null)
-                  }}
-                  className="underline underline-offset-2 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Show original
-                </button>
-              </div>
-
-              {/* Row 2: star rating + suggest (only when we have a persisted translation ID) */}
-              {translationId && session?.user?.id && !showSuggestForm && (
-                <div className="flex items-center justify-center gap-4 text-xs text-gray-400 dark:text-gray-500">
-                  <div className="flex items-center gap-0.5">
-                    <span className="mr-1">Rate:</span>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        onClick={() => {
-                          setTranslationRating(star)
-                          fetch(`/api/fan-translations/${translationId}/rate`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ rating: star }),
-                          }).catch(() => {})
-                        }}
-                        className={`text-base leading-none transition-colors ${
-                          (translationRating ?? 0) >= star
-                            ? 'text-yellow-400'
-                            : 'text-gray-300 dark:text-gray-600 hover:text-yellow-300'
-                        }`}
-                        aria-label={`Rate ${star} stars`}
-                      >
-                        ★
-                      </button>
-                    ))}
-                    {translationRating !== null && (
-                      <span className="ml-1">✔️</span>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => setShowSuggestForm(true)}
-                    className="underline underline-offset-2 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-                  >
-                    ✏️ Suggest improvement
-                  </button>
-                </div>
-              )}
-
-              {/* Inline suggestion form */}
-              {translationId && showSuggestForm && (
-                <div className="mx-auto max-w-sm space-y-2">
-                  <textarea
-                    value={suggestText}
-                    onChange={(e) => setSuggestText(e.target.value)}
-                    placeholder="Paste a better translation for any passage you found awkward…"
-                    rows={3}
-                    className="w-full rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-xs text-gray-700 dark:text-gray-300 p-2 resize-none focus:outline-none focus:ring-1 focus:ring-blue-400"
-                  />
-                  {suggestError && (
-                    <p className="text-xs text-red-500">{suggestError}</p>
-                  )}
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={() => { setShowSuggestForm(false); setSuggestText(''); setSuggestError('') }}
-                      className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={async () => {
-                        if (!suggestText.trim()) return
-                        setSuggestError('')
-                        try {
-                          const res = await fetch(`/api/fan-translations/${translationId}/suggest`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ suggestedText: suggestText }),
-                          })
-                          if (res.ok) {
-                            setShowSuggestForm(false)
-                            setSuggestText('')
-                          } else {
-                            const d = await res.json()
-                            setSuggestError(d.error || 'Failed to submit. Try again.')
-                          }
-                        } catch {
-                          setSuggestError('Failed to submit. Try again.')
-                        }
-                      }}
-                      className="rounded bg-blue-500 px-3 py-1 text-xs text-white hover:bg-blue-600 transition-colors"
-                    >
-                      Submit
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Translation banner */}
+          <ChapterTranslationBanner
+            targetLanguage={targetLanguage}
+            detectedLanguage={detectedLanguage}
+            translationId={translationId}
+            translationRating={translationRating}
+            onRevertToOriginal={() => {
+              setTargetLanguage('en')
+              setDetectedLanguage('en')
+              setTranslationId(null)
+              setTranslationRating(null)
+            }}
+            onSuggestionSubmit={async (text) => {
+              if (!translationId) return
+              const res = await fetch(`/api/fan-translations/${translationId}/suggest`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ suggestedText: text }),
+              })
+              if (!res.ok) {
+                const d = await res.json()
+                throw new Error(d.error || 'Failed to submit')
+              }
+            }}
+          />
         </div>
 
         {/* Chapter List Dropdown */}
@@ -1918,167 +1869,14 @@ export default function ChapterPage() {
         )}
 
         {showReaderSettingsDrawer && (
-          <div
-            className="fixed inset-0 z-[80] bg-black/55 flex items-end md:items-center md:justify-center"
-            onClick={() => setShowReaderSettingsDrawer(false)}
-          >
-            <div
-              className="reader-sheet-rise w-full md:max-w-lg bg-white dark:bg-gray-900 rounded-t-2xl md:rounded-2xl border border-gray-200 dark:border-gray-700 shadow-2xl max-h-[82vh] overflow-y-auto"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <div className="py-2 flex justify-center">
-                <div className="w-10 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
-              </div>
-              <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Reader Display</h3>
-                <button
-                  type="button"
-                  onClick={() => setShowReaderSettingsDrawer(false)}
-                  className="px-2 py-1 text-xs text-gray-600 dark:text-gray-300"
-                >
-                  Close
-                </button>
-              </div>
-
-              <div className="p-4 space-y-5">
-                <div>
-                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Font Size</p>
-                  <div className="grid grid-cols-4 gap-2">
-                    {(['small', 'medium', 'large', 'xl'] as const).map((size) => (
-                      <button
-                        key={size}
-                        type="button"
-                        onClick={() => {
-                          setReadingSettings((prev) => ({ ...prev, fontSize: size }))
-                          triggerHaptic(8)
-                        }}
-                        className={`px-2 py-2 rounded-lg text-xs font-semibold capitalize ${
-                          readingSettings.fontSize === size
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200'
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Font Family</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {FONT_FAMILY_OPTIONS.map((font) => (
-                      <button
-                        key={font}
-                        type="button"
-                        onClick={() => {
-                          setReadingSettings((prev) => ({ ...prev, fontFamily: font }))
-                          triggerHaptic(8)
-                        }}
-                        className={`px-3 py-2 rounded-lg text-xs border ${
-                          readingSettings.fontFamily === font
-                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-200'
-                            : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200'
-                        }`}
-                        style={{ fontFamily: font }}
-                      >
-                        {font}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Theme</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {([
-                      { id: 'auto', label: 'Auto' },
-                      { id: 'paper', label: 'Paper' },
-                      { id: 'night', label: 'Night' },
-                    ] as const).map((themeOption) => (
-                      <button
-                        key={themeOption.id}
-                        type="button"
-                        onClick={() => {
-                          setReadingSettings((prev) => ({ ...prev, theme: themeOption.id }))
-                          triggerHaptic(8)
-                        }}
-                        className={`px-2 py-2 rounded-lg text-xs font-semibold ${
-                          readingSettings.theme === themeOption.id
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200'
-                        }`}
-                      >
-                        {themeOption.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">Brightness</p>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">{readingSettings.brightness}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={80}
-                    max={120}
-                    step={1}
-                    value={readingSettings.brightness}
-                    onChange={(event) =>
-                      setReadingSettings((prev) => ({ ...prev, brightness: Number(event.target.value) }))
-                    }
-                    className="w-full"
-                  />
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">Line Height</p>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">{readingSettings.lineHeight.toFixed(2)}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => shiftLineHeight(-1)}
-                      className="p-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
-                      aria-label="Decrease line height"
-                    >
-                      <MinusIcon className="w-4 h-4" />
-                    </button>
-                    <input
-                      type="range"
-                      min={1.35}
-                      max={2.15}
-                      step={0.05}
-                      value={readingSettings.lineHeight}
-                      onChange={(event) =>
-                        setReadingSettings((prev) => ({ ...prev, lineHeight: Number(event.target.value) }))
-                      }
-                      className="flex-1"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => shiftLineHeight(1)}
-                      className="p-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200"
-                      aria-label="Increase line height"
-                    >
-                      <PlusIcon className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={resetReaderSettings}
-                  className="w-full py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-semibold text-gray-700 dark:text-gray-200"
-                >
-                  Reset to Defaults
-                </button>
-              </div>
-            </div>
-          </div>
+          <ChapterReaderSettings
+            settings={readingSettings}
+            onChange={(newSettings) => {
+              setReadingSettings(newSettings)
+              triggerHaptic(8)
+            }}
+            onClose={() => setShowReaderSettingsDrawer(false)}
+          />
         )}
 
         {showOnboardingHint && (

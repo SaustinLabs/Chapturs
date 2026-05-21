@@ -1497,6 +1497,8 @@ model EditSuggestion {
 }
 
 // Inline comments on blocks (similar to Google Docs commenting)
+// DEPRECATED — replaced by Comment model with blockId field.
+// All API routes now use prisma.comment. Remove this model after data migration.
 model BlockComment {
   id        String @id @default(cuid())
   workId    String
@@ -1536,6 +1538,7 @@ model Comment {
   id        String  @id @default(cuid())
   workId    String
   sectionId String? // null = work-level comment
+  blockId   String? // block-level inline comment target
   userId    String
   content   String  @db.Text
   parentId  String? // For reply threads
@@ -1550,6 +1553,7 @@ model Comment {
   isPinned   Boolean   @default(false)
   isHidden   Boolean   @default(false)
   isFeatured Boolean   @default(false)
+  isResolved Boolean   @default(false)
   editedAt   DateTime?
   featuredAt DateTime?
 

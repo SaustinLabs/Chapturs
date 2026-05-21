@@ -1,7 +1,7 @@
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '../../../../auth'
+import { auth } from '@/auth'
 import DatabaseService from '@/lib/database/PrismaService'
 import { prisma } from '@/lib/database/PrismaService'
 import { createNotification } from '@/lib/notifications'

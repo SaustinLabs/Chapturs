@@ -2,7 +2,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
-import { auth } from '@/auth-edge'
+import { auth } from '@/auth'
 import { canModerateSuggestion, canSubmitSuggestion } from '@/lib/suggestions/suggestion-permissions'
 
 const VALID_SUGGESTION_STATUSES = new Set(['pending', 'approved', 'rejected'])

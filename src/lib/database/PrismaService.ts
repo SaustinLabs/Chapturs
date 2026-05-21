@@ -1,21 +1,18 @@
-import * as PrismaPkg from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import { Work, FeedItem, Author, User } from '@/types'
 
-// Some environments may not expose named exports properly; use the namespace import as a fallback.
-const PrismaClient: any = (PrismaPkg as any).PrismaClient || (PrismaPkg as any).default
-
 // Global Prisma instance with connection pooling for Supabase
-const globalForPrisma = global as unknown as { prisma: any }
+const globalForPrisma = global as unknown as { prisma: PrismaClient | undefined }
 
-// Lazily initialize Prisma  Edefers construction until first use.
+// Lazily initialize Prisma — defers construction until first use.
 // This prevents Next.js static page collection from failing when DATABASE_URL
 // is not set in the build environment.
-function getPrismaClient() {
+function getPrismaClient(): PrismaClient {
   if (!globalForPrisma.prisma) {
     const dbUrl = process.env.DATABASE_URL
     
     if (!dbUrl) {
-      console.error('❁EPrisma Error: DATABASE_URL is not defined in the environment.')
+      console.error('Prisma Error: DATABASE_URL is not defined in the environment.')
       if (process.env.NODE_ENV === 'production') {
         throw new Error('Critical: DATABASE_URL missing in production.')
       }
@@ -37,11 +34,13 @@ function getPrismaClient() {
   return globalForPrisma.prisma
 }
 
-export const prisma: any = new Proxy({} as any, {
+// Typed Proxy — defers PrismaClient construction until first property access.
+// Consumers get full PrismaClient autocomplete and type checking.
+export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
   get(_target, prop) {
-    return getPrismaClient()[prop]
+    return (getPrismaClient() as unknown as Record<string | symbol, unknown>)[prop]
   }
-})
+}) as unknown as PrismaClient
 
 
 // Connection health check with retry

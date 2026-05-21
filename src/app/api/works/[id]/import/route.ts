@@ -44,7 +44,7 @@ export async function POST(
       },
     })
     if (!work) {
-      throw new ApiError('Work not found', 404, ApiErrorType.NOT_FOUND)
+      throw new ApiError('Work not found', 404, ApiErrorType.NOT_FOUND_ERROR)
     }
     const isOwner = work.author?.userId === dbUserId
     let canEdit = false

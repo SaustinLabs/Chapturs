@@ -24,9 +24,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    console.log('Testing database connection...')
     const works = await DatabaseService.getAllWorks()
-    console.log(`Found ${works.length} works in database`)
     
     return NextResponse.json({ 
       success: true,

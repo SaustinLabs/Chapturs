@@ -73,7 +73,6 @@ export async function POST(req: NextRequest) {
           }
         } else {
           // Dry run — log but don't send
-          console.log(`[digest dry-run] Would email ${payload.email}: ${subject}`)
           sent++
         }
       } catch (emailErr: any) {

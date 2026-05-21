@@ -2,7 +2,7 @@
 // QUALITY ASSESSMENT SERVICE
 // ============================================================================
 
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/database/PrismaService'
 import type {
   AssessmentRequest,
   AssessmentPromptContext,
@@ -22,8 +22,6 @@ import {
   DEFAULT_ASSESSMENT_CONFIG,
 } from './llm-service'
 import { saveSemanticProfile } from '@/lib/recommendations/similarity'
-
-const prisma = new PrismaClient()
 
 export class BudgetExceededError extends Error {
   constructor(

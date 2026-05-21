@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const suggestions = await prisma.translationSuggestion.findMany({
       where: { translationId },
       orderBy: [
-        { upvotes: 'desc' },
+        { votes: 'desc' },
         { createdAt: 'desc' }
       ]
     })

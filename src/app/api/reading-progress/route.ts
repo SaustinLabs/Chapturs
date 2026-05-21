@@ -1,10 +1,8 @@
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '../../../../auth'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { auth } from '@/auth'
+import { prisma } from '@/lib/database/PrismaService'
 
 /** GET /api/reading-progress?workId=xxx — return last-read section for a work */
 export async function GET(request: NextRequest) {

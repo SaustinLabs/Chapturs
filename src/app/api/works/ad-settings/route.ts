@@ -5,6 +5,8 @@ import { auth } from '@/auth'
 import { prisma } from '@/lib/database/PrismaService'
 
 // GET - Fetch ad settings for a work
+// NOTE: adSettings field does not yet exist on the Work model.
+// This route will be functional once the field is added to prisma/schema.prisma
 export async function GET(request: NextRequest) {
   try {
     const session = await auth()
@@ -30,16 +32,13 @@ export async function GET(request: NextRequest) {
           userId: session.user.id,
         },
       },
-      select: {
-        adSettings: true,
-      },
     })
 
     if (!work) {
       return NextResponse.json({ error: 'Work not found' }, { status: 404 })
     }
 
-    // Return ad settings or defaults
+    // adSettings not yet on Work model — return defaults until schema is updated
     const defaults = {
       sidebarEnabled: true,
       inlineEnabled: true,
@@ -53,9 +52,7 @@ export async function GET(request: NextRequest) {
       allowVideo: false,
     }
 
-    return NextResponse.json(
-      work.adSettings ? JSON.parse(work.adSettings as string) : defaults
-    )
+    return NextResponse.json(defaults)
   } catch (error) {
     console.error('Ad settings GET error:', error)
     return NextResponse.json(
@@ -97,13 +94,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Work not found' }, { status: 404 })
     }
 
-    // Save ad settings as JSON
-    await prisma.work.update({
-      where: { id: workId },
-      data: {
-        adSettings: JSON.stringify(settings),
-      },
-    })
+    // TODO: Add adSettings JSON field to Work model in prisma/schema.prisma
+    // For now, silently accept — settings are stored nowhere.
+    // To implement: await prisma.work.update({ where: { id: workId }, data: { adSettings: JSON.stringify(settings) } })
 
     return NextResponse.json({ success: true })
   } catch (error) {

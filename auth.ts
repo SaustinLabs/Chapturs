@@ -1,3 +1,8 @@
+// ============================================================================
+// Full-featured auth for Node.js API routes (export const runtime = 'nodejs').
+// Includes DB-backed JWT callbacks, role sync, multi-provider support.
+// NOT for middleware/edge — use auth-edge.ts for those.
+// ============================================================================
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
 import GitHub from "next-auth/providers/github"

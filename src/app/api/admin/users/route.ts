@@ -2,7 +2,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
-import { auth } from '@/auth-edge'
+import { auth } from '@/auth'
 import { 
   createErrorResponse, 
   createSuccessResponse, 
@@ -31,23 +31,20 @@ export async function GET(request: NextRequest) {
     const users = await prisma.user.findMany({
       where: {
         OR: [
-          { name: { contains: query, mode: 'insensitive' } },
-          { email: { contains: query, mode: 'insensitive' } },
-          { username: { contains: query, mode: 'insensitive' } }
-        ],
-        role: role || undefined
+          { displayName: query ? { contains: query, mode: 'insensitive' } : undefined },
+          { email: query ? { contains: query, mode: 'insensitive' } : undefined },
+          { username: query ? { contains: query, mode: 'insensitive' } : undefined }
+        ].filter(Boolean),
+        ...(role ? { role } : {})
       },
       select: {
         id: true,
-        name: true,
+        displayName: true,
         email: true,
         username: true,
         role: true,
-        image: true,
+        avatar: true,
         createdAt: true,
-        _count: {
-          select: { works: true } // Assuming works relation exists on User/Author
-        }
       },
       orderBy: { createdAt: 'desc' },
       take: 50

@@ -1,4 +1,8 @@
-// Lightweight auth for edge runtime - JWT verification only, no Prisma
+// ============================================================================
+// Lightweight Edge Runtime auth for middleware ONLY.
+// JWT verification without Prisma/DB — Edge can't load database drivers.
+// API routes should use the full auth from auth.ts (import { auth } from '@/auth').
+// ============================================================================
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
 

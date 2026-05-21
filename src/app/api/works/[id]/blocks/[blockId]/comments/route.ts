@@ -13,13 +13,17 @@ export async function GET(
     const { searchParams } = new URL(req.url)
     const sectionId = searchParams.get('sectionId') || ''
     
-    const comments = await prisma.blockComment.findMany({
+    const comments = await prisma.comment.findMany({
       where: {
         workId: id,
         blockId: blockId,
         sectionId: sectionId
       },
-      orderBy: { createdAt: 'asc' }
+      orderBy: { createdAt: 'asc' },
+      include: {
+        user: { select: { id: true, username: true, displayName: true, avatar: true } },
+        _count: { select: { likes: true } },
+      },
     })
 
     return NextResponse.json({ comments })
@@ -41,21 +45,23 @@ export async function POST(
     }
 
     const body = await req.json()
-    const { text, sectionId, username } = body
+    const { content, sectionId } = body
 
-    if (!text) {
+    if (!content) {
       return NextResponse.json({ error: 'Comment text is required' }, { status: 400 })
     }
 
-    const newComment = await prisma.blockComment.create({
+    const newComment = await prisma.comment.create({
       data: {
         workId: id,
         sectionId: sectionId || '',
         blockId: blockId,
         userId: session.user.id,
-        username: username || session.user.name || 'Anonymous',
-        text: text
-      }
+        content,
+      },
+      include: {
+        user: { select: { id: true, username: true, displayName: true, avatar: true } },
+      },
     })
 
     return NextResponse.json({ success: true, comment: newComment })

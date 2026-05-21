@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth-edge'
+import { auth } from '@/auth'
 import { flagContradiction, resolveContradiction, listContradictions } from '@/lib/living-world/canon-repository'
 import { isCouncilMember, getCouncilRole } from '@/lib/living-world/world-repository'
 

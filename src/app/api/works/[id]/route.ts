@@ -43,7 +43,6 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       )
     }
 
-    console.log(`Works API: Updating work ${id} for user ${session.user.id}`)
 
     // Verify ownership
     const existingWork = await DatabaseService.getWork(id)
@@ -54,7 +53,6 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       )
     }
 
-    console.log(`Works API: Ownership check - Work authorId: ${existingWork.authorId}, Session userId: ${session.user.id}`)
     
     // Get the author ID associated with this user
     const author = await prisma.author.findUnique({
@@ -69,7 +67,6 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       )
     }
 
-    console.log(`Works API: Found author ${author.id} for user ${session.user.id}`)
 
     if (existingWork.authorId !== author.id) {
       console.error(`Works API: Ownership mismatch - Work authorId: ${existingWork.authorId}, User authorId: ${author.id}`)
@@ -93,7 +90,6 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       allowCrowdsourcedTranslations
     } = body
 
-    console.log(`Works API: Updating work with data:`, { title, description, status, genres, tags, maturityRating, aiUseDisclosure, coverImage })
 
     // Prepare update data
     const VALID_STATUSES = ['draft', 'ongoing', 'completed', 'hiatus', 'unpublished', 'published']
@@ -124,7 +120,6 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
     if (coverImage !== undefined) updateData.coverImage = coverImage
     if (allowCrowdsourcedTranslations !== undefined) updateData.allowCrowdsourcedTranslations = Boolean(allowCrowdsourcedTranslations)
 
-    console.log(`Works API: Prepared update data:`, JSON.stringify(updateData, null, 2))
 
     // Update work - keep it simple, just update the fields
     const updatedWork = await prisma.work.update({
@@ -137,7 +132,6 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       await persistDescriptionTranslations(id, description)
     }
 
-    console.log(`Works API: Successfully updated work: ${updatedWork.title}`)
     return NextResponse.json({
       success: true,
       work: {

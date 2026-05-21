@@ -2,7 +2,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { auth } from '@/auth-edge'
+import { auth } from '@/auth'
 import { prisma } from '@/lib/database/PrismaService'
 
 const profileUpdateSchema = z.object({
@@ -45,9 +45,10 @@ export async function GET() {
       select: {
         displayName: true,
         username: true,
-        author: {
-          select: {
-            id: true,
+      },
+      include: {
+        authorProfile: {
+          include: {
             creatorProfile: {
               include: {
                 blocks: {
@@ -60,11 +61,11 @@ export async function GET() {
       }
     })
 
-    if (!user?.author) {
+    if (!user?.authorProfile) {
       return NextResponse.json({ error: 'Author not found' }, { status: 404 })
     }
 
-    const profile = user.author.creatorProfile
+    const profile = user.authorProfile.creatorProfile
 
     if (!profile) {
       return NextResponse.json({

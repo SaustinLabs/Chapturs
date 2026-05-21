@@ -15,7 +15,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const existingComment = await prisma.blockComment.findUnique({
+    const existingComment = await prisma.comment.findUnique({
       where: { id: commentId }
     })
 
@@ -28,7 +28,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    await prisma.blockComment.delete({
+    await prisma.comment.delete({
       where: { id: commentId }
     })
 

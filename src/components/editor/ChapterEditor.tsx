@@ -44,6 +44,7 @@ import {
   ImageBlockExtension,
 } from './extensions'
 import { blocksToHtml, editorJsonToBlocks, detectChapters } from './convert'
+import { htmlToBlocks } from '@/lib/html-to-blocks'
 import type { ContentBlock, BlockType, ChatBlock, PhoneBlock, NarrationBlock, DialogueBlock, ImageBlock } from '@/types/chapt'
 
 // ---------------------------------------------------------------------------
@@ -379,13 +380,31 @@ export default function ChapterEditor({
         class: 'chapter-tiptap focus:outline-none min-h-[60vh] text-gray-900 dark:text-gray-100 text-base leading-relaxed',
       },
       handlePaste: (_view, event) => {
+        const html = event.clipboardData?.getData('text/html')
+        const plain = event.clipboardData?.getData('text/plain') || ''
+
+        // ── Formatted HTML paste (Google Docs, Word, etc.) ──────────────
+        if (html && html.trim().length > 0) {
+          try {
+            const blocks = htmlToBlocks(html)
+            if (blocks.length > 0) {
+              event.preventDefault()
+              const tiptapHtml = blocksToHtml(blocks)
+              editor?.chain().focus().insertContent(tiptapHtml).run()
+              return true
+            }
+          } catch (err) {
+            console.error('Smart paste failed, falling back to default:', err)
+          }
+        }
+
+        // ── Plain text chapter detection (large pastes) ──────────────────
         if (!onChapterizeDetected) return false
-        const text = event.clipboardData?.getData('text/plain') || ''
-        if (text.length < 500) return false
-        const chapters = detectChapters(text)
+        if (plain.length < 500) return false
+        const chapters = detectChapters(plain)
         if (chapters) {
           event.preventDefault()
-          onChapterizeDetected(text, chapters)
+          onChapterizeDetected(plain, chapters)
           return true
         }
         return false

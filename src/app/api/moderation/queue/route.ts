@@ -62,8 +62,12 @@ export async function GET(request: NextRequest) {
             description: true,
             author: {
               select: {
-                displayName: true,
-                username: true
+                user: {
+                  select: {
+                    displayName: true,
+                    username: true
+                  }
+                }
               }
             }
           }
@@ -79,8 +83,12 @@ export async function GET(request: NextRequest) {
                 title: true,
                 author: {
                   select: {
-                    displayName: true,
-                    username: true
+                    user: {
+                      select: {
+                        displayName: true,
+                        username: true
+                      }
+                    }
                   }
                 }
               }

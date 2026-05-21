@@ -2,7 +2,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
-import { auth } from '@/auth-edge'
+import { auth } from '@/auth'
 
 // POST /api/comments/[id]/resolve - Mark a comment thread as resolved
 export async function POST(
@@ -20,7 +20,7 @@ export async function POST(
       )
     }
 
-    const comment = await prisma.blockComment.findUnique({
+    const comment = await prisma.comment.findUnique({
       where: { id: commentId }
     })
 
@@ -31,13 +31,9 @@ export async function POST(
       )
     }
 
-    // Check if user is the work author (simplified check)
-    // In production, you'd verify the user owns the work
-    // For now, we'll allow the comment author or work author to resolve
-    
-    const updatedComment = await prisma.blockComment.update({
+    const updatedComment = await prisma.comment.update({
       where: { id: commentId },
-      data: { resolved: true }
+      data: { isResolved: true }
     })
 
     return NextResponse.json({ comment: updatedComment })

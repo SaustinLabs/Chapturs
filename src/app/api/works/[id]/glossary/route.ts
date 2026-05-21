@@ -1,7 +1,7 @@
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '../../../../../../auth'
+import { auth } from '@/auth'
 import { prisma } from '@/lib/database/PrismaService'
 import { resolveDbUserId } from '@/lib/resolveDbUserId'
 import { awardPoints, POINTS_EVENT_TYPE } from '@/lib/achievements/points'

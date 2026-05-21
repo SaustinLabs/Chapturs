@@ -12,7 +12,6 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const languageCode = searchParams.get('languageCode') || 'en'
 
-    console.log('[TRANS_API] Fetching translations for:', { id, chapterId, languageCode })
 
     // Fetch all translations for this chapter and language
     let translations: any[] = []
@@ -38,7 +37,6 @@ export async function GET(
           qualityOverall: 'desc',
         },
       })
-      console.log('[TRANS_API] Found', translations.length, 'translations')
     } catch (dbError) {
       console.error('[TRANS_API] Database error fetching translations:', dbError)
       // Return empty array instead of error if DB query fails
@@ -79,7 +77,6 @@ export async function GET(
       isDefault: t.id === currentDefault,
     }))
 
-    console.log('[TRANS_API] Returning response with', formattedTranslations.length, 'translations')
 
     return NextResponse.json({
       languageCode,

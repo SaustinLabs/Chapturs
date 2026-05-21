@@ -2,7 +2,7 @@ export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
-import { auth } from '@/auth-edge'
+import { auth } from '@/auth'
 import { awardPoints, POINTS_EVENT_TYPE } from '@/lib/achievements/points'
 
 // GET /api/comments?workId=xxx&sectionId=xxx&blockId=xxx
@@ -20,28 +20,27 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const where: any = { workId, parentId: null } // Only top-level comments
+    const where: any = { workId, parentId: null }
     
     if (sectionId) where.sectionId = sectionId
     if (blockId) where.blockId = blockId
 
-    const comments = await prisma.blockComment.findMany({
+    const comments = await prisma.comment.findMany({
       where,
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: { select: { id: true, username: true, displayName: true, avatar: true } },
+        replies: {
+          orderBy: { createdAt: 'asc' },
+          include: {
+            user: { select: { id: true, username: true, displayName: true, avatar: true } },
+          },
+        },
+        _count: { select: { likes: true } },
+      },
     })
 
-    // Fetch replies for each comment
-    const commentsWithReplies = await Promise.all(
-      comments.map(async (comment: { id: string; [key: string]: any }) => {
-        const replies = await prisma.blockComment.findMany({
-          where: { parentId: comment.id },
-          orderBy: { createdAt: 'asc' }
-        })
-        return { ...comment, replies }
-      })
-    )
-
-    return NextResponse.json({ comments: commentsWithReplies })
+    return NextResponse.json({ comments })
   } catch (error) {
     console.error('Error fetching comments:', error)
     return NextResponse.json(
@@ -56,7 +55,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth()
     
-    if (!session?.user?.id || !session?.user?.name) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -68,34 +67,36 @@ export async function POST(request: NextRequest) {
       workId,
       sectionId,
       blockId,
-      text,
+      content,
       parentId
     } = body
 
-    if (!workId || !sectionId || !blockId || !text) {
+    if (!workId || !sectionId || !content) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields (workId, sectionId, content)' },
         { status: 400 }
       )
     }
 
-    if (typeof text !== 'string' || text.trim().length === 0 || text.length > 5000) {
+    if (typeof content !== 'string' || content.trim().length === 0 || content.length > 5000) {
       return NextResponse.json(
         { error: 'Comment must be between 1 and 5000 characters' },
         { status: 400 }
       )
     }
 
-    const comment = await prisma.blockComment.create({
+    const comment = await prisma.comment.create({
       data: {
         workId,
         sectionId,
-        blockId,
+        blockId: blockId || null,
         userId: session.user.id,
-        username: session.user.name,
-        text,
-        parentId
-      }
+        content,
+        parentId: parentId || null,
+      },
+      include: {
+        user: { select: { id: true, username: true, displayName: true, avatar: true } },
+      },
     })
 
     awardPoints(session.user.id, POINTS_EVENT_TYPE.COMMENT, 3, comment.id).catch(() => {})
@@ -110,84 +111,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PATCH /api/comments/:id - Like a comment or mark as resolved
-export async function PATCH(request: NextRequest) {
-  try {
-    const session = await auth()
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
-
-    const url = new URL(request.url)
-    const id = url.pathname.split('/').pop()
-    const body = await request.json()
-
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Comment ID required' },
-        { status: 400 }
-      )
-    }
-
-    const { action } = body
-
-    if (action === 'like') {
-      const comment = await prisma.blockComment.update({
-        where: { id },
-        data: { likes: { increment: 1 } }
-      })
-      return NextResponse.json({ comment })
-    }
-
-    if (action === 'resolve') {
-      const { isResolved } = body
-
-      // Get the comment to verify ownership
-      const comment = await prisma.blockComment.findUnique({
-        where: { id }
-      })
-
-      if (!comment) {
-        return NextResponse.json(
-          { error: 'Comment not found' },
-          { status: 404 }
-        )
-      }
-
-      // Only comment author can resolve
-      if (comment.userId !== session.user.id) {
-        return NextResponse.json(
-          { error: 'Only the comment author can resolve comments' },
-          { status: 403 }
-        )
-      }
-
-      const updatedComment = await prisma.blockComment.update({
-        where: { id },
-        data: { isResolved }
-      })
-
-      return NextResponse.json({ comment: updatedComment })
-    }
-
-    return NextResponse.json(
-      { error: 'Invalid action' },
-      { status: 400 }
-    )
-  } catch (error) {
-    console.error('Error updating comment:', error)
-    return NextResponse.json(
-      { error: 'Failed to update comment' },
-      { status: 500 }
-    )
-  }
-}
-
-// DELETE /api/comments/:id - Delete a comment
+// DELETE /api/comments/:id - Delete a comment (moderator, admin, or owner)
 export async function DELETE(request: NextRequest) {
   try {
     const session = await auth()
@@ -209,7 +133,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const comment = await prisma.blockComment.findUnique({
+    const comment = await prisma.comment.findUnique({
       where: { id }
     })
 
@@ -236,7 +160,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    await prisma.blockComment.delete({
+    await prisma.comment.delete({
       where: { id }
     })
 

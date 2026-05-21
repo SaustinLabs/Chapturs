@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth-edge'
+import { auth } from '@/auth'
 import { prisma } from '@/lib/database/PrismaService'
 
 export const runtime = 'nodejs'
@@ -28,7 +28,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
   const series = await prisma.series.findUnique({
     where: { id: seriesId },
     include: {
-      author: { select: { id: true, userId: true, user: { select: { name: true, image: true } } } },
+      author: { select: { id: true, userId: true, user: { select: { displayName: true, avatar: true } } } },
       volumes: { orderBy: { orderIndex: 'asc' } },
       works: {
         include: {

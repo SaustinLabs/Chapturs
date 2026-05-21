@@ -2,10 +2,8 @@ export const runtime = 'nodejs'
 
 import { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
-import { auth } from '@/auth-edge'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { auth } from '@/auth'
+import { prisma } from '@/lib/database/PrismaService'
 
 function parseMetadata(value: unknown): Record<string, any> {
   if (!value) return {}

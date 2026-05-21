@@ -48,7 +48,6 @@ export async function DELETE(request: NextRequest) {
     }
 
     // 5. Delete from R2
-    console.log(`[Delete Image] Removing ${image.storageKey}...`)
 
     // Delete original
     await deleteFromR2(image.storageKey)
@@ -75,7 +74,6 @@ export async function DELETE(request: NextRequest) {
       where: { id: imageId },
     })
 
-    console.log(`[Delete Image] Removed ${imageId}`)
 
     return NextResponse.json({
       success: true,

@@ -36,12 +36,10 @@ export async function POST(request: NextRequest) {
     const { imageId, storageKey, entityType, entityId, altText } = body
 
     // 3. Download original from R2
-    console.log(`[Upload Confirm] Downloading ${storageKey}...`)
     const buffer = await getFromR2(storageKey)
 
     // 4. Get metadata
     const metadata = await getImageMetadata(buffer)
-    console.log(`[Upload Confirm] Image: ${metadata.width}x${metadata.height}, ${(metadata.size / 1024).toFixed(0)}KB`)
 
     // 5. Validate dimensions
     const dimensionCheck = validateDimensions(
@@ -59,10 +57,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 6. Generate optimized variants
-    console.log(`[Upload Confirm] Generating variants...`)
     const variants = await generateVariants(buffer, entityType)
     
-    console.log(`[Upload Confirm] Compression savings: ${(variants.totalSaved / 1024).toFixed(0)}KB`)
 
     // 7. Upload variants to R2
     const ext = 'webp' // All variants are WebP
@@ -89,13 +85,11 @@ export async function POST(request: NextRequest) {
       ),
     ])
 
-    console.log(`[Upload Confirm] Variants uploaded`)
 
     // 8. Check if needs moderation
     const modCheck = await needsModeration(buffer)
     const status = modCheck.needsReview ? 'pending' : 'approved'
 
-    console.log(`[Upload Confirm] Moderation: ${status} (${modCheck.confidence})`)
 
     // 9. Save to database
     const totalSize =
@@ -124,7 +118,6 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    console.log(`[Upload Confirm] Saved to database: ${image.id}`)
 
     // 10. Return success with URLs
     return NextResponse.json({
