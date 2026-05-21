@@ -95,7 +95,7 @@ export function GlossaryTooltip({ term, definition, children }: GlossaryTooltipP
           onTouchEnd: handleTouchEnd,
           onDoubleClick: openMobileGlossary,
         })}
-        className="cursor-help border-b border-dotted border-blue-500/60 text-blue-400 hover:text-blue-300 hover:border-blue-400/80 transition-colors"
+        className="cursor-help border-b border-dotted border-amber-500/30 hover:bg-amber-500/[0.06] hover:border-amber-500/50 transition-all"
       >
         {children}
       </span>
@@ -113,7 +113,7 @@ export function GlossaryTooltip({ term, definition, children }: GlossaryTooltipP
             {isTouchDevice && (
               <button
                 onClick={(e) => { e.stopPropagation(); openMobileGlossary() }}
-                className="mt-3 text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                className="mt-3 text-xs text-amber-400/80 hover:text-amber-300 flex items-center gap-1"
               >
                 See all terms →
               </button>
@@ -146,21 +146,46 @@ export default function ChapterContent({ content, glossaryTerms, currentChapter 
     // Sort by term length (descending) to handle overlapping terms correctly
     const sortedTerms = availableTerms.sort((a, b) => b.term.length - a.term.length)
 
+    // Build list of all matchable strings (terms + aliases), deduplicated
+    const matchableStrings: string[] = []
+    for (const t of sortedTerms) {
+      matchableStrings.push(t.term)
+      if (t.aliases) {
+        const aliases = typeof t.aliases === 'string' ? JSON.parse(t.aliases) : t.aliases
+        if (Array.isArray(aliases)) {
+          for (const alias of aliases) {
+            if (!matchableStrings.includes(alias)) matchableStrings.push(alias)
+          }
+        }
+      }
+    }
+    // Sort matchable strings by length descending
+    matchableStrings.sort((a, b) => b.length - a.length)
+
     // Process content and wrap glossary terms
     let processed = content
     const termReplacements: { term: string; definition: string; placeholder: string }[] = []
 
     sortedTerms.forEach((glossaryTerm, index) => {
-      const placeholder = `__GLOSSARY_${index}__`
-      const regex = new RegExp(`\\b${glossaryTerm.term}\\b`, 'gi')
+      // Match any alias of this term in the text, but link back to the canonical term
+      const matchTargets = [glossaryTerm.term]
+      if (glossaryTerm.aliases) {
+        const aliases = typeof glossaryTerm.aliases === 'string' ? JSON.parse(glossaryTerm.aliases) : glossaryTerm.aliases
+        if (Array.isArray(aliases)) matchTargets.push(...aliases)
+      }
       
-      if (regex.test(processed)) {
-        termReplacements.push({
-          term: glossaryTerm.term,
-          definition: glossaryTerm.definition,
-          placeholder
-        })
-        processed = processed.replace(regex, placeholder)
+      for (const target of matchTargets) {
+        const placeholder = `__GLOSSARY_${index}__`
+        const regex = new RegExp(`\\b${target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi')
+        
+        if (regex.test(processed)) {
+          termReplacements.push({
+            term: target,
+            definition: glossaryTerm.definition,
+            placeholder
+          })
+          processed = processed.replace(regex, placeholder)
+        }
       }
     })
 

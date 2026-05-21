@@ -119,7 +119,7 @@ export function CharacterTooltip({
           onDoubleClick: emitOpenGlossary,
           onClick: handleDesktopClick,
         })}
-        className="cursor-pointer border-b-2 border-dotted border-green-500 text-green-600 dark:text-green-400 hover:border-solid hover:text-green-700 dark:hover:text-green-300 transition-all font-medium"
+        className="cursor-pointer border-b border-dotted border-emerald-500/35 hover:bg-emerald-500/[0.06] hover:border-emerald-500/55 transition-all"
       >
         {children}
       </span>

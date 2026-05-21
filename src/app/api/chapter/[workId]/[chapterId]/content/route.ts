@@ -71,9 +71,25 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const lang = searchParams.get('lang') || 'en'
 
-    // If English, return early — caller should use the normal section endpoint
+    // Fetch chapter/section data (moved before language check so English works)
+    const section = await prisma.section.findUnique({
+      where: { id: chapterId },
+      select: {
+        title: true,
+        content: true,
+        defaultTranslationIdByLanguage: true,
+      },
+    })
+
+    if (!section) {
+      return NextResponse.json({ error: 'Chapter not found' }, { status: 404 })
+    }
+
+    // If English, return original content directly
     if (lang === 'en') {
-      return NextResponse.json({ language: 'en', title: null, content: null, source: 'original' })
+      const originalContent = (typeof section.content === 'string' ? JSON.parse(section.content) : section.content)
+      const blocks = originalContent?.blocks || originalContent || []
+      return NextResponse.json({ language: 'en', title: section.title, content: blocks, source: 'original' })
     }
 
     // --- Rate limit check (applied before any LLM work) ---
@@ -87,20 +103,6 @@ export async function GET(
         { error: 'Too many translation requests. Please wait before translating more chapters.' },
         { status: 429 }
       )
-    }
-
-    // Fetch chapter/section data
-    const section = await prisma.section.findUnique({
-      where: { id: chapterId },
-      select: {
-        title: true,
-        content: true,
-        defaultTranslationIdByLanguage: true,
-      },
-    })
-
-    if (!section) {
-      return NextResponse.json({ error: 'Chapter not found' }, { status: 404 })
     }
 
     // Check if there is a default translation for this language

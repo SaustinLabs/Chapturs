@@ -152,6 +152,7 @@ export async function GET(request: NextRequest, props: RouteParams) {
         ge.definition,
         COALESCE(ge."chapterIntroduced", 1) as "chapterIntroduced",
         COALESCE(ge.type, 'term') as type,
+        ge.aliases,
         ge."createdAt"
       FROM glossary_entries ge
       WHERE ge."workId" = ${workId}
@@ -176,6 +177,7 @@ export async function GET(request: NextRequest, props: RouteParams) {
           definition: versionResult.length > 0 ? versionResult[0].definition : entry.definition,
           chapterIntroduced: entry.chapterIntroduced,
           type: entry.type,
+          aliases: entry.aliases || [],
           createdAt: entry.createdAt
         }
       })
