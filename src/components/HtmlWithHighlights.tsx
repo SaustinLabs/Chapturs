@@ -63,9 +63,25 @@ export default function HtmlWithHighlights({
   const sortedGlossary = [...glossaryTerms].sort((a, b) => b.term.length - a.term.length)
   const sortedCharacters = [...characterPatterns].sort((a, b) => b.pattern.length - a.pattern.length)
 
+  // Build glossary alias patterns (same way characters do)
+  const glossaryPatterns: Array<{ pattern: string; entry: GlossaryEntry }> = []
+  sortedGlossary.forEach(entry => {
+    glossaryPatterns.push({ pattern: entry.term, entry })
+    if (entry.aliases) {
+      const aliases = typeof entry.aliases === 'string' ? JSON.parse(entry.aliases) : entry.aliases
+      if (Array.isArray(aliases)) {
+        aliases.forEach((alias: string) => {
+          glossaryPatterns.push({ pattern: alias, entry })
+        })
+      }
+    }
+  })
+  // Re-sort glossary patterns with aliases by length desc
+  glossaryPatterns.sort((a, b) => b.pattern.length - a.pattern.length)
+
   // Build combined regex that matches any term with word boundaries, case-insensitive
   const allPatterns = [
-    ...sortedGlossary.map(t => escapeRegExp(t.term)),
+    ...glossaryPatterns.map(t => escapeRegExp(t.pattern)),
     ...sortedCharacters.map(c => escapeRegExp(c.pattern))
   ]
   
@@ -108,17 +124,17 @@ export default function HtmlWithHighlights({
             </CharacterTooltip>
           )
         } else {
-          // Check if it's a glossary term
-          const glossaryMatch = sortedGlossary.find(e => 
-            e.term.toLowerCase() === term.toLowerCase()
+          // Check if it's a glossary term (via canonical term OR alias)
+          const glossaryMatch = glossaryPatterns.find(e => 
+            e.pattern.toLowerCase() === term.toLowerCase()
           )
           
           if (glossaryMatch) {
             parts.push(
               <GlossaryTooltip 
                 key={`${keyPrefix}-${parts.length}-gloss-${term}`} 
-                term={glossaryMatch.term} 
-                definition={glossaryMatch.definition}
+                term={glossaryMatch.entry.term} 
+                definition={glossaryMatch.entry.definition}
               >
                 {term}
               </GlossaryTooltip>
