@@ -307,8 +307,19 @@ src/hooks/useStoryCardActions.ts     → Optimistic mutations
 ### Phase 3 Deliverable
 - Comments feel like a modern discussion system
 - Glossary/character integration is seamless in the reader
-- Living World pages are polished product surfaces
+- Living World surfaces are polished product surfaces
 - Every page has a loading skeleton
+
+### Phase 3 — Implementation Results (June 2026)
+
+**Commit checkpoints:** `b2d555e` (3.1), `dd8d06f` (3.4).
+
+| Task | Status | Key Changes |
+|------|--------|-------------|
+| **3.1** Comments | ✅ | 10 `console.error` stripped from `CommentSection` + `CommentItem`. Dark mode added to comment card (`bg-white dark:bg-gray-800`). Loading: raw spinner → `ui/Skeleton` (3 placeholder cards). Empty: custom HTML → `ui/EmptyState` (with sign-in CTA for unauthenticated). Thread system + moderation already solid from May 2026 cleanup. |
+| **3.2** Glossary/characters | ✅ | Verified all alias fixes from May 2026 are in place: API returns aliases, `HtmlWithHighlights` matches aliases, reader tooltips work. Character profiles click through to full profile. Subtle CSS (dotted underlines, no hyperlink look). No code changes needed — already fixed. |
+| **3.3** Living World | ⏸️ | ON HOLD. Full implementation exists (pages, APIs, components, library) but prerequisite tech (real-time collab, vector search) isn't mature. Code preserved. |
+| **3.4** Loading states | ✅ | Profile page: "Loading profile..." text → 4 `ui/Skeleton` blocks. Error states → `ui/EmptyState`. Library page: spinner → 6-card `ui/Skeleton` grid. Empty → `ui/EmptyState` with contextual icon. Subscriptions: `animate-pulse` divs → `ui/Skeleton`. Empty → `ui/EmptyState`. Search page already had `FeedCardSkeleton`. |
 
 ---
 
