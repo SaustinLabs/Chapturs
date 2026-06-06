@@ -31,6 +31,7 @@ import ReportButton from '@/components/ReportButton'
 import AdSlot from '@/components/ads/AdSlot'
 import ChapterReactionBar from '@/components/ChapterReactionBar'
 import ChapterReaderSettings from '@/components/ChapterReaderSettings'
+import ChapterHeader from '@/components/ChapterHeader'
 import ChapterTranslationBanner from '@/components/ChapterTranslationBanner'
 import ChapterMobileGlossary from '@/components/ChapterMobileGlossary'
 import ContinuousScrollReader from '@/components/ContinuousScrollReader'
@@ -1217,7 +1218,7 @@ export default function ChapterPage() {
         />
       )}
 
-      <div className="max-w-4xl mx-auto pb-28 md:pb-0">
+      <div className="max-w-2xl mx-auto pb-28 md:pb-0">
         {/* Slim sticky reading progress bar */}
         <div className="sticky top-14 z-20 -mx-6 md:mx-0">
           <div className="h-[3px] bg-gray-200/60 dark:bg-gray-700/60">
@@ -1248,103 +1249,45 @@ export default function ChapterPage() {
         )}
 
         {/* Chapter Header */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-6 mt-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => router.push(`/story/${storyId}`)}
-                className="text-blue-500 hover:text-blue-600 text-sm font-medium"
-              >
-                ← Back
-              </button>
-              <div className="h-4 border-l border-gray-300 dark:border-gray-600"></div>
-              <button
-                onClick={() => {
-                  router.replace(`/story/${storyId}/chapter/${chapterId}?mode=scroll`)
-                  setScrollMode(true)
-                }}
-                className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                title="Read all chapters in one continuous page"
-              >
-                <span className="text-sm">📜 Scroll</span>
-              </button>
-              <div className="h-4 border-l border-gray-300 dark:border-gray-600"></div>
-              <button
-                onClick={() => setShowChapterList(!showChapterList)}
-                className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-              >
-                <ListBulletIcon className="w-4 h-4" />
-                <span className="text-sm">Chapters</span>
-              </button>
-            </div>
-            <div className="flex items-center gap-1">
-              <ReportButton targetType="section" targetId={chapterId} className="mr-1" />
-              <button
-                type="button"
-                onClick={() => shiftFontSize(-1)}
-                className="p-1.5 rounded-md border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                aria-label="Decrease font size"
-              >
-                <MinusIcon className="w-3.5 h-3.5" />
-              </button>
-              <span className="text-[11px] text-gray-500 dark:text-gray-400 w-10 text-center capitalize">
-                {readingSettings.fontSize}
-              </span>
-              <button
-                type="button"
-                onClick={() => shiftFontSize(1)}
-                className="p-1.5 rounded-md border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                aria-label="Increase font size"
-              >
-                <PlusIcon className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowReaderSettingsDrawer(true)}
-                className="ml-1 p-1.5 rounded-md border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hidden md:inline-flex"
-                aria-label="Display settings"
-                title="Display settings"
-              >
-                <CogIcon className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              {work.title}
-            </h1>
-            <h2 className="text-xl text-gray-700 dark:text-gray-300">
-              Chapter {section.chapterNumber}: {section.title}
-            </h2>
-          </div>
-
-          {/* Translation banner */}
-          <ChapterTranslationBanner
-            targetLanguage={targetLanguage}
-            detectedLanguage={detectedLanguage}
-            translationId={translationId}
-            translationRating={translationRating}
-            onRevertToOriginal={() => {
-              setTargetLanguage('en')
-              setDetectedLanguage('en')
-              setTranslationId(null)
-              setTranslationRating(null)
-            }}
-            onSuggestionSubmit={async (text) => {
-              if (!translationId) return
-              const res = await fetch(`/api/fan-translations/${translationId}/suggest`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ suggestedText: text }),
-              })
-              if (!res.ok) {
-                const d = await res.json()
-                throw new Error(d.error || 'Failed to submit')
-              }
-            }}
-          />
-        </div>
+        <ChapterHeader
+          storyId={storyId}
+          chapterId={chapterId}
+          workTitle={work.title}
+          chapterNumber={section.chapterNumber}
+          chapterTitle={section.title}
+          targetLanguage={targetLanguage}
+          detectedLanguage={detectedLanguage}
+          translationId={translationId}
+          translationRating={translationRating}
+          fontSize={readingSettings.fontSize}
+          showChapterList={showChapterList}
+          onBack={() => router.push(`/story/${storyId}`)}
+          onScrollMode={() => {
+            router.replace(`/story/${storyId}/chapter/${chapterId}?mode=scroll`)
+            setScrollMode(true)
+          }}
+          onToggleChapterList={() => setShowChapterList(!showChapterList)}
+          onShiftFontSize={shiftFontSize}
+          onOpenSettings={() => setShowReaderSettingsDrawer(true)}
+          onRevertToOriginal={() => {
+            setTargetLanguage('en')
+            setDetectedLanguage('en')
+            setTranslationId(null)
+            setTranslationRating(null)
+          }}
+          onSuggestionSubmit={async (text) => {
+            if (!translationId) return
+            const res = await fetch(`/api/fan-translations/${translationId}/suggest`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ suggestedText: text }),
+            })
+            if (!res.ok) {
+              const d = await res.json()
+              throw new Error(d.error || 'Failed to submit')
+            }
+          }}
+        />
 
         {/* Chapter List Dropdown */}
         {showChapterList && (
