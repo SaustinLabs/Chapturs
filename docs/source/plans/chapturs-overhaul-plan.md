@@ -261,6 +261,17 @@ src/hooks/useStoryCardActions.ts     → Optimistic mutations
 - Editor shell feels intentional, not bolted on
 - Creator hub navigation is SPA-smooth
 
+### Phase 2 — Implementation Results (June 2026)
+
+**Commit checkpoints:** `fc1a823` (2.1), `df48927` (2.2), `113dd6e` (2.3).
+
+| Task | Status | Key Changes |
+|------|--------|-------------|
+| **2.1** Dashboard | ✅ | `page.tsx` → async server component with `auth()`. Stats prefetched via Prisma on server — no client-side fetch waterfall. `CreatorDashboardNew` accepts `initialStats`/`userName`/`isAuthenticated` as props instead of using `useUser()` + `useEffect()`. Unauthenticated and no-author-profile states rendered server-side. All skeletons use `ui/Skeleton`, empty states use `ui/EmptyState`, badges use `ui/Badge`. Single `console.error` stripped. |
+| **2.2** Works management | ✅ | Switched from 2-column card grid to compact table/list layout. Each row: cover thumbnail, title+genre, `ui/Badge` status, chapter count, likes, icon-only action buttons. `page.tsx` → async server component, passes auth to `StoryManagement` via props. All 8 `console.log` calls stripped. `ui/EmptyState` for empty, `ui/Skeleton` for loading. Dead `CreatorDashboard.tsx` removed. |
+| **2.3** Editor shell | ✅ | 79 `console.log`/`console.error` calls stripped (file: 1,193 → 1,108 lines). Inline DRAFT badge replaced with `<Badge variant="warning">`. Main container: `bg-gray-900` → `bg-white dark:bg-gray-900` (now respects light mode). |
+| **2.3 (deferred)** | ⏸️ | Component extraction (EditorHeader, StartPicker, SettingsModal) deferred — header is tightly coupled to 15+ state variables. File is sufficiently clean for now. Will extract during Phase 3 polish pass. |
+
 ---
 
 ## Phase 3: Advanced Systems Integration (Week 4-5)
