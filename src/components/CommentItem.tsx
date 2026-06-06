@@ -99,7 +99,6 @@ export default function CommentItem({
         setLikeCount(prev => prev + (data.liked ? 1 : -1))
       }
     } catch (error) {
-      console.error('Error liking comment:', error)
     } finally {
       setLoading(false)
     }
@@ -122,10 +121,8 @@ export default function CommentItem({
           setReactions(data.reactions)
         }
       } else {
-        console.error('Failed to react:', await response.text())
       }
     } catch (error) {
-      console.error('Error reacting to comment:', error)
     } finally {
       setLoading(false)
       setShowEmojiPicker(false)
@@ -150,7 +147,6 @@ export default function CommentItem({
         setIsEditing(false)
       }
     } catch (error) {
-      console.error('Error editing comment:', error)
     } finally {
       setLoading(false)
     }
@@ -169,7 +165,6 @@ export default function CommentItem({
         onCommentDeleted(comment.id)
       }
     } catch (error) {
-      console.error('Error deleting comment:', error)
     } finally {
       setLoading(false)
     }
@@ -190,7 +185,6 @@ export default function CommentItem({
         onCommentUpdated(data.comment)
       }
     } catch (error) {
-      console.error('Error featuring comment:', error)
     } finally {
       setLoading(false)
     }
@@ -211,7 +205,6 @@ export default function CommentItem({
         onCommentUpdated(data.comment)
       }
     } catch (error) {
-      console.error('Error pinning comment:', error)
     } finally {
       setLoading(false)
     }
@@ -232,7 +225,6 @@ export default function CommentItem({
         onCommentUpdated(data.comment)
       }
     } catch (error) {
-      console.error('Error hiding comment:', error)
     } finally {
       setLoading(false)
     }
@@ -251,7 +243,7 @@ export default function CommentItem({
 
   return (
     <div className={`${depth > 0 ? 'ml-8 mt-4' : ''}`}>
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">

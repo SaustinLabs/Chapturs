@@ -5,6 +5,8 @@ import { MessageSquare } from 'lucide-react'
 import { signIn } from 'next-auth/react'
 import CommentForm from './CommentForm'
 import CommentItem from './CommentItem'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 import type { Comment } from '@/types/comment'
 
 interface CommentSectionProps {
@@ -58,10 +60,8 @@ export default function CommentSection({
         setHasMore(data.hasMore)
         setNextCursor(data.nextCursor)
       } else {
-        console.error('Failed to fetch comments:', data.error)
       }
     } catch (error) {
-      console.error('Error fetching comments:', error)
     } finally {
       setLoading(false)
       setLoadingMore(false)
@@ -144,8 +144,10 @@ export default function CommentSection({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="space-y-4 py-8">
+        <Skeleton variant="rectangular" height={80} />
+        <Skeleton variant="rectangular" height={80} />
+        <Skeleton variant="rectangular" height={80} />
       </div>
     )
   }
@@ -197,27 +199,20 @@ export default function CommentSection({
 
       {/* Comments list */}
       {sortedComments.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <MessageSquare className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-          <p className="text-gray-500 dark:text-gray-400 font-medium">No comments yet</p>
-          {canComment ? (
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-              Be the first to comment!
-            </p>
-          ) : (
-            <div className="mt-3">
-              <p className="text-sm text-gray-400 dark:text-gray-500 mb-3">
-                Sign in to join the conversation
-              </p>
-              <button
-                onClick={() => signIn('google')}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Sign in with Google
-              </button>
-            </div>
-          )}
-        </div>
+        canComment ? (
+          <EmptyState
+            icon={<MessageSquare className="w-12 h-12" />}
+            title="No comments yet"
+            description="Be the first to share your thoughts!"
+          />
+        ) : (
+          <EmptyState
+            icon={<MessageSquare className="w-12 h-12" />}
+            title="No comments yet"
+            description="Sign in to join the conversation"
+            action={{ label: 'Sign in with Google', onClick: () => signIn('google') }}
+          />
+        )
       ) : (
         <div className="space-y-4">
           {sortedComments.map(comment => (

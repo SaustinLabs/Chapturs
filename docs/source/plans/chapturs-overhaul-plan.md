@@ -294,13 +294,9 @@ src/hooks/useStoryCardActions.ts     → Optimistic mutations
 - Link glossary terms to their definition pages
 **Estimated:** 1 session.
 
-### Task 3.3: Living World Surfaces
-**Files:** World pages, lore index, timeline
-**What:** These exist (Phase 5 mostly done). Polish:
-- World Atlas page — better story card grid
-- Lore Index — better search and filtering
-- Timeline — better visual design
-**Estimated:** 1 session.
+### Task 3.3: Living World Surfaces — ON HOLD
+**Status:** Deferred until prerequisite tech matures.
+**Reasoning:** Substantial implementation exists (pages at `/worlds/[worldSlug]`, `/creator/living-world/[worldId]`, `/admin/living-world`; API routes for canon, lore-master, contradictions, votes; library at `src/lib/living-world/`; components at `src/components/living-world/`). But the core user experience requires real-time collaborative editing + vector-indexed lore search — the tech stack isn't there yet. Code preserved, not deleted.
 
 ### Task 3.4: Loading States & Skeletons
 **Files:** All pages missing skeletons (TASKS.md #75)
