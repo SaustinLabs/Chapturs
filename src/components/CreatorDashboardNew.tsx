@@ -1,14 +1,16 @@
 'use client'
 
-import { useUser } from '@/hooks/useUser'
-import { useState, useEffect } from 'react'
-import { 
-  BookOpen, TrendingUp, Users, DollarSign, Star, 
-  Upload, Edit, Settings, Image, MessageSquare, 
+import {
+  BookOpen, TrendingUp, Users, DollarSign, Star,
+  Upload, Edit, Settings, Image, MessageSquare,
   Award, BarChart3, Zap, Clock, Eye, Heart,
-  FileText, Globe, Shield, Sparkles, CheckCircle, AlertTriangle
+  FileText, Globe, Shield, Sparkles
 } from 'lucide-react'
 import Link from 'next/link'
+import { Badge } from '@/components/ui/Badge'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { useRouter } from 'next/navigation'
 
 interface DashboardStats {
   overview: {
@@ -37,6 +39,13 @@ interface DashboardStats {
   }
 }
 
+interface CreatorDashboardNewProps {
+  initialStats: DashboardStats | null
+  userName: string
+  isAuthenticated: boolean
+  hasAuthorProfile: boolean
+}
+
 // Helper function to format tier names
 const formatTierName = (tier: string) => {
   return tier
@@ -45,71 +54,51 @@ const formatTierName = (tier: string) => {
     .join(' ')
 }
 
-export default function CreatorDashboardNew() {
-  const { userId, isAuthenticated, isLoading, userName } = useUser()
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [loading, setLoading] = useState(true)
+export default function CreatorDashboardNew({
+  initialStats,
+  userName,
+  isAuthenticated,
+  hasAuthorProfile,
+}: CreatorDashboardNewProps) {
+  const router = useRouter()
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchDashboardStats()
-    }
-  }, [isAuthenticated])
-
-  const fetchDashboardStats = async () => {
-    try {
-      const res = await fetch('/api/creator/dashboard-stats')
-      if (!res.ok) {
-        throw new Error('Failed to fetch stats')
-      }
-      const data = await res.json()
-      if (data.success) {
-        setStats({
-          overview: data.overview,
-          recentActivity: data.recentActivity,
-          qualityScores: data.qualityScores,
-          revenue: data.revenue
-        })
-      }
-    } catch (error) {
-      console.error('Failed to fetch dashboard stats:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (isLoading || loading) {
-    return (
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="animate-pulse space-y-6">
-          <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-32 bg-gray-100 dark:bg-gray-800 rounded-lg"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )
-  }
-
+  // ---- Unauthenticated state (server-resolved, renders immediately) ----
   if (!isAuthenticated) {
     return (
-      <div className="max-w-7xl mx-auto p-6 text-center">
-        <BookOpen className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-        <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Creator Dashboard</h1>
-        <p className="text-gray-600 dark:text-gray-400 mb-6">
-          Please sign in to access your creator dashboard and manage your stories.
-        </p>
-        <Link 
-          href="/auth/signin" 
-          className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-        >
-          Sign In to Continue
-        </Link>
+      <div className="max-w-7xl mx-auto p-6">
+        <EmptyState
+          icon={<BookOpen className="w-16 h-16" />}
+          title="Creator Dashboard"
+          description="Please sign in to access your creator dashboard and manage your stories."
+          action={{
+            label: 'Sign In to Continue',
+            onClick: () => router.push('/auth/signin'),
+          }}
+        />
       </div>
     )
   }
+
+  // ---- No author profile yet (server-resolved) ----
+  if (!hasAuthorProfile) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <EmptyState
+          icon={<Sparkles className="w-16 h-16" />}
+          title="Set Up Your Author Profile"
+          description="Create an author profile to start publishing stories and tracking your creative journey."
+          action={{
+            label: 'Create Author Profile',
+            onClick: () => router.push('/creator/profile/edit'),
+          }}
+        />
+      </div>
+    )
+  }
+
+  // ---- No stats yet (author exists but no works) ----
+  const stats = initialStats
+  const showOnboarding = !stats || stats.overview.totalWorks === 0
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
@@ -121,7 +110,7 @@ export default function CreatorDashboardNew() {
             Creator Hub
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Welcome back, {userName}! Here's your creative empire at a glance.
+            Welcome back, {userName}! Here&apos;s your creative empire at a glance.
           </p>
         </div>
         <Link
@@ -133,35 +122,35 @@ export default function CreatorDashboardNew() {
         </Link>
       </div>
 
-      {/* Stats Overview */}
+      {/* Stats Overview — always show structure, fill with Skeletons or 0s */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={<BookOpen className="text-blue-500" />}
           label="Total Works"
-          value={stats?.overview.totalWorks || 0}
-          subtitle={`${stats?.overview.totalChapters || 0} chapters`}
+          value={stats ? stats.overview.totalWorks : <Skeleton variant="text" width={40} />}
+          subtitle={stats ? `${stats.overview.totalChapters} chapters` : <Skeleton variant="text" width={80} />}
         />
         <StatCard
           icon={<Eye className="text-green-500" />}
           label="Total Reads"
-          value={stats?.overview.totalReads || 0}
-          subtitle={`${stats?.recentActivity.newReads || 0} this week`}
+          value={stats ? stats.overview.totalReads : <Skeleton variant="text" width={60} />}
+          subtitle={stats ? `${stats.recentActivity.newReads} this week` : <Skeleton variant="text" width={100} />}
           change={stats?.recentActivity.newReads ? `+${stats.recentActivity.newReads} this week` : undefined}
           trend={stats?.recentActivity.newReads ? 'up' : 'neutral'}
         />
         <StatCard
           icon={<Heart className="text-pink-500" />}
           label="Engagement"
-          value={`${stats?.overview.totalLikes || 0}`}
-          subtitle={`${stats?.overview.totalBookmarks || 0} bookmarks, ${stats?.overview.totalSubscriptions || 0} subscribers`}
+          value={stats ? `${stats.overview.totalLikes}` : <Skeleton variant="text" width={40} />}
+          subtitle={stats ? `${stats.overview.totalBookmarks} bookmarks, ${stats.overview.totalSubscriptions} subscribers` : <Skeleton variant="text" width={150} />}
           change={stats?.recentActivity.newLikes ? `+${stats.recentActivity.newLikes} likes this week` : undefined}
           trend={stats?.recentActivity.newLikes ? 'up' : 'neutral'}
         />
         <StatCard
           icon={<DollarSign className="text-yellow-500" />}
           label="Revenue (MTD)"
-          value={`$${stats?.revenue.thisMonth?.toFixed(2) || '0.00'}`}
-          subtitle={`$${stats?.revenue.pending?.toFixed(2) || '0.00'} pending`}
+          value={stats ? `$${stats.revenue.thisMonth?.toFixed(2) || '0.00'}` : <Skeleton variant="text" width={60} />}
+          subtitle={stats ? `$${stats.revenue.pending?.toFixed(2) || '0.00'} pending` : <Skeleton variant="text" width={100} />}
           change={
             stats?.revenue.thisMonth && stats?.revenue.lastMonth && stats.revenue.lastMonth > 0
               ? `${stats.revenue.thisMonth > stats.revenue.lastMonth ? '+' : ''}${(((stats.revenue.thisMonth - stats.revenue.lastMonth) / stats.revenue.lastMonth) * 100).toFixed(1)}% vs last month`
@@ -190,7 +179,7 @@ export default function CreatorDashboardNew() {
           description="Review pending fanart submissions"
           href="/creator/fanart"
           badge={stats?.recentActivity.pendingFanart}
-          badgeColor="red"
+          badgeVariant="warning"
         />
         <QuickActionCard
           icon={<Award className="text-yellow-500" />}
@@ -228,7 +217,7 @@ export default function CreatorDashboardNew() {
             Recent Activity
           </h2>
           <div className="space-y-3">
-                        {stats && stats.recentActivity.newReads > 0 && (
+            {stats && stats.recentActivity.newReads > 0 && (
               <ActivityItem
                 icon={<Eye size={16} />}
                 text={`${stats.recentActivity.newReads} new ${stats.recentActivity.newReads === 1 ? 'read' : 'reads'} in the last 7 days`}
@@ -279,7 +268,7 @@ export default function CreatorDashboardNew() {
             <Sparkles className="text-purple-500" size={20} />
             Quality Insights
           </h2>
-          
+
           {stats && stats.qualityScores.averageScore > 0 ? (
             <div className="space-y-4">
               <div>
@@ -290,7 +279,7 @@ export default function CreatorDashboardNew() {
                   </span>
                 </div>
                 <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
                     style={{ width: `${stats.qualityScores.averageScore}%` }}
                   />
@@ -349,7 +338,7 @@ export default function CreatorDashboardNew() {
           <Settings className="text-gray-500" size={20} />
           Content Management Tools
         </h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <ToolCard
             icon={<FileText className="text-blue-500" />}
@@ -381,19 +370,20 @@ export default function CreatorDashboardNew() {
   )
 }
 
-// Stat Card Component
-function StatCard({ 
-  icon, 
-  label, 
-  value, 
-  subtitle, 
-  change, 
-  trend 
-}: { 
+// ── Sub-components ──────────────────────────────────────────────────────────
+
+function StatCard({
+  icon,
+  label,
+  value,
+  subtitle,
+  change,
+  trend,
+}: {
   icon: React.ReactNode
   label: string
-  value: string | number
-  subtitle?: string
+  value: React.ReactNode
+  subtitle?: React.ReactNode
   change?: string
   trend?: 'up' | 'down' | 'neutral'
 }) {
@@ -404,13 +394,15 @@ function StatCard({
           {icon}
         </div>
         {change && (
-          <span className={`text-xs font-medium ${
-            trend === 'up' ? 'text-green-600 dark:text-green-400' : 
-            trend === 'down' ? 'text-red-600 dark:text-red-400' : 
-            'text-gray-600 dark:text-gray-400'
-          }`}>
+          <Badge
+            variant={
+              trend === 'up' ? 'success' :
+              trend === 'down' ? 'warning' :
+              'neutral'
+            }
+          >
             {change}
-          </span>
+          </Badge>
         )}
       </div>
       <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
@@ -422,28 +414,21 @@ function StatCard({
   )
 }
 
-// Quick Action Card
-function QuickActionCard({ 
-  icon, 
-  title, 
-  description, 
+function QuickActionCard({
+  icon,
+  title,
+  description,
   href,
   badge,
-  badgeColor = 'blue'
-}: { 
+  badgeVariant = 'genre',
+}: {
   icon: React.ReactNode
   title: string
   description: string
   href: string
   badge?: string | number
-  badgeColor?: 'blue' | 'red' | 'green'
+  badgeVariant?: 'genre' | 'warning' | 'success'
 }) {
-  const badgeColors = {
-    blue: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
-    red: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
-    green: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
-  }
-
   return (
     <Link href={href} className="group">
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-lg transition-all">
@@ -452,9 +437,7 @@ function QuickActionCard({
             {icon}
           </div>
           {badge !== undefined && (
-            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${badgeColors[badgeColor]}`}>
-              {badge}
-            </span>
+            <Badge variant={badgeVariant}>{badge}</Badge>
           )}
         </div>
         <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{title}</h3>
@@ -464,13 +447,12 @@ function QuickActionCard({
   )
 }
 
-// Activity Item
-function ActivityItem({ 
-  icon, 
-  text, 
-  time, 
-  actionable 
-}: { 
+function ActivityItem({
+  icon,
+  text,
+  time,
+  actionable,
+}: {
   icon: React.ReactNode
   text: string
   time: string
@@ -489,13 +471,12 @@ function ActivityItem({
   )
 }
 
-// Tool Card
-function ToolCard({ 
-  icon, 
-  title, 
-  description, 
-  href 
-}: { 
+function ToolCard({
+  icon,
+  title,
+  description,
+  href,
+}: {
   icon: React.ReactNode
   title: string
   description: string
@@ -503,9 +484,11 @@ function ToolCard({
 }) {
   return (
     <Link href={href} className="group">
-      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-500 border border-transparent transition-all">
-        <div className="mb-2">{icon}</div>
-        <h4 className="font-medium text-gray-900 dark:text-white text-sm mb-1">{title}</h4>
+      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors h-full">
+        <div className="p-2 bg-white dark:bg-gray-800 rounded-lg w-fit mb-3 group-hover:scale-110 transition-transform">
+          {icon}
+        </div>
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{title}</h3>
         <p className="text-xs text-gray-600 dark:text-gray-400">{description}</p>
       </div>
     </Link>
