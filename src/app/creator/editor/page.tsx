@@ -7,6 +7,7 @@ import ConfirmMatureModal from '@/components/ConfirmMatureModal'
 import AdvancedUploader from '@/components/AdvancedUploader'
 import AppLayout from '@/components/AppLayout'
 import { useToast } from '@/components/ui/Toast'
+import { Badge } from '@/components/ui/Badge'
 import { ContentFormat } from '@/types'
 import { ChaptDocument } from '@/types/chapt'
 import {
@@ -45,9 +46,6 @@ export default function CreatorEditorPage() {
   const formatType = (searchParams?.get('format') || 'novel') as ContentFormat
   const mode = searchParams?.get('mode') === 'edit' ? 'edit' : 'create'
 
-  console.log('Editor page loaded with:', { formatType, mode, workId, draftId, chapterId })
-  console.log('If chapterId is present, we should load that chapter:', chapterId)
-  console.log('Should use experimental editor?', formatType === 'experimental')
 
   // Safety check - if we're in an invalid state, show loading
   if (!searchParams) {
@@ -110,35 +108,28 @@ export default function CreatorEditorPage() {
   const showStartPicker = mode === 'create' && !chapterId && !startPickerDismissed
 
   useEffect(() => {
-    console.log('useEffect triggered:', { mode, workId, draftId, chapterId })
     // Load work data if workId provided (load existing work + sections)
     if (workId) {
-      console.log('Calling loadWorkData for workId:', workId)
       loadWorkData(workId)
       
       // If chapterId is provided, load that specific chapter for editing
       if (chapterId) {
-        console.log('Loading specific chapter for editing:', chapterId)
         loadSpecificChapter(workId, chapterId)
       } else {
         // Otherwise just load sections list
         loadWorkSections(workId)
       }
     } else if (draftId) {
-      console.log('Calling loadDraftData for draftId:', draftId)
       loadDraftData(draftId)
     } else {
-      console.log('No data to load - mode:', mode, 'workId:', workId, 'draftId:', draftId)
     }
   }, [mode, workId, draftId, chapterId])
 
   const loadWorkData = async (workId: string) => {
     try {
-      console.log('Loading work data for workId:', workId)
       const response = await fetch(`/api/works/${workId}`)
       if (response.ok) {
         const work = await response.json()
-        console.log('Loaded work data:', work)
         
         // Safely parse statistics if it's a JSON string
         let statistics = work.statistics
@@ -146,7 +137,6 @@ export default function CreatorEditorPage() {
           try {
             statistics = JSON.parse(statistics)
           } catch (e) {
-            console.error('Failed to parse statistics:', e)
             statistics = { wordCount: 0 }
           }
         }
@@ -162,16 +152,13 @@ export default function CreatorEditorPage() {
           hasContent: (work.sections?.length || 0) > 0
         }))
       } else {
-        console.error('Failed to load work data, status:', response.status)
       }
     } catch (error) {
-      console.error('Error loading work data:', error)
     }
   }
 
   const loadSpecificChapter = async (workId: string, chapterId: string) => {
     try {
-      console.log('Loading specific chapter:', { workId, chapterId })
       
       // Load work data first to get the title
       const workResponse = await fetch(`/api/works/${workId}`)
@@ -195,7 +182,6 @@ export default function CreatorEditorPage() {
         // Find the specific chapter
         const targetChapter = sectionsArray.find((s: any) => s.id === chapterId)
         if (targetChapter) {
-          console.log('Found target chapter:', targetChapter)
           try {
             const contentBlocks = typeof targetChapter.content === 'string' 
               ? JSON.parse(targetChapter.content) 
@@ -224,63 +210,49 @@ export default function CreatorEditorPage() {
             }
             
             setLoadedContent(chaptDocument)
-            console.log('Loaded chapter as ChaptDocument into editor for editing')
           } catch (e) {
-            console.error('Error parsing chapter content:', e)
           }
         } else {
-          console.error('Chapter not found:', chapterId)
           toast.error('Chapter not found.')
         }
       }
     } catch (error) {
-      console.error('Error loading chapter:', error)
       toast.error('Failed to load chapter.')
     }
   }
 
   const loadWorkSections = async (workId: string) => {
     try {
-      console.log('Loading sections for workId:', workId)
       const response = await fetch(`/api/works/${workId}/sections`)
       if (response.ok) {
         const result = await response.json()
-        console.log('Loaded sections:', result.sections)
         
         if (result.sections && result.sections.length > 0) {
           // Load existing chapter content
           const firstSection = result.sections[0]
-          console.log('First section:', firstSection)
           try {
             const content = typeof firstSection.content === 'string' 
               ? JSON.parse(firstSection.content) 
               : firstSection.content
             setLoadedContent(content)
-            console.log('Loaded existing chapter content into editor')
           } catch (e) {
-            console.error('Error parsing section content:', e)
           }
         } else {
           // No chapters yet - work needs first chapter created
-          console.log('No chapters found - this work needs its first chapter published')
         }
       } else {
-        console.error('Failed to load sections, status:', response.status)
       }
     } catch (error) {
-      console.error('Error loading sections:', error)
     }
   }
 
   const loadDraftData = async (draftId: string) => {
     try {
-      console.log('Loading draft data for draftId:', draftId)
       const response = await fetch(`/api/works/drafts`)
       if (response.ok) {
         const result = await response.json()
         const draft = result.drafts.find((d: any) => d.id === draftId)
         if (draft) {
-          console.log('Loaded draft data:', draft)
           setCurrentWork(prev => ({
             ...prev,
             title: draft.title,
@@ -290,20 +262,14 @@ export default function CreatorEditorPage() {
             hasContent: false // Drafts start with no content
           }))
         } else {
-          console.error('Draft not found with id:', draftId)
         }
       } else {
-        console.error('Failed to load drafts, status:', response.status)
       }
     } catch (error) {
-      console.error('Error loading draft data:', error)
     }
   }
 
   const handleSave = async (data: any) => {
-    console.log('=== SAVE CLICKED ===')
-    console.log('Saving:', data)
-    console.log('Current state:', { workId, draftId, isDraft: currentWork.isDraft })
     
     // Update content tracking
     if (data.content && data.content.trim().length > 100) { // Require meaningful content
@@ -313,7 +279,6 @@ export default function CreatorEditorPage() {
     try {
       // If no workId or draftId, create a new draft
       if (!workId && !draftId) {
-        console.log('Creating new draft...')
         const response = await fetch('/api/works/drafts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -326,7 +291,6 @@ export default function CreatorEditorPage() {
 
         if (response.ok) {
           const result = await response.json()
-          console.log('Draft created:', result)
           
           // Update URL with draftId and reload
           const newDraftId = result.draft?.id
@@ -337,13 +301,11 @@ export default function CreatorEditorPage() {
           }
         } else {
           const error = await response.json()
-          console.error('Failed to create draft:', error)
           toast.error(`Failed to save draft: ${error.error || 'Unknown error'}`)
           return
         }
       } else if (draftId) {
         // Update existing draft - save chapter content
-        console.log('Saving chapter to draft:', draftId)
         
         // For now, just show success since we need the sections API
         toast.info('Chapter content saved. Full draft chapter API integration is still pending.')
@@ -355,7 +317,6 @@ export default function CreatorEditorPage() {
         return
       } else if (workId) {
         // Save chapter to existing work
-        console.log('Saving chapter to work:', workId, 'chapterId:', chapterId)
         
         // Determine if this is an update or new chapter
         const isUpdate = !!chapterId
@@ -364,7 +325,6 @@ export default function CreatorEditorPage() {
           : `/api/works/${workId}/sections`
         const method = isUpdate ? 'PATCH' : 'POST'
         
-        console.log(`${method} to ${endpoint}`)
         
         const response = await fetch(endpoint, {
           method,
@@ -379,12 +339,10 @@ export default function CreatorEditorPage() {
 
         if (response.ok) {
           const result = await response.json()
-          console.log('Chapter saved:', result)
           
           // If this was a new chapter, update the URL with the chapterId
           if (!isUpdate && result.section?.id) {
             const newChapterId = result.section.id
-            console.log('New chapter created with ID:', newChapterId)
             // Update URL without reload to track chapterId for future saves
             window.history.replaceState(
               {},
@@ -394,12 +352,10 @@ export default function CreatorEditorPage() {
           }
         } else {
           const error = await response.json()
-          console.error('Failed to save chapter:', error)
           toast.error(`Failed to save chapter: ${error.error || 'Unknown error'}`)
         }
       }
     } catch (error) {
-      console.error('Error saving:', error)
       toast.error('Failed to save. Please try again.')
     }
     
@@ -411,13 +367,6 @@ export default function CreatorEditorPage() {
   }
 
   const handlePublish = async (data: any) => {
-    console.log('[EDITOR] Publishing clicked with data:', data)
-    console.log('[EDITOR] Current work state:', { 
-      hasContent: currentWork.hasContent, 
-      isDraft: currentWork.isDraft,
-      draftId 
-    })
-    
     // Check if work has content before publishing
     if (!currentWork.hasContent) {
       toast.warning('Cannot publish without content. Add at least one chapter or section first.')
@@ -427,7 +376,6 @@ export default function CreatorEditorPage() {
     // If this is a draft, we need to convert it to a published work
     if (currentWork.isDraft && draftId) {
       try {
-        console.log('[EDITOR] Sending publish request to API...')
         const response = await fetch(`/api/works/publish`, {
           method: 'POST',
           headers: {
@@ -439,15 +387,12 @@ export default function CreatorEditorPage() {
           })
         })
 
-        console.log('[EDITOR] Publish response status:', response.status)
 
         if (response.ok) {
           const result = await response.json()
-          console.log('[EDITOR] Publish success result:', result)
           
           // If the server says confirmation is required for mature content, prompt the author
             if (result.confirmationRequired) {
-              console.log('[EDITOR] Confirmation required for mature content')
               // Open modal with details and wait for user action
               setModalState({
                 open: true,
@@ -470,15 +415,12 @@ export default function CreatorEditorPage() {
           toast.success(successMessage)
           
           // Redirect to the story page
-          console.log('[EDITOR] Redirecting to story page:', result.workId)
           router.push(`/story/${result.workId}`)
         } else {
           const error = await response.json()
-          console.error('[EDITOR] Publish failed with error:', error)
           toast.error(`Failed to publish: ${error.error || 'Unknown error'}`)
         }
       } catch (error) {
-        console.error('[EDITOR] Error publishing work:', error)
         toast.error('Failed to publish work. Please try again.')
       }
     } else {
@@ -510,7 +452,6 @@ export default function CreatorEditorPage() {
         return
       }
     } catch (e) {
-      console.error('Error confirming publish:', e)
       toast.error('Failed to publish after confirmation. Please try again.')
     }
   }
@@ -521,7 +462,6 @@ export default function CreatorEditorPage() {
   }
 
   const handleUploadComplete = (results: any[]) => {
-    console.log('Upload completed:', results)
     
     // Track if content was uploaded
     if (results.length > 0 && results[0].sections?.length > 0) {
@@ -547,7 +487,7 @@ export default function CreatorEditorPage() {
 
   return (
     <AppLayout>
-      <div className="fixed inset-0 left-0 md:left-64 flex flex-col bg-gray-900">
+      <div className="fixed inset-0 left-0 md:left-64 flex flex-col bg-white dark:bg-gray-900">
         {/* Header */}
         <div className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex-shrink-0">
           <div className="flex items-center justify-between">
@@ -567,9 +507,7 @@ export default function CreatorEditorPage() {
                   <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
                     {currentWork.title || (mode === 'create' ? `New ${formatType}` : 'Untitled Work')}
                     {currentWork.isDraft && (
-                      <span className="ml-2 px-2 py-1 text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full">
-                        DRAFT
-                      </span>
+                      <Badge variant="warning" className="ml-2">DRAFT</Badge>
                     )}
                   </h1>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -866,7 +804,6 @@ export default function CreatorEditorPage() {
               chapterId={chapterId}
               initialDocument={loadedContent}
               onSave={async (document: ChaptDocument) => {
-                console.log('Saving chapter:', document)
                 
                 // Convert ChaptDocument to API format
                 const saveData = {
@@ -880,9 +817,6 @@ export default function CreatorEditorPage() {
                 await handleSave(saveData)
               }}
               onPublish={async (document: ChaptDocument) => {
-                console.log('=== PUBLISH CLICKED ===')
-                console.log('Publishing chapter:', document)
-                console.log('Current state:', { workId, draftId, isDraft: currentWork.isDraft, hasContent: currentWork.hasContent })
                 
                 // Convert ChaptDocument to API format
                 const publishData = {
@@ -893,14 +827,11 @@ export default function CreatorEditorPage() {
                   chaptNumber: document.metadata.chapterNumber
                 }
                 
-                console.log('Publish data:', publishData)
                 
                 // Use handlePublish for drafts, or direct API call for existing works
                 if (currentWork.isDraft && draftId) {
-                  console.log('Publishing draft via handlePublish...')
                   await handlePublish(publishData)
                 } else if (workId) {
-                  console.log('Publishing chapter to existing work:', workId, 'chapterId:', chapterId)
                   // Publishing a chapter on an existing work
                   try {
                     // Determine if this is an update or new chapter
@@ -910,9 +841,6 @@ export default function CreatorEditorPage() {
                       : `/api/works/${workId}/sections`
                     const method = isUpdate ? 'PATCH' : 'POST'
                     
-                    console.log('=== CALLING SECTIONS API ===')
-                    console.log(`Endpoint: ${method} ${endpoint}`)
-                    console.log('Data being sent:', publishData)
                     
                     const response = await fetch(endpoint, {
                       method,
@@ -920,20 +848,13 @@ export default function CreatorEditorPage() {
                       body: JSON.stringify(publishData)
                     })
 
-                    console.log('=== API RESPONSE ===')
-                    console.log('Status:', response.status)
-                    console.log('Status text:', response.statusText)
                     
                     if (response.ok) {
                       const result = await response.json()
-                      console.log('=== PUBLISH SUCCESS ===')
-                      console.log('Full result:', JSON.stringify(result, null, 2))
-                      console.log('Chapter published successfully:', result)
 
                       // If this was a new chapter, update the URL with the chapterId
                       if (!isUpdate && result.section?.id) {
                         const newChapterId = result.section.id
-                        console.log('New chapter created with ID:', newChapterId)
                         // Update URL without reload to track chapterId for future saves
                         window.history.replaceState(
                           {},
@@ -959,12 +880,9 @@ export default function CreatorEditorPage() {
                       router.push(`/story/${workId}`)
                     } else {
                       const error = await response.json()
-                      console.error('API error response:', error)
                       
                       // Show detailed validation errors if available
                       if (error.validationErrors && error.details) {
-                        console.error('Validation errors:', error.validationErrors)
-                        console.error('Validation details:', error.details)
                         
                         const errorDetails = error.validationErrors.join('\n• ')
                         toast.error(`Failed to publish chapter: ${error.error}. Issues: ${errorDetails}`)
@@ -973,12 +891,10 @@ export default function CreatorEditorPage() {
                       }
                     }
                   } catch (error) {
-                    console.error('Error publishing chapter:', error)
                     toast.error('Failed to publish chapter. Please try again.')
                   }
                 } else {
                   // No workId or draftId - need to create work first
-                  console.error('Cannot publish: No workId or draftId')
                   toast.warning('Please save your work as a draft first before publishing.')
                 }
               }}
@@ -1168,7 +1084,6 @@ export default function CreatorEditorPage() {
                 <button
                   onClick={() => {
                     // Save settings
-                    console.log('Saving settings:', { currentWork, projectStats, quickActions })
                     setShowSettings(false)
                   }}
                   className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
