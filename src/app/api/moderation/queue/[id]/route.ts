@@ -59,7 +59,7 @@ export async function GET(request: NextRequest, props: RouteParams) {
             author: true,
             sections: {
               where: { status: 'published' },
-              orderBy: { orderIndex: 'asc' }
+              orderBy: { chapterNumber: 'asc' }
             }
           }
         },

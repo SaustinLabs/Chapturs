@@ -44,7 +44,7 @@ export default function EmojiPicker({
 
     function handleClickOutside(event: MouseEvent) {
       if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
-        onClose()
+        onClose?.()
       }
     }
 

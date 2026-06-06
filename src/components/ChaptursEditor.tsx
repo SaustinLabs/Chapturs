@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { ChaptDocument, ContentBlock, BlockType, ProseBlock, HeadingBlock, DividerBlock, DialogueBlock, ChatBlock, PhoneBlock, NarrationBlock, ImageBlock, EditorState, ChatPlatform } from '@/types/chapt'
 import { ChatBlockEditor, PhoneBlockEditor, DialogueBlockEditor, NarrationBlockEditor, ImageBlockEditor } from './BlockEditors'
 import { PlusCircle, Save, Eye, Edit3, Type, MessageSquare, Smartphone, Users, SplitSquareVertical, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, Maximize, Sparkles, X, ChevronRight, UserPlus } from 'lucide-react'
@@ -32,6 +33,7 @@ export default function ChaptursEditor({
   onSave,
   onPublish 
 }: ChaptursEditorProps) {
+  const router = useRouter()
   const { toast } = useToast()
 
   // Suggest Edit modal state
@@ -972,7 +974,7 @@ export default function ChaptursEditor({
           // This would navigate to a different chapter
           // For now, we could reload the page with new chapterId
           if (workId) {
-            window.location.href = `/creator/editor?workId=${workId}&chapterId=${id}`
+            router.push(`/creator/editor?workId=${workId}&chapterId=${id}`)
           }
         }}
       />

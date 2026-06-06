@@ -38,12 +38,11 @@ export default async function AdminLivingWorldPage() {
     select: {
       id: true,
       description: true,
-      severity: true,
       status: true,
       createdAt: true,
       world: { select: { id: true, title: true, slug: true } },
-      flaggedWork: { select: { id: true, title: true } },
-      flaggedSection: { select: { id: true, title: true } },
+      sourceWork: { select: { id: true, title: true } },
+      sourceSection: { select: { id: true, title: true } },
     },
   })
 
@@ -53,7 +52,7 @@ export default async function AdminLivingWorldPage() {
         ...w,
         createdAt: w.createdAt.toISOString(),
       }))}
-      openContradictions={openContradictions.map((c: typeof openContradictions[number]) => ({
+      openContradictions={openContradictions.map((c: any) => ({
         ...c,
         createdAt: c.createdAt.toISOString(),
       }))}

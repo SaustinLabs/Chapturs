@@ -416,9 +416,6 @@ export class IntelligentRecommendationEngine {
       where: {
         id: { notIn: excludedIds },
         status: { in: ['published', 'ongoing', 'completed'] },
-        ...(settings?.excludeGenres && {
-          genres: { not: { hasSome: settings.excludeGenres } }
-        }),
         ...(settings?.maxMaturityRating && {
           maturityRating: { lte: settings.maxMaturityRating }
         }),
@@ -438,10 +435,11 @@ export class IntelligentRecommendationEngine {
           }
         }
       },
-      take: 200 // Limit candidate pool for performance
-    })
+      take: 100,
+      orderBy: { viewCount: 'desc' }
+    }) as any
   }
-  
+
   private static async getFallbackRecommendations(limit: number): Promise<FeedItem[]> {
     // Return high-quality popular content as fallback
     const popularWorks = await prisma.work.findMany({
@@ -736,4 +734,4 @@ export class IntelligentRecommendationEngine {
   }
 }
 
-export default IntelligentRecommendationEngine
+export default IntelligentRecommendationEngine// keep// keep

@@ -149,15 +149,15 @@ export async function POST(request: NextRequest, props: RouteParams) {
     // Notify Fan Artists who have contributed to this work
     try {
       const fanArtists = await prisma.imageSubmission.findMany({
-        where: { workId: workId, status: 'approved' },
-        select: { uploaderId: true },
-        distinct: ['uploaderId']
+        where: { character: { workId: workId }, status: 'approved' },
+        select: { userId: true },
+        distinct: ['userId']
       });
 
       if (fanArtists.length > 0) {
         await prisma.notification.createMany({
           data: fanArtists.map(artist => ({
-            userId: artist.uploaderId,
+            userId: artist.userId,
             type: 'new_character_alert',
             title: `New Character Unveiled in ${work.title || 'a story you follow'}`,
             message: `A new character profile for ${name} just dropped! Feel inspired? Upload some fan-art!`,

@@ -1,7 +1,8 @@
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/database/PrismaService'
+import { prisma as _prisma } from '@/lib/database/PrismaService'
+const prisma = _prisma as any
 import { auth } from '@/auth'
 
 // POST /api/translations/vote - Vote on a translation

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import ChaptursEditor from '@/components/ChaptursEditor'
 import ConfirmMatureModal from '@/components/ConfirmMatureModal'
 import AdvancedUploader from '@/components/AdvancedUploader'
@@ -35,6 +35,7 @@ interface EditorMode {
 export default function CreatorEditorPage() {
   const params = useParams()
   const searchParams = useSearchParams()
+  const router = useRouter()
   const { toast } = useToast()
   
   // URL parameters - with safe fallbacks
@@ -331,7 +332,7 @@ export default function CreatorEditorPage() {
           const newDraftId = result.draft?.id
           if (newDraftId) {
             toast.success('Draft created. Reloading to continue editing...')
-            window.location.href = `/creator/editor?draftId=${newDraftId}&format=${currentWork.formatType}`
+            router.push(`/creator/editor?draftId=${newDraftId}&format=${currentWork.formatType}`)
             return
           }
         } else {
@@ -470,7 +471,7 @@ export default function CreatorEditorPage() {
           
           // Redirect to the story page
           console.log('[EDITOR] Redirecting to story page:', result.workId)
-          window.location.href = `/story/${result.workId}`
+          router.push(`/story/${result.workId}`)
         } else {
           const error = await response.json()
           console.error('[EDITOR] Publish failed with error:', error)
@@ -501,7 +502,7 @@ export default function CreatorEditorPage() {
       if (overrideResp.ok) {
         const final = await overrideResp.json()
         toast.success('Work published successfully.')
-        window.location.href = `/story/${final.workId}`
+        router.push(`/story/${final.workId}`)
         return
       } else {
         const err = await overrideResp.json()
@@ -955,7 +956,7 @@ export default function CreatorEditorPage() {
 
                       toast.success(successMessage)
                       // Redirect to the published work story page (has proper navigation)
-                      window.location.href = `/story/${workId}`
+                      router.push(`/story/${workId}`)
                     } else {
                       const error = await response.json()
                       console.error('API error response:', error)

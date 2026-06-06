@@ -43,12 +43,7 @@ export default function TranslationSubmissionForm({
         content = JSON.parse(translatedContent)
       } catch (e) {
         // If not valid JSON, wrap in array format expected by Chapt
-        content = [
-          {
-            type: 'paragraph',
-            content: translatedContent,
-          },
-        ]
+        content = translatedContent // keep as string for submission
       }
 
       const response = await fetch('/api/translations/submit', {

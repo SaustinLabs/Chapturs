@@ -261,7 +261,7 @@ export async function POST(
 
       // Check depth (max 3 levels)
       let depth = 1
-      let current = parentComment
+      let current: any = parentComment
       while (current.parent && depth < 3) {
         current = current.parent
         depth++

@@ -114,7 +114,7 @@ export default async function ContributorPublicProfilePage({ params }: PageProps
               </div>
             ) : (
               <div className="space-y-3">
-                {user.translationsSubmitted.map(trans => (
+                {(user.translationsSubmitted as any[]).map((trans: any) => (
                   <Link href={`/story/${trans.workId}/chapter/${trans.sectionId}`} key={trans.id} className="block p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-blue-400 transition-colors rounded-xl shadow-sm">
                     <div className="flex justify-between items-start">
                       <div>

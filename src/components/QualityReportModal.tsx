@@ -126,7 +126,7 @@ function MetricCard({ icon, label, score }: { icon: React.ReactElement, label: s
     <div className={`p-3 rounded-lg border ${colorClass} flex flex-col justify-between h-full`}>
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-1.5 opacity-80">
-          {React.cloneElement(icon, { className: 'w-4 h-4' })}
+          {React.cloneElement(icon as any, { className: 'w-4 h-4' })}
           <span className="text-xs font-semibold uppercase tracking-wider">{label}</span>
         </div>
         <span className="font-bold text-lg">{score}</span>

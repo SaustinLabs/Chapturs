@@ -222,26 +222,18 @@ export async function assessWorkSynchronously(
 
       // Queue for retry with exponential backoff
       try {
-        await prisma.qualityAssessmentQueue.upsert({
-          where: {
-            workId_sectionId: {
-              workId,
-              sectionId,
-            },
-          },
-          create: {
-            workId,
-            sectionId,
-            priority: 'high',
-            status: 'queued',
-            retryAfter: new Date(Date.now() + error.retryAfter * 1000),
-          },
-          update: {
-            status: 'queued',
-            retryAfter: new Date(Date.now() + error.retryAfter * 1000),
-            attempts: { increment: 1 },
-          },
-        })
+        // findFirst + create/update (workId_sectionId unique doesn't exist on schema)
+        const existingQ = await prisma.qualityAssessmentQueue.findFirst({ where: { workId, sectionId } });
+        if (existingQ) {
+          await prisma.qualityAssessmentQueue.update({
+            where: { id: existingQ.id },
+            data: { priority: 'high', status: 'queued', retryAfter: new Date(Date.now() + error.retryAfter * 1000), attempts: { increment: 1 } }
+          });
+        } else {
+          await prisma.qualityAssessmentQueue.create({
+            data: { workId, sectionId, priority: 'high', status: 'queued', retryAfter: new Date(Date.now() + error.retryAfter * 1000) }
+          });
+        }
 
         console.log('[ASSESS_SYNC] Queued for retry after', error.retryAfter, 'seconds')
 

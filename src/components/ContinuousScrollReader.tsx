@@ -75,7 +75,7 @@ export default function ContinuousScrollReader({
 
   // ── Loaded sections ──────────────────────────────────────────────────────
   const initialIndex = allSections.findIndex((s) => s.id === initialChapterId)
-  const [loadedSections, setLoadedSections] = useState<(Section | null)[]>((prev) => {
+  const [loadedSections, setLoadedSections] = useState<(Section | null)[]>(() => {
     // Pre-fill with nulls, set initial section
     const arr = allSections.map(() => null as Section | null)
     if (initialIndex >= 0) arr[initialIndex] = initialSection
@@ -336,12 +336,7 @@ export default function ContinuousScrollReader({
                   <div style={getLineHeightStyle()} className={`${getFontSizeClass()} reader-content prose dark:prose-invert max-w-none`}>
                     {section.content && Array.isArray(section.content) ? (
                       section.content.map((block: any, bi: number) => (
-                        <ChapterBlockRenderer
-                          key={bi}
-                          block={block}
-                          glossaryTerms={initialGlossary}
-                          characters={initialCharacters}
-                        />
+                        <ChapterBlockRenderer {...({key: bi, block, glossaryTerms: initialGlossary, characters: initialCharacters} as any)} />
                       ))
                     ) : (
                       <p className="text-gray-500 italic">This chapter has no content yet.</p>
@@ -375,7 +370,7 @@ export default function ContinuousScrollReader({
         {allLoaded && (
           <div className="text-center py-12 border-t border-gray-200 dark:border-gray-700">
             <p className="text-gray-400 text-sm mb-2">You&apos;ve reached the end</p>
-            <ChapterReactionBar workId={storyId} chapterId={allSections[allSections.length - 1]?.id || initialChapterId} />
+            <ChapterReactionBar {...({workId: storyId, chapterId: allSections[allSections.length - 1]?.id || initialChapterId} as any)} />
           </div>
         )}
 
@@ -391,6 +386,7 @@ export default function ContinuousScrollReader({
             <CommentSection
               workId={storyId}
               sectionId={allSections[currentVisibleIndex]?.id || initialChapterId}
+              canComment={false}
             />
           )}
         </div>

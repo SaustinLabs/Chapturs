@@ -60,7 +60,7 @@ export default async function TranslationBountyBoardPage() {
                     {trans.work.title}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-1">
-                    Chapter: {trans.chapter.title || `Chapter ${trans.chapter.order}`}
+                    Chapter: {trans.chapter.title || `Chapter ${trans.chapter.chapterNumber}`}
                   </p>
                   
                   <div className="flex items-center gap-2 mb-2">

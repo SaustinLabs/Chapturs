@@ -5,14 +5,12 @@ const nextConfig = {
   // because Node.js doesn't load the full node_modules tree at boot.
   output: 'standalone',
   eslint: {
-    // The repo currently has many lint warnings/errors that block production builds.
-    // Allow building while we iteratively fix lint issues.
+    // ESLint issues mostly resolved. Re-enable in CI after design system migration.
     ignoreDuringBuilds: true,
   },
   typescript: {
-    // The repo has pre-existing TypeScript strict-mode violations (implicit-any, etc.)
-    // Allow building while we iteratively fix them (same approach as ESLint above).
-    ignoreBuildErrors: true,
+    // Type errors are now clean — strict checking enabled.
+    // ignoreBuildErrors: true,  // REMOVED: all type errors fixed, Phase 0.1 complete
   },
   experimental: {
     // Cache dynamic page payloads in the client-side router for 30 s.

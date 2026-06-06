@@ -93,6 +93,7 @@ export default function ChapterTopBar({
                 <LanguageSelectorMenu
                   workId={workId}
                   chapterId={chapterId}
+                  currentLanguage={targetLanguage}
                   onClose={() => setShowLanguageMenu(false)}
                   onLanguageSelect={(language) => {
                     onTargetLanguageChange(language)

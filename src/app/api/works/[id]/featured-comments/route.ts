@@ -38,7 +38,7 @@ export async function GET(
           select: {
             id: true,
             title: true,
-            order: true,
+            chapterNumber: true,
           },
         },
       },

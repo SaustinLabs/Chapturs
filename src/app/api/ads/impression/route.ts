@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     const session = await auth()
     
     // Rate limit: max 100 impressions per hour per user
-    const identifier = session?.user?.id || request.ip || 'anonymous'
+    const identifier = session?.user?.id || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'anonymous'
     const { success } = await rateLimit(identifier, 'ad_impression', 100, 3600)
     
     if (!success) {

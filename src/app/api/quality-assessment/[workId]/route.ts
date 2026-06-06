@@ -39,7 +39,7 @@ export async function GET(
     // Parse JSON fields
     const result = {
       ...assessment,
-      discoveryTags: JSON.parse(assessment.discoveryTags),
+      discoveryTags: JSON.parse(assessment.discoveryTags as unknown as string),
     }
 
     return NextResponse.json(result)

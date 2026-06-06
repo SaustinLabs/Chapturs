@@ -636,7 +636,7 @@ export default function StoryPageClient({ initialWork, aiReview, featuredComment
                   <div className="aspect-[2/3] relative rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700 mb-2">
                     {w.coverImage ? (
                       <Image
-                        src={resolveCoverSrc(w.id, w.coverImage)}
+                        src={resolveCoverSrc(w.id, w.coverImage) as any}
                         alt={w.title}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-200"

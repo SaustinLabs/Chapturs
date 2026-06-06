@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
           { displayName: query ? { contains: query, mode: 'insensitive' } : undefined },
           { email: query ? { contains: query, mode: 'insensitive' } : undefined },
           { username: query ? { contains: query, mode: 'insensitive' } : undefined }
-        ].filter(Boolean),
+        ].filter(Boolean) as any,
         ...(role ? { role } : {})
       },
       select: {

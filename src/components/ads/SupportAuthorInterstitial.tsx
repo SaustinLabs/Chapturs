@@ -1,4 +1,5 @@
 'use client'
+import { useRouter } from 'next/navigation'
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { Heart, Play, SkipForward, X, Volume2, VolumeX } from 'lucide-react'
@@ -22,6 +23,7 @@ export default function SupportAuthorInterstitial({
   onAdComplete,
   onSkip,
 }: SupportAuthorInterstitialProps) {
+  const router = useRouter()
   const [phase, setPhase] = useState<'choice' | 'playing' | 'complete'>('choice')
   const [timeRemaining, setTimeRemaining] = useState(adDuration)
   const [muted, setMuted] = useState(false)
@@ -59,12 +61,12 @@ export default function SupportAuthorInterstitial({
 
   const handleSkipToChapter = useCallback(() => {
     onSkip?.()
-    window.location.href = nextChapterUrl
+    router.push(nextChapterUrl)
   }, [nextChapterUrl, onSkip])
 
   const handleAdComplete = useCallback(() => {
     onAdComplete?.()
-    window.location.href = nextChapterUrl
+    router.push(nextChapterUrl)
   }, [nextChapterUrl, onAdComplete])
 
   // Phase 1: Reader chooses

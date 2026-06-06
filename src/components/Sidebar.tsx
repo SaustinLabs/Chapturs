@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession, signIn, signOut } from 'next-auth/react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   BookOpenIcon,
   HomeIcon,
@@ -37,6 +37,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
   const [mobileUnreadCount, setMobileUnreadCount] = useState(0)
   const { data: session, status } = useSession()
   const pathname = usePathname()
+  const router = useRouter()
 
   // Fetch unread count for mobile bell badge
   useEffect(() => {
@@ -151,7 +152,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
               <button
                 onClick={() => {
                   onHubChange('reader')
-                  if (window.location.pathname !== '/') window.location.href = '/'
+                  if (window.location.pathname !== '/') router.push('/')
                 }}
                 className={`w-full px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   currentHub === 'reader'
@@ -168,7 +169,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
                     return
                   }
                   onHubChange('creator')
-                  if (window.location.pathname !== '/creator/dashboard') window.location.href = '/creator/dashboard'
+                  if (window.location.pathname !== '/creator/dashboard') router.push('/creator/dashboard')
                 }}
                 className={`w-full px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   currentHub === 'creator'
@@ -182,7 +183,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
                 <button
                   onClick={() => {
                     onHubChange('contributor')
-                    if (window.location.pathname !== '/contributor/dashboard') window.location.href = '/contributor/dashboard'
+                    if (window.location.pathname !== '/contributor/dashboard') router.push('/contributor/dashboard')
                   }}
                   className={`w-full px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                     currentHub === 'contributor'
@@ -209,9 +210,9 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
                   else if (currentHub === 'contributor') newHub = 'reader'
                   
                   onHubChange(newHub)
-                  if (newHub === 'reader') window.location.href = '/'
-                  else if (newHub === 'creator') window.location.href = '/creator/dashboard'
-                  else window.location.href = '/contributor/dashboard'
+                  if (newHub === 'reader') router.push('/')
+                  else if (newHub === 'creator') router.push('/creator/dashboard')
+                  else router.push('/contributor/dashboard')
                 }}
                 className="w-full p-2 rounded-lg hover:bg-gray-800 text-gray-500 hover:text-gray-300"
               >

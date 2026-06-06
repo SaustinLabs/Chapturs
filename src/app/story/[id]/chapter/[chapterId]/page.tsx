@@ -30,7 +30,7 @@ import { MessageSquare, Send, Sparkles, Edit3, Globe } from 'lucide-react'
 import ReportButton from '@/components/ReportButton'
 import AdSlot from '@/components/ads/AdSlot'
 import ChapterReactionBar from '@/components/ChapterReactionBar'
-import ChapterReaderSettings, { ReaderSettings, DEFAULT_READER_SETTINGS } from '@/components/ChapterReaderSettings'
+import ChapterReaderSettings from '@/components/ChapterReaderSettings'
 import ChapterTranslationBanner from '@/components/ChapterTranslationBanner'
 import ChapterMobileGlossary from '@/components/ChapterMobileGlossary'
 import ContinuousScrollReader from '@/components/ContinuousScrollReader'
@@ -430,7 +430,7 @@ export default function ChapterPage() {
           console.error('Translation fetch failed:', res.status)
         }
       } catch (e) {
-        if (e.name === 'AbortError') {
+        if ((e as Error).name === 'AbortError') {
           console.error('Translation fetch timed out after 5 seconds')
         } else {
           console.error('Translation fetch error:', e)
@@ -621,7 +621,7 @@ export default function ChapterPage() {
       }
     }
 
-    const timeout = window.setTimeout(enable, 700)
+    const timeout = (window as any).setTimeout(enable, 700)
     return () => {
       cancelled = true
       window.clearTimeout(timeout)
@@ -1252,7 +1252,7 @@ export default function ChapterPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <button
-                onClick={() => window.location.href = `/story/${storyId}`}
+                onClick={() => router.push(`/story/${storyId}`)}
                 className="text-blue-500 hover:text-blue-600 text-sm font-medium"
               >
                 ← Back

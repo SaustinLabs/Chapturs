@@ -35,7 +35,7 @@ export async function awardPoints(
 
   if (!existing) {
     await prisma.pointsLedger.create({
-      data: { userId, eventType, points, sourceId: sourceId ?? null, metadata },
+      data: { userId, eventType, points, sourceId: sourceId ?? null, metadata } as any,
     })
   }
 

@@ -110,7 +110,7 @@ export default function ChapterMobileGlossary({
                   className="w-full text-left p-3 rounded border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50"
                 >
                   <div className="font-medium text-gray-900 dark:text-white">{char.name}</div>
-                  {char.aliases?.length > 0 && (
+                  {(char.aliases as string[])?.length > 0 && (
                     <div className="text-xs text-gray-500 mt-0.5">
                       AKA: {(char.aliases as string[]).join(', ')}
                     </div>

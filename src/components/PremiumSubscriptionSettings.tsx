@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useToast } from '@/components/ui/Toast'
 
@@ -17,6 +18,7 @@ const PremiumSubscriptionSettings: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
   const { toast } = useToast()
+  const router = useRouter()
 
   useEffect(() => {
     fetch('/api/user/monetization')
@@ -38,7 +40,7 @@ const PremiumSubscriptionSettings: React.FC = () => {
       const res = await fetch('/api/stripe/checkout', { method: 'POST' })
       if (!res.ok) throw new Error(await res.text())
       const { url } = await res.json()
-      window.location.href = url
+      router.push(url)
     } catch {
       toast.error('Could not start checkout. Please try again.')
       setProcessing(false)
