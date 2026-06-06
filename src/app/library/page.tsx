@@ -6,6 +6,8 @@ import { useUser } from '@/hooks/useUser'
 import { signIn } from 'next-auth/react'
 import { BookmarkIcon, UserIcon, HeartIcon } from '@heroicons/react/24/outline'
 import { BookmarkIcon as BookmarkSolidIcon } from '@heroicons/react/24/solid'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 import DataService from '@/lib/api/DataService'
 import { resolveCoverSrc } from '@/lib/images'
 
@@ -218,39 +220,27 @@ export default function LibraryPage() {
 
         {/* Content */}
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <span className="ml-3 text-gray-600 dark:text-gray-400">Loading...</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Skeleton key={i} variant="rectangular" height={120} />
+            ))}
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-              {activeTab === 'subscriptions' ? (
-                <UserIcon className="w-8 h-8 text-gray-400" />
-              ) : activeTab === 'bookmarks' ? (
-                <BookmarkIcon className="w-8 h-8 text-gray-400" />
-              ) : (
-                <HeartIcon className="w-8 h-8 text-gray-400" />
-              )}
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              No {activeTab === 'all' ? 'library items' : activeTab} yet
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              {activeTab === 'subscriptions' 
+          <EmptyState
+            icon={
+              activeTab === 'subscriptions' ? <UserIcon className="w-12 h-12" /> :
+              activeTab === 'bookmarks' ? <BookmarkIcon className="w-12 h-12" /> :
+              <HeartIcon className="w-12 h-12" />
+            }
+            title={`No ${activeTab === 'all' ? 'library items' : activeTab} yet`}
+            description={
+              activeTab === 'subscriptions' 
                 ? 'Subscribe to authors to get notified of new content'
                 : activeTab === 'bookmarks'
                 ? 'Bookmark stories to save them for later'
                 : 'Start building your library by subscribing to authors and bookmarking stories'
-              }
-            </p>
-            <a
-              href="/"
-              className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-            >
-              Explore Stories
-            </a>
-          </div>
+            }
+          />
         ) : (
           <div className="grid gap-6">
             {filteredItems.map((item) => (

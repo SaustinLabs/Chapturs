@@ -6,6 +6,8 @@ import AppLayout from '@/components/AppLayout'
 import { useUser } from '@/hooks/useUser'
 import { signIn } from 'next-auth/react'
 import { useToast } from '@/components/ui/Toast'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { 
   BellIcon, 
   BellSlashIcon,
@@ -268,8 +270,8 @@ function AuthenticatedSubscriptionsView() {
 
         {loading && (
           <div className="space-y-4">
-            {[...Array(3)].map((_, index) => (
-              <div key={index} className="h-32 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 animate-pulse" />
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} variant="rectangular" height={128} />
             ))}
           </div>
         )}
@@ -282,13 +284,11 @@ function AuthenticatedSubscriptionsView() {
 
         {/* Subscriptions List */}
         {!loading && subscriptions.length === 0 ? (
-          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-            <div className="text-6xl mb-4">📚</div>
-            <h3 className="text-lg font-medium mb-2">No subscriptions yet</h3>
-            <p className="text-sm">
-              Start following your favorite stories to see them here
-            </p>
-          </div>
+          <EmptyState
+            icon={<span className="text-5xl">📚</span>}
+            title="No subscriptions yet"
+            description="Start following your favorite stories to see them here"
+          />
         ) : (
           <div className="space-y-4">
             {subscriptions.map((subscription) => {

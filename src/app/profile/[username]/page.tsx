@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { UserIcon } from '@heroicons/react/24/outline'
 import AppLayout from '@/components/AppLayout'
 import ProfileLayout from '@/components/profile/ProfileLayout'
 import ProfileSidebar from '@/components/profile/ProfileSidebar'
@@ -37,8 +40,13 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-gray-400">Loading profile...</div>
+        <div className="max-w-7xl mx-auto p-6 space-y-6">
+          <Skeleton variant="rectangular" height={200} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Skeleton variant="rectangular" height={180} />
+            <Skeleton variant="rectangular" height={180} />
+            <Skeleton variant="rectangular" height={180} />
+          </div>
         </div>
       </AppLayout>
     )
@@ -47,11 +55,12 @@ export default function ProfilePage() {
   if (error === 'not_found') {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-100 mb-2">User Not Found</h1>
-            <p className="text-gray-400">This user doesn&apos;t exist.</p>
-          </div>
+        <div className="max-w-7xl mx-auto p-6">
+          <EmptyState
+            icon={<UserIcon className="w-16 h-16" />}
+            title="User Not Found"
+            description="This user doesn't exist."
+          />
         </div>
       </AppLayout>
     )
@@ -60,11 +69,12 @@ export default function ProfilePage() {
   if (error || !data) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-100 mb-2">Error</h1>
-            <p className="text-gray-400">Failed to load profile.</p>
-          </div>
+        <div className="max-w-7xl mx-auto p-6">
+          <EmptyState
+            icon={<UserIcon className="w-16 h-16" />}
+            title="Error"
+            description="Failed to load profile. Please try again."
+          />
         </div>
       </AppLayout>
     )
