@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/database/PrismaService'
 import { resolveDbUserId } from '@/lib/resolveDbUserId'
-import { awardPoints, POINTS_EVENT_TYPE } from '@/lib/achievements/points'
+import { awardPoints, POINTS_EVENT_TYPE, checkGlossaryMilestones } from '@/lib/achievements/points'
 
 function parseCollaboratorPermissions(raw: string | null | undefined) {
   if (!raw) return { canEdit: false }
@@ -116,6 +116,8 @@ export async function POST(request: NextRequest, props: RouteParams) {
 
     if (isNewEntry && glossaryEntry) {
       awardPoints(dbUserId, POINTS_EVENT_TYPE.GLOSSARY_ENTRY, 5, (glossaryEntry as any).id).catch(() => {})
+      // Check glossary count milestones (10/25/50/100)
+      checkGlossaryMilestones(dbUserId, workId).catch(() => {})
     }
 
     return NextResponse.json({

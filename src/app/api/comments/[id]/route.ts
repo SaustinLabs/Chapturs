@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database/PrismaService'
 import { auth } from '@/auth'
 import { createNotification } from '@/lib/notifications'
+import { awardPoints, POINTS_EVENT_TYPE, awardAchievement } from '@/lib/achievements/points'
 
 // PATCH /api/comments/[id] - Update comment
 export async function PATCH(
@@ -171,6 +172,10 @@ export async function PATCH(
               })
             } catch {}
           })()
+
+          // Award points + achievement for featured comment
+          awardPoints(comment.userId, POINTS_EVENT_TYPE.COMMENT_FEATURED, 30, comment.id).catch(() => {})
+          awardAchievement(comment.userId, 'featured_comment', comment.id).catch(() => {})
         } else if (!isFeatured && wasAlreadyFeatured) {
           await prisma.user.update({
             where: { id: comment.userId },

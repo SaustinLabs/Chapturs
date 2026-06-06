@@ -5,6 +5,7 @@ import { auth } from '@/auth'
 import DatabaseService, { prisma } from '../../../../../lib/database/PrismaService'
 import { ContentValidationService } from '../../../../../lib/ContentValidationService'
 import { logCollaborationActivity } from '../../../../../lib/collaborationActivity'
+import { checkChapterMilestones, openFirstReaderWindow, checkAndAwardFoundingCreator } from '@/lib/achievements/points'
 
 interface RouteParams {
   params: Promise<{
@@ -179,6 +180,16 @@ export async function POST(request: NextRequest, props: RouteParams) {
           data: { status: 'published' }
         })
       }
+    }
+
+    // If published, fire achievement triggers
+    if (status === 'published') {
+      // #100: Founding Creator badge (first 100 creators)
+      checkAndAwardFoundingCreator(dbUserId, section.id).catch(() => {})
+      // Chapter count milestones (first_chapter, ten_chapters)
+      checkChapterMilestones(dbUserId, section.id).catch(() => {})
+      // #101: Open first reader window (5-min claim period)
+      openFirstReaderWindow(section.id).catch(() => {})
     }
 
     return NextResponse.json({

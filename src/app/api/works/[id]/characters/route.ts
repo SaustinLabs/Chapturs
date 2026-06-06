@@ -7,6 +7,7 @@ import { resolveDbUserId } from '@/lib/resolveDbUserId'
 import { createCharacterProfileSchema } from '@/lib/api/schemas'
 import { ZodError } from 'zod'
 import { logCollaborationActivity } from '@/lib/collaborationActivity'
+import { checkCharacterMilestones } from '@/lib/achievements/points'
 
 interface RouteParams {
   params: Promise<{
@@ -166,8 +167,11 @@ export async function POST(request: NextRequest, props: RouteParams) {
         });
       }
     } catch(e) {
-      console.error('FanArtist Notification error:', e);
+      // FanArtist notification failed — non-critical, continue
     }
+
+    // Check character count milestones (25/50/100)
+    checkCharacterMilestones(dbUserId, workId).catch(() => {})
 
     return NextResponse.json({
       success: true,

@@ -1074,6 +1074,63 @@ He was already north of the river.`,
       tier: 'bronze',
       category: 'reader',
     },
+    // ── Glossary milestones (#102) ──────────────────────────────────────
+    {
+      key: 'glossary_25',
+      title: 'Lexicographer',
+      description: 'Created 25 glossary entries.',
+      badgeIcon: '📖',
+      pointValue: 50,
+      tier: 'gold',
+      category: 'author',
+    },
+    {
+      key: 'glossary_50',
+      title: 'World Scholar',
+      description: 'Created 50 glossary entries.',
+      badgeIcon: '🌐',
+      pointValue: 100,
+      tier: 'platinum',
+      category: 'author',
+    },
+    {
+      key: 'glossary_100',
+      title: 'Loremaster',
+      description: 'Created 100 glossary entries.',
+      badgeIcon: '📜',
+      pointValue: 200,
+      tier: 'platinum',
+      category: 'author',
+    },
+    // ── Character milestones (#103) ─────────────────────────────────────
+    {
+      key: 'characters_50',
+      title: 'Ensemble Builder',
+      description: 'Added 50 characters to profiles.',
+      badgeIcon: '🎭',
+      pointValue: 80,
+      tier: 'gold',
+      category: 'author',
+    },
+    {
+      key: 'characters_100',
+      title: 'Living World',
+      description: 'Added 100 characters to profiles.',
+      badgeIcon: '🌍',
+      pointValue: 150,
+      tier: 'platinum',
+      category: 'author',
+    },
+    // ── First reader (#101) ─────────────────────────────────────────────
+    {
+      key: 'first_reader',
+      title: 'First!',
+      description: 'One of the first readers of a newly published chapter.',
+      badgeIcon: '⚡',
+      pointValue: 15,
+      tier: 'silver',
+      category: 'reader',
+    },
   ]
   for (const achievement of achievements) {
     const exists = await prisma.achievement.findFirst({
