@@ -23,7 +23,7 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 |---|------|--------|-------|
 | 1 | Run bootstrap flow: sign in → `/admin/bootstrap` → enter PIN → sign out → sign back in | ✅ | Confirmed done by user |
 | 2 | Verify `RESEND_API_KEY` + `EMAIL_FROM` are in GitHub Secrets | ✅ | Confirmed set by user |
-| 3 | Run `npx prisma db push` on the production DB | 🔶 | Schema has `CommunityLink.signupCount` + `User.communityRef` + achievement tables that need pushing. **HIGH PRIORITY — blocks referral tracking.** |
+| 3 | Run `npx prisma db push` on the production DB | ✅ | Verified July 5 — DB already synced. `CommunityLink.signupCount`, `User.communityRef`, and all achievement tables are live. |
 | 4 | Set up Admin → Settings → Email Addresses in the admin panel | ✅ | Defaults to `@chapturs.com` values which are functional; no blocking issue confirmed |
 | 108 | Add `GOOGLE_BOOKS_API_KEY`, `GOOGLE_CLOUD_VISION_API_KEY`, `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY` to GitHub Secrets + VPS env | ⬜ | Documented in `.env.example`; Vision + reCAPTCHA code is live but keys must be set for them to activate |
 | 112 | Install and configure Squad multi-agent dev team in repo | ✅ | `squad init` run; `.squad/` scaffold created; decisions.md, routing.md, wisdom.md, identity files seeded with Chapturs context; team cast via VS Code Squad agent mode |
@@ -78,7 +78,7 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 21 | Import 3–5 public domain works from Project Gutenberg | 🔶 | Pipeline built: 6 files in `src/lib/gutenberg-import/` + `POST /api/admin/import/gutenberg`. **Not yet run on production — zero content exists.** Suggested works: *Dracula* (#345), *Count of Monte Cristo* (#1184), *Pride and Prejudice* (#1342), *Frankenstein* (#84), *Sherlock Holmes* (#1661). Known issue: title/content corruption on Frankenstein + Holmes (fix script ready). |
+| 21 | Import 3–5 public domain works from Project Gutenberg | 🔶 | 7 works imported: Dracula, P&P, Monte Cristo (120 ch!), Frankenstein, Holmes. **Issues found July 5:** (1) Holmes imported 3× — idempotency tag check may have a bug. (2) Holmes Ch5 has title/content corruption (fix script exists at `references/gutenberg-title-fix.js`). (3) Frankenstein corruption was already fixed. Dracula's 6 "long" titles are legitimate (Stoker wrote long chapter titles). |
 | 22 | Generate AI glossary entries for imported works | ✅ | Built into pipeline (`generate-glossary.ts`). Asks LLM directly about the work rather than parsing raw text. Runs during import. |
 | 23 | Generate character profiles for imported works | ✅ | Built into pipeline (`generate-characters.ts`). Same direct-LLM approach. Runs during import. |
 
