@@ -175,6 +175,24 @@ export async function runGutenbergImport(
     },
   })
 
+  // Post-create idempotency guard — if a concurrent import beat us to it,
+  // clean up our duplicate and return the existing work.
+  const raceWinner = await prisma.work.findFirst({
+    where: {
+      tags: { contains: idempotencyTag },
+      id: { not: work.id },
+    },
+    orderBy: { createdAt: 'asc' },
+  })
+  if (raceWinner) {
+    await prisma.work.delete({ where: { id: work.id } })
+    return {
+      status: 'already_imported',
+      workId: raceWinner.id,
+      title: raceWinner.title,
+    }
+  }
+
   // Step 5 — Create section records
   let sectionsCreated = 0
   const savedSections: any[] = []

@@ -78,7 +78,7 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 21 | Import 3–5 public domain works from Project Gutenberg | 🔶 | 7 works imported: Dracula, P&P, Monte Cristo (120 ch!), Frankenstein, Holmes. **Issues found July 5:** (1) Holmes imported 3× — idempotency tag check may have a bug. (2) Holmes Ch5 has title/content corruption (fix script exists at `references/gutenberg-title-fix.js`). (3) Frankenstein corruption was already fixed. Dracula's 6 "long" titles are legitimate (Stoker wrote long chapter titles). |
+| 21 | Import 3–5 public domain works from Project Gutenberg | ✅ | 5 unique works imported: Dracula, P&P, Monte Cristo (120 ch!), Frankenstein, Holmes. **Fixed July 5:** Holmes duplicates removed (idempotency race condition patched with post-create guard). Holmes Ch5 title corruption fixed (narrative text merged back into content, title set to "Chapter I: The Red-Headed League"). |
 | 22 | Generate AI glossary entries for imported works | ✅ | Built into pipeline (`generate-glossary.ts`). Asks LLM directly about the work rather than parsing raw text. Runs during import. |
 | 23 | Generate character profiles for imported works | ✅ | Built into pipeline (`generate-characters.ts`). Same direct-LLM approach. Runs during import. |
 
