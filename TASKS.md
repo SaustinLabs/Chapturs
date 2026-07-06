@@ -1,6 +1,6 @@
 # Chapturs — Master Task List
 
-> Last updated: April 14, 2026
+> Last updated: July 5, 2026
 > **Legend:** ✅ Done · 🔶 Partial / in progress · ⬜ Not started
 > **Format:** Every task has a unique numeric ID, concise title, status, and notes.
 
@@ -23,7 +23,7 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 |---|------|--------|-------|
 | 1 | Run bootstrap flow: sign in → `/admin/bootstrap` → enter PIN → sign out → sign back in | ✅ | Confirmed done by user |
 | 2 | Verify `RESEND_API_KEY` + `EMAIL_FROM` are in GitHub Secrets | ✅ | Confirmed set by user |
-| 3 | Run `npx prisma db push` on the production DB | ⬜ | Schema has `CommunityLink.signupCount` + `User.communityRef` that aren't pushed yet |
+| 3 | Run `npx prisma db push` on the production DB | 🔶 | Schema has `CommunityLink.signupCount` + `User.communityRef` + achievement tables that need pushing. **HIGH PRIORITY — blocks referral tracking.** |
 | 4 | Set up Admin → Settings → Email Addresses in the admin panel | ✅ | Defaults to `@chapturs.com` values which are functional; no blocking issue confirmed |
 | 108 | Add `GOOGLE_BOOKS_API_KEY`, `GOOGLE_CLOUD_VISION_API_KEY`, `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`, `RECAPTCHA_SECRET_KEY` to GitHub Secrets + VPS env | ⬜ | Documented in `.env.example`; Vision + reCAPTCHA code is live but keys must be set for them to activate |
 | 112 | Install and configure Squad multi-agent dev team in repo | ✅ | `squad init` run; `.squad/` scaffold created; decisions.md, routing.md, wisdom.md, identity files seeded with Chapturs context; team cast via VS Code Squad agent mode |
@@ -78,9 +78,9 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 21 | Import 3–5 public domain works from Project Gutenberg | 🔶 | Spec written at `docs/source/plans/gutenberg-import-pipeline.md`. Implement `POST /api/admin/import/gutenberg` + service in `src/lib/gutenberg-import/`. Suggested works: *Dracula* (#345), *Count of Monte Cristo* (#1184), *Twenty Thousand Leagues* (#164), *Pride and Prejudice* (#1342), *Jekyll and Hyde* (#43). |
-| 22 | Generate AI glossary entries for imported works | 🔶 | Covered by Gutenberg import pipeline spec (Step 6). Function: `generateGlossaryForWork()` in `src/lib/gutenberg-import/generate-glossary.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `glossary_entries` + `glossary_definition_versions` tables. |
-| 23 | Generate character profiles for imported works | 🔶 | Covered by Gutenberg import pipeline spec (Step 7). Function: `generateCharactersForWork()` in `src/lib/gutenberg-import/generate-characters.ts`. Uses OpenRouter `meta-llama/llama-3.1-8b-instruct`. Writes directly to `character_profiles` table. |
+| 21 | Import 3–5 public domain works from Project Gutenberg | 🔶 | Pipeline built: 6 files in `src/lib/gutenberg-import/` + `POST /api/admin/import/gutenberg`. **Not yet run on production — zero content exists.** Suggested works: *Dracula* (#345), *Count of Monte Cristo* (#1184), *Pride and Prejudice* (#1342), *Frankenstein* (#84), *Sherlock Holmes* (#1661). Known issue: title/content corruption on Frankenstein + Holmes (fix script ready). |
+| 22 | Generate AI glossary entries for imported works | ✅ | Built into pipeline (`generate-glossary.ts`). Asks LLM directly about the work rather than parsing raw text. Runs during import. |
+| 23 | Generate character profiles for imported works | ✅ | Built into pipeline (`generate-characters.ts`). Same direct-LLM approach. Runs during import. |
 
 ### Outreach
 
@@ -98,11 +98,11 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 | 97 | Points event pipeline (`POINTS_EVENT_TYPE`) for reader/author/contributor triggers | ✅ | `awardPoints` wired: chapter publish (10pts + founding_creator check), glossary new entry (5pts), comment (3pts), first read per work (5pts). All fire-and-forget. Unit tests in `src/__tests__/points.test.ts`. |
 | 98 | Profile "Achievements / Level" block with user visibility toggle | ✅ | `AchievementsBlock.tsx` wired into profile page; `PATCH /api/achievements/[userId]/visibility` ready (gracefully no-op until User.showAchievements is pushed) |
 | 99 | Pin featured achievements in profile block | ✅ | `FeaturedAchievements.tsx` with star pins; `PATCH /api/achievements/[userId]/featured` ready; 4-pin cap enforced server-side. |
-| 100 | Founding Creator cohort badge (first 100 publishing authors) | ⬜ | Trigger on first chapter that goes live (not draft/save); store award timestamp + chapterId |
-| 101 | "First!" reader window + anti-farm qualification | ⬜ | Chapter goes live → 5 minute award window. Reader must qualify (>=60s dwell + basic scroll/progress signal) before award; all qualified readers in window receive badge/points |
-| 102 | Author glossary achievement milestones (entry count + evolving definitions) | ⬜ | Count distinct glossary entries/instances over story progression |
-| 103 | Author character index achievement milestones | ⬜ | Milestones like 25/50/100 character entries |
-| 104 | High-impact contribution points: translations, audiobooks, fan-art, featured placements | ⬜ | Launch with existing contribution types; feature bonus rules can be phased |
+| 100 | Founding Creator cohort badge (first 100 publishing authors) | ✅ | Wired June 2026. `checkAndAwardFoundingCreator` fires on chapter publish (both section create and status change to published). Fire-and-forget. |
+| 101 | "First!" reader window + anti-farm qualification | ✅ | Wired June 2026. Chapter publish opens 5-min window via `openFirstReaderWindow`. `POST /api/achievements/claim-first-reader` with >=60s dwell + scroll% qualification. |
+| 102 | Author glossary achievement milestones (entry count + evolving definitions) | ✅ | Wired June 2026. `checkGlossaryMilestones` fires on new glossary entry. Milestones at 10/25/50/100 entries. |
+| 103 | Author character index achievement milestones | ✅ | Wired June 2026. `checkCharacterMilestones` fires on new character profile. Milestones at 25/50/100. |
+| 104 | High-impact contribution points: translations, audiobooks, fan-art, featured placements | ✅ | Wired June 2026. Comment feature -> 30pts + `featured_comment` badge. First read per work -> 5pts. Translation/audiobook/fan-art triggers ready for when those systems activate. |
 | 110 | Publishing flow options in editor: upload document / paste document / continue writing | ✅ | Entry picker shown on new chapters: Write from scratch / Upload document / Paste text. Paste converts plain text to prose blocks and loads into editor. |
 | 106 | Define release cadence UX (scheduled vs metadata-only) for beta publishing | ⬜ | Decide strict scheduling later if needed |
 | 107 | Founder program policy doc for exact point values + award rules | ⬜ | Source-of-truth + public docs; values must be admin-editable in runtime settings to rebalance meta shifts |
@@ -275,7 +275,7 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 
 ---
 
-## ✅ Done (this session)
+## ✅ Done (April 14 session)
 
 | Task |
 |------|
@@ -299,9 +299,25 @@ Schema models (`Translation`, `TranslationSuggestion`, `TranslatorProfile`, `Tra
 | Community referral links system |
 | Signup tracking with 30s polling |
 | FEATURE_ROADMAP.md refreshed |
-| "Readers Also Enjoyed" — smart similarity cascade: author picks → collaborative signals → semantic LLM tags → trending → popular fallback. WorkSemanticProfile + AuthorRecommendation schema, similarity service, `/api/works/[id]/related`, `/api/works/[id]/author-recommendations`. LLM now emits structured `semanticProfile` alongside QA assessment (zero extra cost). `ContentSimilarity` table auto-populated after every QA run. Author UI pending — see TASKS below. |
+| "Readers Also Enjoyed" — smart similarity cascade: author picks → collaborative signals → semantic LLM tags → trending → popular fallback. WorkSemanticProfile + AuthorRecommendation schema, similarity service, `/api/works/[id]/related`, `/api/works/[id]/author-recommendations`. LLM now emits structured `semanticProfile` alongside QA assessment (zero extra cost). `ContentSimilarity` table auto-populated after every QA run. |
 | Author-curated companion works API — `PUT /api/works/[id]/author-recommendations` (max 4, auth-gated to work owner) |
 | Maturity gate (#11) — `MaturityGate.tsx` interstitial for R/NC-17 stories; localStorage consent; wired into `/story/[id]` |
 | Delete account (#12) — `DELETE /api/user/account` cascade delete + Danger Zone UI in Reader Settings |
 | Trending page (#20) — `/trending` with time filters, rank badges, sidebar nav link; `publishedWithinDays` param added to `/api/search` |
 | Font-family support in editor (now #111) — TipTap FontFamily extension, curated dropdown in BubbleToolbar, Google Fonts loaded globally |
+
+## ✅ Done (May–June 2026 — Overhaul + Achievements)
+
+| Task |
+|------|
+| **Phase 0 (Foundation):** Zero type errors (`ignoreBuildErrors` removed). DESIGN.md tokens wired into Tailwind config. `src/components/ui/` library: Button (4 variants), Card, Badge (6 variants), Skeleton (3 shapes), EmptyState. Zero `window.location.href` — all SPA via `router.push()`. Security scan — no exposed secrets in docs. |
+| **Phase 1 (Reader):** Server-rendered homepage (auth before paint). FeedCard split into StoryCard (presentational) + FeedCard (actions). Story cards rebuilt with cover art + ui/Badge. ChapterHeader extracted, reading width enforced per DESIGN.md. |
+| **Phase 2 (Creator):** Creator dashboard server-rendered (auth + Prisma prefetch). Works management table with ui/Badge statuses. Editor: 79 console.log stripped, DRAFT badge, dark mode. Dead CreatorDashboard.tsx removed. |
+| **Phase 3 (Polish):** Comments: 10 console.error stripped, dark mode, ui/Skeleton + ui/EmptyState. Glossary aliases fixed (DB SELECT + response mapping + reader regex matching). Content API fixed for English (no more null content). Reader CSS: subtle dotted underline, no hyperlink look. Loading states: ui/Skeleton + ui/EmptyState on profile, library, subscriptions. Living World: ON HOLD (code preserved). |
+| Gutenberg import pipeline — 6 files + admin API route. Full 12-step pipeline with AI glossary + characters. Idempotency tags. |
+| Smart paste pipeline — `html-to-blocks.ts` (324 lines). Google Docs/Word HTML → ContentBlock[] on paste. |
+| Continuous scroll reader — `ContinuousScrollReader.tsx`. IntersectionObserver infinite loading + chapter-tracking URL updates. |
+| Achievement system full wiring (#100-104) — Founding Creator check, First! reader window, glossary milestones (10/25/50/100), character milestones (25/50/100), contribution points. 17 trigger points across publish, glossary, characters, comments, views. All fire-and-forget. |
+| Translation persistence fixed — upsert on unique key, FK bug fixed. Rate limiting (20 req/hr/IP). Chunking for >50 blocks. |
+| Translation suggestions + voting + auto-promote (ratingCount ≥5 + avgQuality ≥4.0). |
+| Comment system unified — BlockComment → Comment migration, all 8 API routes using prisma.comment. |
