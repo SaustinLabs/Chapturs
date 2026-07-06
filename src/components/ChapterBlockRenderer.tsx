@@ -8,7 +8,7 @@ import { sanitizeHtml } from '@/lib/sanitize'
 
 interface ContentBlock {
   id: string
-  type: 'prose' | 'heading' | 'dialogue' | 'narration' | 'chat' | 'phone' | 'text'
+  type: 'prose' | 'heading' | 'dialogue' | 'narration' | 'chat' | 'phone' | 'text' | 'promoted_story'
   [key: string]: any
 }
 
@@ -56,6 +56,9 @@ function BlockRenderer({ block }: { block: ContentBlock }) {
     
     case 'phone':
       return <PhoneBlock screens={block.screens} />
+    
+    case 'promoted_story':
+      return <PromotedStoryCard workId={block.workId} blurb={block.blurb} />
     
     default:
       console.warn('Unknown block type:', block.type, block)
@@ -223,6 +226,74 @@ function PhoneBlock({ screens }: { screens: Array<{ type: string; content: any }
               )}
             </div>
           ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Promoted Story Card — inline promotion block in chapter reader
+function PromotedStoryCard({ workId, blurb }: { workId: string; blurb: string }) {
+  const [work, setWork] = React.useState<any>(null)
+  const [loading, setLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    if (!workId) { setLoading(false); return }
+    fetch(`/api/works/${workId}`)
+      .then(r => r.json())
+      .then(data => { setWork(data); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [workId])
+
+  if (loading) {
+    return (
+      <div className="my-6 p-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg animate-pulse">
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2" />
+        <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded w-2/3" />
+      </div>
+    )
+  }
+
+  if (!work) return null
+
+  const coverUrl = work.coverImage
+  const href = `/story/${workId}`
+
+  return (
+    <div className="my-6 not-prose">
+      <div className="border border-indigo-200 dark:border-indigo-800 rounded-xl p-4 bg-gradient-to-r from-indigo-50/50 to-transparent dark:from-indigo-950/20 dark:to-transparent">
+        <div className="flex items-start gap-4">
+          {coverUrl ? (
+            <img src={coverUrl} alt={work.title} className="w-12 h-18 rounded object-cover flex-shrink-0" />
+          ) : (
+            <div className="w-12 h-18 bg-gray-200 dark:bg-gray-700 rounded flex-shrink-0 flex items-center justify-center">
+              <span className="text-gray-400 text-xs">📖</span>
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-indigo-600 dark:text-indigo-400 uppercase tracking-wide mb-1">
+              Story Recommendation
+            </p>
+            <a href={href} className="font-semibold text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+              {work.title}
+            </a>
+            {work.authorProfile?.user?.displayName && (
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                by {work.authorProfile.user.displayName}
+              </p>
+            )}
+            {blurb && (
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 italic leading-relaxed">
+                {blurb}
+              </p>
+            )}
+            <a
+              href={href}
+              className="inline-block mt-3 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
+            >
+              Read {work.title} →
+            </a>
+          </div>
         </div>
       </div>
     </div>

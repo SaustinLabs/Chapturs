@@ -241,3 +241,113 @@ function ImageBlockNodeView({ node, updateAttributes, selected, deleteNode }: Re
 }
 
 export const ImageBlockExtension = makeBlockExtension('imageBlock', 'image-block', ImageBlockNodeView)
+
+// ---------------------------------------------------------------------------
+// Promoted Story Block
+// ---------------------------------------------------------------------------
+
+import type { PromotedStoryBlock as PromotedStoryBlockType } from '@/types/chapt'
+
+function PromotedStoryBlockNodeView({ node, updateAttributes, selected, deleteNode }: ReactNodeViewProps) {
+  const blockData = (node.attrs.blockData || {
+    id: node.attrs.blockId,
+    type: 'promoted_story',
+    workId: '',
+    blurb: '',
+  }) as PromotedStoryBlockType
+
+  const [search, setSearch] = React.useState('')
+  const [results, setResults] = React.useState<any[]>([])
+  const [loading, setLoading] = React.useState(false)
+
+  React.useEffect(() => {
+    if (search.length < 2) { setResults([]); return }
+    const timer = setTimeout(async () => {
+      setLoading(true)
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(search)}&limit=5`)
+        const data = await res.json()
+        setResults(data.works || data.results || [])
+      } catch { setResults([]) }
+      setLoading(false)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  const selected = blockData.workId
+
+  return (
+    <NodeViewWrapper className="relative my-4">
+      <BlockControls onDelete={deleteNode} />
+      <div className="border border-dashed border-indigo-300 dark:border-indigo-700 rounded-lg p-4 bg-indigo-50/50 dark:bg-indigo-950/30">
+        <p className="text-sm font-medium text-indigo-700 dark:text-indigo-300 mb-3">
+          📢 Promoted Story
+        </p>
+
+        {selected ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-900 rounded border">
+              <div className="w-10 h-14 bg-gray-200 dark:bg-gray-700 rounded flex-shrink-0" />
+              <div>
+                <p className="font-medium text-sm">{blockData.workTitle || 'Selected story'}</p>
+                <p className="text-xs text-gray-500">{blockData.authorName || ''}</p>
+              </div>
+              <button
+                onClick={() => updateAttributes({ blockData: { ...blockData, workId: '', workTitle: '', authorName: '' } })}
+                className="ml-auto text-xs text-gray-400 hover:text-red-500"
+              >
+                Change
+              </button>
+            </div>
+            <textarea
+              value={blockData.blurb}
+              onChange={(e) => updateAttributes({ blockData: { ...blockData, blurb: e.target.value } })}
+              placeholder="Why should your readers check this out?"
+              className="w-full p-3 text-sm border rounded-lg bg-white dark:bg-gray-900 resize-none"
+              rows={2}
+            />
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search for a story to promote..."
+              className="w-full p-2 text-sm border rounded-lg bg-white dark:bg-gray-900"
+              autoFocus
+            />
+            {loading && <p className="text-xs text-gray-400">Searching...</p>}
+            {results.length > 0 && (
+              <div className="space-y-1 max-h-48 overflow-y-auto">
+                {results.map((w: any) => (
+                  <button
+                    key={w.id}
+                    onClick={() => updateAttributes({
+                      blockData: {
+                        ...blockData,
+                        workId: w.id,
+                        workTitle: w.title,
+                        authorName: w.author?.user?.displayName || w.authorName || '',
+                      }
+                    })}
+                    className="w-full text-left p-2 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+                  >
+                    <p className="text-sm font-medium truncate">{w.title}</p>
+                    <p className="text-xs text-gray-500">{w.author?.user?.displayName || w.authorName || 'Unknown author'}</p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </NodeViewWrapper>
+  )
+}
+
+export const PromotedStoryBlockExtension = makeBlockExtension(
+  'promotedStoryBlock',
+  'promoted-story-block',
+  PromotedStoryBlockNodeView
+)

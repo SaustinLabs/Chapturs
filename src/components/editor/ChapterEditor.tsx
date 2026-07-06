@@ -42,6 +42,7 @@ import {
   NarrationBlockExtension,
   DialogueBlockExtension,
   ImageBlockExtension,
+  PromotedStoryBlockExtension,
 } from './extensions'
 import { blocksToHtml, editorJsonToBlocks, detectChapters } from './convert'
 import { htmlToBlocks } from '@/lib/html-to-blocks'
@@ -365,6 +366,7 @@ export default function ChapterEditor({
       NarrationBlockExtension,
       DialogueBlockExtension,
       ImageBlockExtension,
+      PromotedStoryBlockExtension,
     ],
 
     content: blocksToHtml(initialBlocks),

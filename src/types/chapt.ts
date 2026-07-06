@@ -135,6 +135,14 @@ export interface DividerBlock extends BaseBlock {
   customSymbol?: string
 }
 
+export interface PromotedStoryBlock extends BaseBlock {
+  type: 'promoted_story'
+  workId: string
+  blurb: string
+  workTitle?: string      // cached at insert time for preview
+  authorName?: string     // cached at insert time for preview
+}
+
 // Union type of all block types
 export type ContentBlock = 
   | ProseBlock
@@ -145,6 +153,7 @@ export type ContentBlock =
   | HeadingBlock
   | ImageBlock
   | DividerBlock
+  | PromotedStoryBlock
 
 // ============================================================================
 // TRANSLATION TYPES

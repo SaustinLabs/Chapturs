@@ -78,7 +78,7 @@ Two duplicate IDs were resolved. No tasks were deleted or merged.
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 21 | Import 3–5 public domain works from Project Gutenberg | ✅ | 5 unique works imported: Dracula, P&P, Monte Cristo (120 ch!), Frankenstein, Holmes. **Fixed July 5:** Holmes duplicates removed (idempotency race condition patched with post-create guard). Holmes Ch5 title corruption fixed (narrative text merged back into content, title set to "Chapter I: The Red-Headed League"). |
+| 21 | Import 3–5 public domain works from Project Gutenberg | ✅ | 18 works, 606 chapters live on production. **July 5 bulk import:** added 13 works (Jekyll, 20K Leagues, Moby Dick, Tale of Two Cities, Great Expectations, Jane Eyre, Wuthering Heights, Metamorphosis, Tom Sawyer, Wizard of Oz, Ben Franklin, Souls of Black Folk, Study in Scarlet). 5 failed (retryable Gutendex timeouts). Holmes duplicates + title corruption fixed. Pipeline stable with race-condition guard. |
 | 22 | Generate AI glossary entries for imported works | ✅ | Built into pipeline (`generate-glossary.ts`). Asks LLM directly about the work rather than parsing raw text. Runs during import. |
 | 23 | Generate character profiles for imported works | ✅ | Built into pipeline (`generate-characters.ts`). Same direct-LLM approach. Runs during import. |
 
