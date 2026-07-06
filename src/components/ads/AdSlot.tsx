@@ -50,6 +50,28 @@ function AdBlockPlaceholder({
   )
 }
 
+function AdComingSoon({
+  placement,
+  className,
+}: {
+  placement: AdSlotProps['placement']
+  className?: string
+}) {
+  return (
+    <div
+      className={`flex flex-col items-center justify-center gap-2 rounded border border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 p-4 text-center ${className || ''}`}
+      style={{ minHeight: placement === 'sidebar' ? '250px' : '90px' }}
+    >
+      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+        Ad space reserved
+      </p>
+      <p className="text-xs text-gray-400 dark:text-gray-500">
+        Ads will support creators directly — 70% revenue share
+      </p>
+    </div>
+  )
+}
+
 function AdSlotInner({
   placement,
   maturityRating,
@@ -83,7 +105,7 @@ function AdSlotInner({
   }
 
   if (!pubId || !slotId) {
-    return children ? <>{children}</> : null
+    return <AdComingSoon placement={placement} className={className} />
   }
 
   return (
