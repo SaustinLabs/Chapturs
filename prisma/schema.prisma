@@ -276,6 +276,10 @@ model Work {
   updatedAt       DateTime @updatedAt
   viewCount       Int      @default(0)
 
+  // Promoted story — work-level internal ad displacement
+  promotedWorkId  String?
+  promotedBlurb   String?
+
   // Fan content tracking
   allowCrowdsourcedTranslations Boolean @default(true)
   defaultTranslationByLanguage  String  @default("{}") // JSON: {"es": "tier1-id", "ja": "tier2-id"}

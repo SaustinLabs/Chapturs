@@ -4,6 +4,7 @@
  * Each block type becomes an atomic TipTap node with a React NodeView
  * that delegates to the existing BlockEditors components.
  */
+import React from 'react'
 import { Node, mergeAttributes } from '@tiptap/core'
 import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react'
 import type { ReactNodeViewProps } from '@tiptap/react'
@@ -274,7 +275,7 @@ function PromotedStoryBlockNodeView({ node, updateAttributes, selected, deleteNo
     return () => clearTimeout(timer)
   }, [search])
 
-  const selected = blockData.workId
+  const hasSelection = blockData.workId
 
   return (
     <NodeViewWrapper className="relative my-4">
@@ -284,7 +285,7 @@ function PromotedStoryBlockNodeView({ node, updateAttributes, selected, deleteNo
           📢 Promoted Story
         </p>
 
-        {selected ? (
+        {hasSelection ? (
           <div className="space-y-3">
             <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-900 rounded border">
               <div className="w-10 h-14 bg-gray-200 dark:bg-gray-700 rounded flex-shrink-0" />
