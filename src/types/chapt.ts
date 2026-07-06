@@ -20,6 +20,7 @@ export type BlockType =
   | 'divider'         // Scene break / horizontal rule
   | 'choice'          // Interactive branching choice (future)
   | 'animation'       // Animation trigger (future)
+  | 'promoted_story'  // Internal story promotion card
 
 export type ChatPlatform = 
   | 'discord'

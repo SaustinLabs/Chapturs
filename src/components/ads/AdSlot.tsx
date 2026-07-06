@@ -83,7 +83,7 @@ function AdSlotInner({
 }: AdSlotProps) {
   const [loaded, setLoaded] = useState(false)
   const [adBlocked, setAdBlocked] = useState(false)
-  const [promo, setPromo] = useState<{ workId: string; blurb: string } | null | 'loading'>('loading')
+  const [promo, setPromo] = useState<{ promotedWorkId: string; promotedBlurb: string } | null | 'loading'>('loading')
 
   const pubId = process.env.NEXT_PUBLIC_ADSENSE_PUB_ID
   const slotId = adSlotId || process.env.NEXT_PUBLIC_ADSENSE_SLOT_ID
