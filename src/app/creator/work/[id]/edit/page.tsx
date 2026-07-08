@@ -523,6 +523,20 @@ export default function EditWorkPage() {
             )}
           </div>
 
+          {/* Internal Ad Promotion */}
+          <div>
+            <div className=\"flex items-center gap-2 mb-1\">
+              <span className=\"text-sm\">📢</span>
+              <label className=\"block text-sm font-medium text-gray-700 dark:text-gray-300\">
+                Ad Promotion
+              </label>
+            </div>
+            <p className=\"text-xs text-gray-500 dark:text-gray-400 mb-3\">
+              Promote another work across your chapters. Internal promos replace ~30% of ad slots on your story — no extra ad load, just a recommendation card instead of a regular ad.
+            </p>
+            <PromotionSection workId={workId} />
+          </div>
+
           {/* Action Buttons */}
           <div className="flex gap-4 pt-4 flex-wrap">
             <button
@@ -566,5 +580,190 @@ export default function EditWorkPage() {
         </div>
       </div>
     </AppLayout>
+  )
+}
+
+// ─── Promotion Section (internal component) ──────────────────────────────────
+
+function PromotionSection({ workId }: { workId: string }) {
+  const { toast } = useToast()
+
+  const [promoWorkId, setPromoWorkId] = useState('')
+  const [promoBlurb, setPromoBlurb] = useState('')
+  const [promoWork, setPromoWork] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  const [searchQ, setSearchQ] = useState('')
+  const [results, setResults] = useState<any[]>([])
+  const [searchLoading, setSearchLoading] = useState(false)
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Load existing promotion
+  useEffect(() => {
+    fetch(`/api/works/${workId}/promotion`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.promotedWorkId) {
+          setPromoWorkId(d.promotedWorkId)
+          setPromoBlurb(d.promotedBlurb || '')
+          // Fetch the promoted work details
+          fetch(`/api/works/${d.promotedWorkId}`)
+            .then(r => r.json())
+            .then(setPromoWork)
+            .catch(() => {})
+        }
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [workId])
+
+  function handleSearch(q: string) {
+    setSearchQ(q)
+    if (searchTimer.current) clearTimeout(searchTimer.current)
+    if (!q.trim()) { setResults([]); return }
+    setSearchLoading(true)
+    searchTimer.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/works?q=${encodeURIComponent(q)}`)
+        const data = await res.json()
+        setResults((data.works ?? []).filter((w: any) => w.id !== workId).slice(0, 8))
+      } catch {}
+      setSearchLoading(false)
+    }, 300)
+  }
+
+  async function savePromo(pickedWork: any) {
+    setPromoWorkId(pickedWork.id)
+    setPromoWork(pickedWork)
+    setSearchQ('')
+    setResults([])
+    try {
+      await fetch(`/api/works/${workId}/promotion`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ promotedWorkId: pickedWork.id, promotedBlurb: promoBlurb }),
+      })
+      toast.success('Promotion saved.')
+    } catch {
+      toast.error('Failed to save promotion.')
+    }
+  }
+
+  async function updateBlurb(blurb: string) {
+    setPromoBlurb(blurb)
+    if (!promoWorkId) return
+    try {
+      await fetch(`/api/works/${workId}/promotion`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ promotedWorkId: promoWorkId, promotedBlurb: blurb }),
+      })
+    } catch {}
+  }
+
+  async function removePromo() {
+    setPromoWorkId('')
+    setPromoWork(null)
+    setPromoBlurb('')
+    try {
+      await fetch(`/api/works/${workId}/promotion`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ promotedWorkId: null, promotedBlurb: null }),
+      })
+      toast.success('Promotion removed.')
+    } catch {
+      toast.error('Failed to remove promotion.')
+    }
+  }
+
+  if (loading) {
+    return <div className="h-20 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+  }
+
+  if (promoWorkId && promoWork) {
+    return (
+      <div className="flex items-start gap-3 p-3 bg-indigo-50 dark:bg-indigo-950/30 rounded-lg border border-indigo-200 dark:border-indigo-700">
+        <div className="w-10 h-14 bg-gray-200 dark:bg-gray-700 rounded flex-shrink-0 overflow-hidden">
+          {promoWork.coverImage
+            ? <img src={promoWork.coverImage} alt="" className="w-full h-full object-cover" />
+            : <div className="w-full h-full flex items-center justify-center"><BookOpen className="w-4 h-4 text-gray-400" /></div>
+          }
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+            Promoting: {promoWork.title}
+          </p>
+          <p className="text-xs text-gray-500">
+            {promoWork.authorProfile?.user?.displayName || promoWork.author?.user?.displayName || 'Unknown author'}
+          </p>
+          <textarea
+            value={promoBlurb}
+            onChange={e => updateBlurb(e.target.value)}
+            placeholder="Why should your readers check this out? (auto-saves)"
+            className="mt-2 w-full p-2 text-xs border rounded bg-white dark:bg-gray-900 resize-none"
+            rows={2}
+          />
+          <button
+            onClick={removePromo}
+            className="mt-2 text-xs text-red-500 hover:text-red-700 transition-colors"
+          >
+            Remove promotion
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div className="relative">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            value={searchQ}
+            onChange={e => handleSearch(e.target.value)}
+            placeholder="Search for a work to promote..."
+            className="w-full pl-9 pr-4 py-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          />
+          {searchLoading && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+          )}
+        </div>
+
+        {results.length > 0 && (
+          <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden max-h-72 overflow-y-auto">
+            {results.map(w => (
+              <button
+                key={w.id}
+                onClick={() => savePromo(w)}
+                className="flex items-center gap-3 w-full px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/60 transition-colors text-left"
+              >
+                <div className="w-7 h-9 rounded overflow-hidden flex-shrink-0 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                  {w.coverImage
+                    ? <img src={resolveCoverSrc(w.id, w.coverImage)} alt="" className="w-full h-full object-cover" />
+                    : <BookOpen className="w-3 h-3 text-gray-400" />
+                  }
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{w.title}</p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {w.author?.user?.displayName || w.author?.user?.username || w.authorName || ''}
+                  </p>
+                </div>
+                <span className="text-xs text-indigo-500 font-medium flex-shrink-0">Promote</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {results.length === 0 && searchQ.trim() && !searchLoading && (
+          <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl px-4 py-3 text-sm text-gray-500">
+            No published works found for &ldquo;{searchQ}&rdquo;
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
