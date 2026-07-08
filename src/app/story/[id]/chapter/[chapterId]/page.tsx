@@ -346,6 +346,22 @@ export default function ChapterPage() {
     }
   }, [])
 
+  // Fetch glossary and character data for inline reader highlights
+  useEffect(() => {
+    if (!storyId) return
+    Promise.all([
+      fetch(`/api/works/${storyId}/glossary`).then(r => r.ok ? r.json() : null),
+      fetch(`/api/works/${storyId}/characters`).then(r => r.ok ? r.json() : null),
+    ]).then(([glossaryData, charactersData]) => {
+      if (glossaryData?.entries) {
+        (window as any).__CURRENT_GLOSSARY_TERMS__ = glossaryData.entries
+      }
+      if (charactersData?.characters) {
+        (window as any).__CURRENT_CHARACTERS__ = charactersData.characters
+      }
+    }).catch(() => {})
+  }, [storyId])
+
   useEffect(() => {
     try {
       window.localStorage.setItem(

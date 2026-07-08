@@ -26,12 +26,22 @@ export async function fetchGutenbergText(id: number): Promise<string> {
 
 export function stripGutenbergWrapper(raw: string): string {
   const startMarker = /\*{3}\s*START OF (?:THE |THIS )?PROJECT GUTENBERG/i
-  const endMarker = /\*{3}\s*END OF (?:THE |THIS )?PROJECT GUTENBERG/i
+  const endMarker   = /\*{3}\s*END OF (?:THE |THIS )?PROJECT GUTENBERG/i
   const startIdx = raw.search(startMarker)
-  const endIdx = raw.search(endMarker)
+  const endIdx   = raw.search(endMarker)
   if (startIdx === -1) return raw
   const afterStart = raw.indexOf('\n', startIdx) + 1
-  return endIdx === -1 ? raw.slice(afterStart) : raw.slice(afterStart, endIdx).trim()
+  let text = endIdx === -1 ? raw.slice(afterStart) : raw.slice(afterStart, endIdx).trim()
+
+  // Strip Gutenberg formatting artifacts
+  text = text.replace(/\[Illustration\]\s*/gi, '')             // [Illustration] tags
+  text = text.replace(/\[_Copyright[^\]]*\]\s*/gi, '')         // [_Copyright 1894 ..._]
+  text = text.replace(/\[_?Illustration:[^\]]*\]\s*/gi, '')    // [Illustration: caption]
+  text = text.replace(/^Transcriber'?s?\s*Note:.*$/gim, '')    // Transcriber's Notes
+  text = text.replace(/^\s*\[_?[A-Z][^\]]*_?\]\s*$/gm, '')    // Generic [_Markup_] blocks
+  text = text.replace(/\n{3,}/g, '\n\n')                       // Collapse triple newlines
+
+  return text.trim()
 }
 
 // ── Chapter splitting ────────────────────────────────────────────────────────
