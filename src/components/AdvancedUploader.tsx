@@ -351,10 +351,7 @@ export default function AdvancedUploader({
   // Schedule publishing
   const handleSchedulePublish = useCallback(() => {
     const scheduledFiles = uploadedFiles.filter(file => file.status === 'completed')
-      files: scheduledFiles,
-      settings: scheduleSettings
-    })
-    
+
     // In production, this would call an API to set up the publishing schedule
     toast.success(`Scheduled ${scheduledFiles.length} file${scheduledFiles.length !== 1 ? 's' : ''} for publication starting ${scheduleSettings.startDate}`)
     setSchedulingMode(false)
