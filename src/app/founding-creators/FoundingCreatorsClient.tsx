@@ -147,7 +147,7 @@ export default function FoundingCreatorsClient({ spotsTaken, spotsRemaining }: P
       </div>
 
       {/* Comparison */}
-      <div className="max-w-4xl mx-auto px-6 py-16">
+      <div className="max-w-5xl mx-auto px-6 py-16">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8 text-center">
           How We Compare
         </h2>
@@ -159,20 +159,26 @@ export default function FoundingCreatorsClient({ spotsTaken, spotsRemaining }: P
                 <th className="text-center p-4 font-semibold text-indigo-600 dark:text-indigo-400">Chapturs</th>
                 <th className="text-center p-4 font-medium text-gray-500">Royal Road</th>
                 <th className="text-center p-4 font-medium text-gray-500">Wattpad</th>
+                <th className="text-center p-4 font-medium text-gray-500">KDP</th>
+                <th className="text-center p-4 font-medium text-gray-500">Patreon</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {[
-                { f: 'Revenue share', c: '70%', r: 'Ad share only', w: 'Limited' },
-                { f: 'AI quality assessment', c: true, r: false, w: false },
-                { f: 'Built-in translations', c: true, r: false, w: false },
-                { f: 'Glossary + character tooltips', c: true, r: false, w: false },
-                { f: 'Co-author collaboration', c: true, r: false, w: 'Limited' },
-                { f: 'Smart paste from Google Docs', c: true, r: false, w: false },
-                { f: 'Achievement system', c: true, r: 'Limited', w: 'Limited' },
-                { f: 'Cross-story promotion', c: true, r: false, w: false },
-                { f: 'Direct dev access', c: true, r: false, w: false },
-                { f: 'Founding creator badge', c: true, r: false, w: false },
+                { f: 'Revenue share', c: '70%', r: 'Ad share only', w: 'Limited', k: '35-70%', p: 'varies' },
+                { f: 'Serial chapter publishing', c: true, r: true, w: true, k: false, p: false },
+                { f: 'AI quality assessment', c: true, r: false, w: false, k: false, p: false },
+                { f: 'Built-in translations', c: true, r: false, w: false, k: false, p: false },
+                { f: 'Glossary + character tooltips', c: true, r: false, w: false, k: false, p: false },
+                { f: 'Co-author collaboration', c: true, r: false, w: 'Limited', k: false, p: false },
+                { f: 'Smart paste from Google Docs', c: true, r: false, w: false, k: false, p: false },
+                { f: 'Achievement system', c: true, r: 'Limited', w: 'Limited', k: false, p: false },
+                { f: 'Cross-story promotion', c: true, r: false, w: false, k: false, p: false },
+                { f: 'Direct dev access', c: true, r: false, w: false, k: false, p: false },
+                { f: 'Founding creator badge', c: true, r: false, w: false, k: false, p: false },
+                { f: 'Free to publish', c: true, r: true, w: true, k: true, p: true },
+                { f: 'Built-in reader audience', c: true, r: true, w: true, k: false, p: false },
+                { f: 'No exclusivity lock-in', c: true, r: true, w: 'Limited', k: 'KU lock-in', p: true },
               ].map((row) => (
                 <tr key={row.f} className="bg-white dark:bg-gray-900">
                   <td className="p-4 text-gray-700 dark:text-gray-300">{row.f}</td>
@@ -187,7 +193,7 @@ export default function FoundingCreatorsClient({ spotsTaken, spotsRemaining }: P
                     {row.r === true ? (
                       <Check size={16} className="text-green-600 dark:text-green-400 mx-auto" />
                     ) : row.r === false ? (
-                      <span className="text-gray-300 dark:text-gray-600">—</span>
+                      <span className="text-gray-300 dark:text-gray-600">&mdash;</span>
                     ) : (
                       <span className="text-gray-500">{row.r}</span>
                     )}
@@ -196,9 +202,27 @@ export default function FoundingCreatorsClient({ spotsTaken, spotsRemaining }: P
                     {row.w === true ? (
                       <Check size={16} className="text-green-600 dark:text-green-400 mx-auto" />
                     ) : row.w === false ? (
-                      <span className="text-gray-300 dark:text-gray-600">—</span>
+                      <span className="text-gray-300 dark:text-gray-600">&mdash;</span>
                     ) : (
                       <span className="text-gray-500">{row.w}</span>
+                    )}
+                  </td>
+                  <td className="p-4 text-center">
+                    {row.k === true ? (
+                      <Check size={16} className="text-green-600 dark:text-green-400 mx-auto" />
+                    ) : row.k === false ? (
+                      <span className="text-gray-300 dark:text-gray-600">&mdash;</span>
+                    ) : (
+                      <span className="text-gray-500">{row.k}</span>
+                    )}
+                  </td>
+                  <td className="p-4 text-center">
+                    {row.p === true ? (
+                      <Check size={16} className="text-green-600 dark:text-green-400 mx-auto" />
+                    ) : row.p === false ? (
+                      <span className="text-gray-300 dark:text-gray-600">&mdash;</span>
+                    ) : (
+                      <span className="text-gray-500">{row.p}</span>
                     )}
                   </td>
                 </tr>
@@ -206,6 +230,10 @@ export default function FoundingCreatorsClient({ spotsTaken, spotsRemaining }: P
             </tbody>
           </table>
         </div>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-4 text-center max-w-2xl mx-auto">
+          KDP = Amazon Kindle Direct Publishing. KU = Kindle Unlimited (requires exclusivity).
+          Patreon is a tipping/membership model, not a publishing platform &mdash; included as a revenue comparison.
+        </p>
       </div>
 
       {/* CTA */}
