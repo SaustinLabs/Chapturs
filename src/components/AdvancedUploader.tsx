@@ -147,6 +147,26 @@ export default function AdvancedUploader({
         preview = `Archive containing ${sections.length} items`
       }
 
+      // Save sections to the database if workId is provided
+      if (workId && sections.length > 0) {
+        try {
+          for (const section of sections) {
+            await fetch(`/api/works/${workId}/sections`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                title: section.title,
+                content: JSON.stringify({ blocks: [{ type: 'prose', text: section.content }] }),
+                wordCount: section.wordCount || 0,
+                status: 'draft',
+              }),
+            })
+          }
+        } catch (err) {
+          console.error('Failed to save sections:', err)
+        }
+      }
+
       // Complete progress
       setUploadProgress(prev => ({ ...prev, [fileId]: 100 }))
       clearInterval(progressInterval)
@@ -180,24 +200,56 @@ export default function AdvancedUploader({
     const sections: ProcessedSection[] = []
 
     if (format === 'novel') {
-      // Split by chapter markers
-      const chapterRegex = /(^|\n)\s*(chapter\s+\d+|ch\s*\d+|\d+\.|\*\*\*)/i
-      const parts = text.split(chapterRegex).filter(part => part.trim())
+      // Split by chapter markers — matches Chapter/Part/Book + numbers/Roman numerals + prose headings
+      const chapterRegex = /(?:^|\n)\s*(?:(?:Chapter|CH(?:AP(?:TER)?)?|PART|Book)\s*(?:[IVXLCDM]+|\d+)(?:\s*[:.—]\s*.+)?|(?:\*{3,}|#{1,3})\s*.+)(?=\n|$)/gi
+      const matches = Array.from(text.matchAll(chapterRegex))
       
-      let chapterNumber = 1
+      if (matches.length >= 2) {
+        // Split text at chapter headings
+        let lastIndex = matches[0].index ?? 0
+        let chapterNumber = 1
+        
+        for (let i = 0; i < matches.length; i++) {
+          const match = matches[i]
+          const heading = match[0].trim()
+          const nextIndex = i < matches.length - 1 ? (matches[i + 1].index ?? text.length) : text.length
+          
+          // Content starts right after the heading line
+          const headingEnd = (match.index ?? 0) + match[0].length + 1
+          const content = text.slice(headingEnd, nextIndex).trim()
+          
+          if (content) {
+            sections.push({
+              title: heading.substring(0, 200),
+              content: content,
+              order: chapterNumber,
+              wordCount: content.split(/\s+/).length,
+              type: 'chapter'
+            })
+            chapterNumber++
+          }
+        }
+        return sections
+      }
+      
+      // Fallback: if regex didn't match, try the simpler split pattern
+      const simpleRegex = /(^|\n)\s*(chapter\s+[IVXLCDM\d]+|ch\s*[IVXLCDM\d]+)/i
+      const parts = text.split(simpleRegex).filter(part => part.trim())
+      
+      let chNum = 1
       for (let i = 0; i < parts.length; i += 2) {
-        const title = parts[i]?.trim() || `Chapter ${chapterNumber}`
+        const title = parts[i]?.trim() || `Chapter ${chNum}`
         const content = parts[i + 1]?.trim() || ''
         
         if (content) {
           sections.push({
-            title: title.substring(0, 100),
+            title: title.substring(0, 200),
             content: content,
-            order: chapterNumber,
+            order: chNum,
             wordCount: content.split(/\s+/).length,
             type: 'chapter'
           })
-          chapterNumber++
+          chNum++
         }
       }
     } else if (format === 'article') {
@@ -296,7 +348,7 @@ export default function AdvancedUploader({
     e.preventDefault()
     setDragOver(false)
     
-    const files = Array.from(e.dataTransfer.files)
+    const files = Array.from(e.dataTransfer.files as FileList)
     await handleFiles(files)
   }, [])
 
