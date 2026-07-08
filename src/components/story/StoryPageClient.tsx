@@ -35,6 +35,8 @@ interface StoryPageClientProps {
   relatedWorks?: RelatedWork[]
   /** Series this work belongs to, if any. */
   seriesMemberships?: SeriesMembership[]
+  /** Whether the author has the Founding Creator achievement */
+  isFoundingCreator?: boolean
 }
 
 interface RelatedWork {
@@ -63,7 +65,7 @@ interface SeriesMembership {
   orderIndex: number
 }
 
-export default function StoryPageClient({ initialWork, aiReview, featuredComments: initialFeaturedComments = [], relatedWorks = [], seriesMemberships = [] }: StoryPageClientProps) {
+export default function StoryPageClient({ initialWork, aiReview, featuredComments: initialFeaturedComments = [], relatedWorks = [], seriesMemberships = [], isFoundingCreator = false }: StoryPageClientProps) {
   const params = useParams()
   const router = useRouter()
   const storyId = params?.id as string
@@ -326,6 +328,12 @@ export default function StoryPageClient({ initialWork, aiReview, featuredComment
                           className="w-6 h-6 rounded-full"
                         />
                         <span className="font-medium">{story.author.username}</span>
+                        {isFoundingCreator && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[10px] font-semibold" title="Founding Creator — one of the first 100 authors on Chapturs">
+                            <span>★</span>
+                            Founding
+                          </span>
+                        )}
                       </div>
                       <span>•</span>
                       <span className={`px-2 py-1 rounded-full text-xs ${

@@ -102,6 +102,20 @@ export default async function StoryPage({ params }: Props) {
     orderIndex: sm.orderIndex,
   }))
 
+  // Check if the work's author is a Founding Creator
+  const authorUserId = (work as any).author?.userId
+  let isFoundingCreator = false
+  if (authorUserId) {
+    const foundingAchievement = await prisma.userAchievement.findFirst({
+      where: {
+        userId: authorUserId,
+        achievement: { key: 'founding_creator' },
+      },
+      select: { id: true },
+    }).catch(() => null)
+    isFoundingCreator = !!foundingAchievement
+  }
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Book',
@@ -134,7 +148,7 @@ export default async function StoryPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <MaturityGate maturityRating={maturityRating}>
-        <StoryPageClient initialWork={work as any} aiReview={aiReview} featuredComments={featuredComments as any} relatedWorks={relatedWorks} seriesMemberships={seriesMemberships} />
+        <StoryPageClient initialWork={work as any} aiReview={aiReview} featuredComments={featuredComments as any} relatedWorks={relatedWorks} seriesMemberships={seriesMemberships} isFoundingCreator={isFoundingCreator} />
       </MaturityGate>
     </AppLayout>
   )
