@@ -105,7 +105,6 @@ class TwitchClient {
       return this.accessToken
     }
 
-    console.log('[TwitchClient] Fetching new access token...')
 
     const response = await fetch('https://id.twitch.tv/oauth2/token', {
       method: 'POST',
@@ -129,7 +128,6 @@ class TwitchClient {
     // Set expiry with 5 minute buffer
     this.tokenExpiresAt = Date.now() + (data.expires_in - 300) * 1000
 
-    console.log('[TwitchClient] Access token obtained, expires in:', data.expires_in, 'seconds')
 
     return this.accessToken
   }

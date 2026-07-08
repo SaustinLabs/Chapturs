@@ -351,7 +351,6 @@ export default function AdvancedUploader({
   // Schedule publishing
   const handleSchedulePublish = useCallback(() => {
     const scheduledFiles = uploadedFiles.filter(file => file.status === 'completed')
-    console.log('Scheduling publication:', {
       files: scheduledFiles,
       settings: scheduleSettings
     })

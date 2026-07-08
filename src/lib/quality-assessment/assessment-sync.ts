@@ -24,11 +24,9 @@ function extractTextFromChaptDoc(chaptDoc: any): string {
   const blocks = chaptDoc?.blocks || chaptDoc?.content || []
   
   if (!Array.isArray(blocks)) {
-    console.log('[EXTRACT] Blocks is not an array:', typeof blocks)
     return ''
   }
 
-  console.log('[EXTRACT] Processing', blocks.length, 'blocks')
 
   return blocks
     .map((block: any, idx: number) => {
@@ -85,7 +83,6 @@ function extractTextFromChaptDoc(chaptDoc: any): string {
       }
 
       if (text) {
-        console.log(`[EXTRACT] Block ${idx} (${block.type}): ${text.length} chars`)
       }
       return text
     })
@@ -107,7 +104,6 @@ export async function assessWorkSynchronously(
   message?: string
 }> {
   try {
-    console.log('[ASSESS_SYNC] Starting sync assessment for work:', workId)
 
     // Fetch work and section
     const section = await prisma.section.findUnique({
@@ -130,19 +126,14 @@ export async function assessWorkSynchronously(
       throw new Error('Section not found')
     }
 
-    console.log('[ASSESS_SYNC] Section content type:', typeof section.content)
-    console.log('[ASSESS_SYNC] Section content sample:', section.content ? JSON.stringify(section.content).substring(0, 500) : 'null')
 
     // Extract text from Chapt format
     const textContent = extractTextFromChaptDoc(section.content)
 
-    console.log('[ASSESS_SYNC] Extracted text length:', textContent.length, 'chars')
     if (textContent.length > 0) {
-      console.log('[ASSESS_SYNC] Extracted text sample:', textContent.substring(0, 200))
     }
 
     if (!textContent || textContent.trim().length < 100) {
-      console.log('[ASSESS_SYNC] Content too short! Length:', textContent.trim().length, '(minimum 100)')
       throw new Error('Content too short to assess')
     }
 
@@ -157,12 +148,10 @@ export async function assessWorkSynchronously(
       content: textContent,
     }
 
-    console.log('[ASSESS_SYNC] Context prepared. Calling OpenRouter...')
 
     // Call OpenRouter API
     const llmResponse = await assessContentQuality(context, DEFAULT_ASSESSMENT_CONFIG)
 
-    console.log('[ASSESS_SYNC] OpenRouter assessment complete. Score:', llmResponse.scores.overallScore)
 
     // Save assessment to DB
     const assessment = await prisma.qualityAssessment.upsert({
@@ -210,7 +199,6 @@ export async function assessWorkSynchronously(
       },
     })
 
-    console.log('[ASSESS_SYNC] Assessment saved to DB with tier:', assessment.qualityTier)
 
     return {
       success: true,
@@ -235,7 +223,6 @@ export async function assessWorkSynchronously(
           });
         }
 
-        console.log('[ASSESS_SYNC] Queued for retry after', error.retryAfter, 'seconds')
 
         return {
           success: false,

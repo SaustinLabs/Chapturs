@@ -77,7 +77,6 @@ export default function CreatorMonetizationHub() {
           !('payouts' in earningsData) ||
           !Array.isArray(earningsData.payouts)
         ) {
-          console.log('Unexpected earnings response:', earningsData)
           throw new Error('Unexpected earnings response.')
         }
 
@@ -86,7 +85,6 @@ export default function CreatorMonetizationHub() {
           typeof premiumData !== 'object' ||
           typeof premiumData.isPremium !== 'boolean'
         ) {
-          console.log('Unexpected premium status response:', premiumData)
           throw new Error('Unexpected premium status response.')
         }
 

@@ -46,7 +46,6 @@ export default function CreatorSuggestionsHub() {
         const data = await response.json()
 
         if (!data || typeof data !== 'object' || !Array.isArray(data.suggestions)) {
-          console.log('Unexpected suggestions response:', data)
           throw new Error('Unexpected suggestions response.')
         }
 
@@ -78,7 +77,6 @@ export default function CreatorSuggestionsHub() {
           throw new Error(String(data.error))
         }
 
-        console.log('Unexpected suggestion action response:', data)
         throw new Error(`Failed to ${action} suggestion.`)
       }
 

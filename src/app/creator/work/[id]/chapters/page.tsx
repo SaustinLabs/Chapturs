@@ -64,7 +64,6 @@ export default function ManageChaptersPage() {
           if (Array.isArray(sectionsArray)) {
             setChapters(sectionsArray)
           } else {
-            console.log('Unexpected chapters response:', chaptersData)
             toast.error('Unexpected chapter response.')
           }
         } else {
@@ -127,14 +126,12 @@ export default function ManageChaptersPage() {
           throw new Error(String(data.message))
         }
 
-        console.log('Unexpected schedule response:', data)
         throw new Error('Failed to schedule chapter.')
       }
 
       const updatedSection = data?.data?.section || data?.section
 
       if (!updatedSection || typeof updatedSection !== 'object') {
-        console.log('Unexpected schedule success payload:', data)
         throw new Error('Unexpected schedule response.')
       }
 

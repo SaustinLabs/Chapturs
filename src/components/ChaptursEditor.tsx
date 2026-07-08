@@ -118,7 +118,6 @@ export default function ChaptursEditor({
   // Update editor state when initialDocument changes (for loading existing chapters)
   useEffect(() => {
     if (initialDocument) {
-      console.log('ChaptursEditor: Updating editor state with loaded document:', initialDocument)
       setEditorState(prevState => ({
         ...prevState,
         document: initialDocument,
@@ -266,7 +265,6 @@ export default function ChaptursEditor({
       })
 
       if (response.ok) {
-        console.log('Glossary entry saved successfully for chapter', currentChapterNum)
         setShowGlossaryModal(false)
         setGlossaryTerm('')
         setGlossaryDefinition('')
@@ -297,7 +295,6 @@ export default function ChaptursEditor({
       })
 
       if (response.ok) {
-        console.log('Character profile saved successfully for chapter', currentChapterNum)
         setShowCharacterModal(false)
         setSelectedText('')
         // Trigger sidebar to reload characters

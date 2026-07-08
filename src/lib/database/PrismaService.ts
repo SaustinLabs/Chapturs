@@ -379,7 +379,6 @@ export default class DatabaseService {
 
   static async seedDatabase() {
     // Stub for seed script - implement actual seeding logic if needed
-    console.log('Seed database called - implement seeding logic in prisma/seed.ts')
   }
 
   /** Fetch a single section with full content — for server-side chapter rendering. */

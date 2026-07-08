@@ -54,7 +54,6 @@ export default function AdPreview({
   const handleClick = () => {
     onInteraction?.('click')
     // In real implementation, this would open advertiser landing page
-    console.log('Ad clicked - would navigate to advertiser page')
   }
 
   const handleClose = () => {
@@ -342,7 +341,6 @@ export function AdPlacementDemo() {
   ]
 
   const handleAdInteraction = (adId: string, type: 'view' | 'click' | 'close') => {
-    console.log(`Ad ${adId} interaction: ${type}`)
     
     if (type === 'close') {
       setVisibleAds(prev => prev.filter(id => id !== adId))

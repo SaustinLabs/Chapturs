@@ -3,22 +3,18 @@ export const runtime = 'nodejs'
 import { NextRequest, NextResponse } from 'next/server'
 
 /**
- * Vercel Cron Job - Process Quality Assessment Queue
+ * Cron Job - Process Quality Assessment Queue
  * 
- * This endpoint is triggered by Vercel's cron scheduler to process
- * the quality assessment queue every 5 minutes.
+ * Triggered by VPS crontab or PM2 to process the quality
+ * assessment queue every 5 minutes.
  * 
- * Add to vercel.json:
- * "crons": [
- *   {
- *     "path": "/api/cron/process-assessments",
- *     "schedule": "every 5 minutes"
- *   }
- * ]
+ * Add to crontab (runs every 5 min):
+ *   curl -s -H "Authorization: Bearer $CRON_SECRET" \
+ *   https://chapturs.com/api/cron/process-assessments
  */
 export async function GET(request: NextRequest) {
   try {
-    // Verify this is a legitimate cron request from Vercel
+    // Verify this is a legitimate cron request
     const authHeader = request.headers.get('authorization')
     const cronSecret = process.env.CRON_SECRET
     

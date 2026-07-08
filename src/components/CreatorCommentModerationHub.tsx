@@ -55,7 +55,6 @@ export default function CreatorCommentModerationHub() {
         const data = await response.json()
 
         if (!data || typeof data !== 'object' || !Array.isArray(data.reports)) {
-          console.log('Unexpected moderation response:', data)
           throw new Error('Unexpected moderation response.')
         }
 
@@ -105,7 +104,6 @@ export default function CreatorCommentModerationHub() {
           throw new Error(String(data.error))
         }
 
-        console.log('Unexpected moderation action response:', data)
         throw new Error('Failed to update comment moderation.')
       }
 

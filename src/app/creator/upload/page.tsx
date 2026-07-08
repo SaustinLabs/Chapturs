@@ -90,7 +90,6 @@ export default function UploadPage() {
 
       if (response.ok) {
         const result = await response.json()
-        console.log('Work created:', result)
         
         // Redirect to editor with the new work
         router.push(`/creator/editor?mode=edit&workId=${result.data.work.id}`)

@@ -48,7 +48,6 @@ export default function AdminUsersPage() {
       })
       if (res.ok) fetchUsers()
     } catch (e) {
-      console.log('Update failed')
     }
   }
 

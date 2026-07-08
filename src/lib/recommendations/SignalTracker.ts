@@ -359,7 +359,6 @@ export class SignalTracker {
 
   private static async storeRawSignal(signal: UserSignal): Promise<void> {
     // Store in analytics table or time-series database
-    console.log('Storing signal:', signal.signalType, 'for user:', signal.userId)
   }
 
   private static async updateUserProfile(signal: UserSignal): Promise<void> {

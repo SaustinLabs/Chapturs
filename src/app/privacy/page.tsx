@@ -56,8 +56,9 @@ export default function PrivacyPolicy() {
       <p>We use the following third-party services:</p>
       <ul>
         <li><strong>Google OAuth:</strong> For authentication. Subject to <a href="https://policies.google.com/privacy">Google&apos;s Privacy Policy</a>.</li>
-        <li><strong>Vercel:</strong> For hosting. Subject to <a href="https://vercel.com/legal/privacy-policy">Vercel&apos;s Privacy Policy</a>.</li>
+        <li><strong>RackNerd (VPS):</strong> For hosting. Self-managed server.</li>
         <li><strong>Supabase:</strong> For database services. Subject to <a href="https://supabase.com/privacy">Supabase&apos;s Privacy Policy</a>.</li>
+        <li><strong>Cloudflare:</strong> For image storage (R2), CDN, and DNS. Subject to <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare&apos;s Privacy Policy</a>.</li>
         <li><strong>Google AdSense:</strong> For advertising. Subject to <a href="https://policies.google.com/technologies/ads">Google&apos;s Advertising Policy</a>.</li>
       </ul>
 

@@ -108,7 +108,6 @@ if (typeof setInterval !== 'undefined') {
   setInterval(() => {
     const removed = socialCache.cleanup()
     if (removed > 0) {
-      console.log(`[SocialCache] Cleaned up ${removed} expired entries`)
     }
   }, 10 * 60 * 1000)
 }
@@ -134,11 +133,9 @@ export async function getCachedOrFetch<T>(
   const cached = socialCache.get<T>(key)
   
   if (cached !== null) {
-    console.log(`[SocialCache] Cache hit: ${key}`)
     return cached
   }
 
-  console.log(`[SocialCache] Cache miss: ${key} - fetching...`)
   const data = await fetchFn()
   socialCache.set(key, data, ttlMs)
   

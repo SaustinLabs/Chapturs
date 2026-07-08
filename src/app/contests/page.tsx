@@ -72,7 +72,6 @@ export default function ContestsPage() {
         const nextContests = data?.data?.contests
 
         if (!Array.isArray(nextContests)) {
-          console.log('Unexpected contests response:', data)
           throw new Error('Unexpected contests response.')
         }
 
@@ -102,7 +101,6 @@ export default function ContestsPage() {
         const nextWorks = data?.data?.works
 
         if (!Array.isArray(nextWorks)) {
-          console.log('Unexpected contest works response:', data)
           return
         }
 
@@ -527,7 +525,6 @@ function formatPrizeDescription(contest: Contest) {
       }
     }
   } catch (error) {
-    console.log('Unexpected contest prize split:', contest.prizeSplit)
   }
 
   return `$${contest.prizePool.toFixed(0)} prize pool`

@@ -5,22 +5,18 @@ import { prisma } from '@/lib/database/PrismaService'
 import { flushRedisToDatabase } from '@/lib/analytics/view-counter'
 
 /**
- * Vercel Cron Job - Flush Redis View Counters to Database
+ * Cron Job - Flush Redis View Counters to Database
  * 
  * Runs every 5 minutes to batch-write accumulated view counts from Redis to PostgreSQL.
  * This reduces database writes by 95%+ for high-traffic stories.
  * 
- * Add to vercel.json:
- * "crons": [
- *   {
- *     "path": "/api/cron/flush-analytics",
- *     "schedule": "every 5 minutes"
- *   }
- * ]
+ * Add to crontab (runs every 5 min):
+ *   curl -s -H "Authorization: Bearer $CRON_SECRET" \
+ *   https://chapturs.com/api/cron/flush-analytics
  */
 export async function GET(request: NextRequest) {
   try {
-    // Verify this is a legitimate cron request from Vercel
+    // Verify this is a legitimate cron request
     const authHeader = request.headers.get('authorization')
     const cronSecret = process.env.CRON_SECRET
     

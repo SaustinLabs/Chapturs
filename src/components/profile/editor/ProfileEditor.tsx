@@ -135,7 +135,6 @@ export default function ProfileEditor() {
 
   const handleImageUpload = async (type: 'profile' | 'cover', file: File) => {
     // TODO: Implement image upload to storage
-    console.log('Upload image:', type, file)
     setHasUnsavedChanges(true)
   }
 

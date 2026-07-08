@@ -40,7 +40,6 @@ export async function maybeTriggerCumulativeReview(
       const minutesSinceLast =
         (Date.now() - assessment.cumulativeReviewUpdatedAt.getTime()) / 60_000
       if (minutesSinceLast < 30) {
-        console.log(
           `[CUMULATIVE] Skipping milestone ${publishedCount} for work ${workId}` +
           ` — review generated ${minutesSinceLast.toFixed(0)}m ago (30m cooldown)`
         )
@@ -48,7 +47,6 @@ export async function maybeTriggerCumulativeReview(
       }
     }
 
-    console.log(`[CUMULATIVE] Milestone ${publishedCount} chapters — generating review for work ${workId}`)
 
     // Fetch work metadata + first published section content
     const work = await prisma.work.findUnique({
@@ -121,7 +119,6 @@ export async function maybeTriggerCumulativeReview(
       },
     })
 
-    console.log(`[CUMULATIVE] Review saved for work ${workId} at ${publishedCount} chapters`)
   } catch (error) {
     // Never throw — this is enhancement only, should not block chapter publish
     console.error('[CUMULATIVE] Failed to generate cumulative review:', error)

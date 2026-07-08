@@ -425,7 +425,6 @@ export default function ChapterPage() {
             }))
             setTranslationId(data.translationId ?? null)
           } else {
-            console.log('No translation content available')
           }
         } else {
           console.error('Translation fetch failed:', res.status)

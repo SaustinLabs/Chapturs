@@ -30,7 +30,7 @@ async function callTranslationLLM(systemPrompt: string, userContent: string): Pr
       'X-Title': 'Chapturs',
     },
     body: JSON.stringify({
-      model: process.env.LLM_TRANSLATION_MODEL ?? 'meta-llama/llama-3.1-8b-instruct',
+      model: process.env.LLM_TRANSLATION_MODEL ?? 'meta-llama/llama-3.3-70b-instruct',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userContent },

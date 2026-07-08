@@ -1,10 +1,17 @@
 export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/auth'
 import { ContentValidationService } from '@/lib/ContentValidationService'
 
-// POST /api/test/moderation - Test content validation
+// POST /api/test/moderation - Test content validation (admin only)
 export async function POST(request: NextRequest) {
+  const session = await auth()
+  const role = (session?.user as any)?.role
+  if (!session?.user || (role !== 'admin' && role !== 'superadmin')) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const { content, imageUrl, isFirstChapter = false } = await request.json()
 

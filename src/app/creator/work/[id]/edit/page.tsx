@@ -118,7 +118,6 @@ export default function EditWorkPage() {
   const handleSave = async () => {
     try {
       setSaving(true)
-      console.log('Saving work with formData:', formData)
       const response = await fetch(`/api/works/${workId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -127,7 +126,6 @@ export default function EditWorkPage() {
 
       if (response.ok) {
         const result = await response.json()
-        console.log('Save successful:', result)
         toast.success('Work updated successfully.')
         router.push('/creator/works')
       } else {
@@ -271,11 +269,8 @@ export default function EditWorkPage() {
               entityId={workId}
               currentImage={formData.coverImage}
               onUploadComplete={(image) => {
-                 console.log('[Edit Page] Image upload complete:', image)
-                 console.log('[Edit Page] Setting coverImage to:', image.urls.optimized)
                  setFormData((prev) => {
                    const updated = { ...prev, coverImage: image.urls.optimized }
-                   console.log('[Edit Page] Updated formData:', updated)
                    return updated
                  })
               }}

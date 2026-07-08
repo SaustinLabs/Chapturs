@@ -70,7 +70,6 @@ export default function FanContentHub() {
         const nextWorks = data?.data?.works
 
         if (!Array.isArray(nextWorks)) {
-          console.log('Unexpected works response:', data)
           throw new Error('Unexpected works response.')
         }
 
@@ -102,7 +101,6 @@ export default function FanContentHub() {
         const feedItems = feedData?.data?.items
 
         if (!Array.isArray(feedItems)) {
-          console.log('Unexpected fan-content feed response:', feedData)
           throw new Error('Unexpected feed response.')
         }
 
@@ -122,7 +120,6 @@ export default function FanContentHub() {
             const characters = charactersData?.characters
 
             if (!Array.isArray(characters)) {
-              console.log('Unexpected characters response:', charactersData)
               return []
             }
 
@@ -142,7 +139,6 @@ export default function FanContentHub() {
                   const submissions = submissionsData?.submissions
 
                   if (!Array.isArray(submissions)) {
-                    console.log('Unexpected fanart submissions response:', submissionsData)
                     return []
                   }
 

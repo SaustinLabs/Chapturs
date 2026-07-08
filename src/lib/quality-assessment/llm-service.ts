@@ -237,7 +237,6 @@ export async function assessContentQuality(
   const startTime = Date.now()
 
   try {
-    console.log('[LLM] Starting assessment for:', context.title)
     
     // Truncate content if too long
     const truncatedContent = context.content.length > config.maxContentLength
@@ -249,7 +248,6 @@ export async function assessContentQuality(
     // Get OpenRouter client (lazy initialization)
     const client = getOpenRouterClient()
 
-    console.log('[LLM] Calling OpenRouter API with model:', config.model)
 
     // Call OpenRouter API (OpenAI-compatible)
     const response = await client.chat.completions.create({
@@ -278,7 +276,6 @@ export async function assessContentQuality(
       throw new Error('No usage data returned from OpenRouter')
     }
 
-    console.log('[LLM] Assessment complete in', processingTime, 'ms. Tokens:', usage.total_tokens)
 
     // Parse response
     const content = response.choices[0]?.message?.content
@@ -298,7 +295,6 @@ export async function assessContentQuality(
     const overallScore = calculateOverallScore(scores, config.weights)
     scores.overallScore = overallScore
 
-    console.log('[LLM] Assessment result - Overall score:', overallScore, 'Tier:', parsed.qualityTier)
 
     // Return structured response
     return {
@@ -465,7 +461,7 @@ export async function generateCumulativeReview(
 
   const client = getOpenRouterClient()
   const response = await client.chat.completions.create({
-    model: process.env.LLM_REVIEW_MODEL ?? 'meta-llama/llama-3.1-8b-instruct',
+    model: process.env.LLM_REVIEW_MODEL ?? 'meta-llama/llama-3.3-70b-instruct',
     temperature: 0.5,
     max_tokens: 200,
     messages: [

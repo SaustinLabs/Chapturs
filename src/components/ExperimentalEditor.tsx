@@ -253,7 +253,6 @@ export default function ExperimentalEditor({
         wordCount: editor.storage.characterCount.words()
       }
       
-      console.log('Saving work:', saveData)
       onSave(editor.getHTML(), saveData)
       
       // Show success feedback
@@ -353,7 +352,6 @@ export default function ExperimentalEditor({
       setShowGlossaryModal(false)
       setCurrentGlossaryEntry({ term: '', definition: '' })
       
-      console.log('Glossary entry saved:', newEntry)
     }
   }
 

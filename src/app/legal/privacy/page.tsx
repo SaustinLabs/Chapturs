@@ -32,7 +32,7 @@ export default function PrivacyPolicyPage() {
             <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-2">
               <li><strong>Usage Data:</strong> How you interact with stories (views, reading progress, likes, bookmarks).</li>
               <li><strong>Device Information:</strong> Browser type, operating system, IP address, device identifiers.</li>
-              <li><strong>Analytics:</strong> Page views, time spent reading, navigation patterns (we use Vercel Analytics).</li>
+              <li><strong>Analytics:</strong> Page views, time spent reading, navigation patterns (we use internal analytics).</li>
               <li><strong>Cookies:</strong> Session cookies for authentication and preferences.</li>
             </ul>
           </section>
@@ -73,10 +73,11 @@ export default function PrivacyPolicyPage() {
               We share data with trusted third parties who help us run Chapturs:
             </p>
             <ul className="list-disc pl-6 text-gray-700 mb-4 space-y-2">
-              <li><strong>Vercel:</strong> Hosting and deployment</li>
+              <li><strong>RackNerd (VPS):</strong> Hosting and deployment</li>
               <li><strong>Supabase:</strong> Database and authentication</li>
+              <li><strong>Cloudflare:</strong> Image storage (R2), CDN, and DNS</li>
               <li><strong>Upstash:</strong> Caching and analytics processing</li>
-              <li><strong>Groq/OpenAI:</strong> AI quality assessment (content only, not personal data)</li>
+              <li><strong>OpenRouter:</strong> AI quality assessment (content only, not personal data)</li>
               <li><strong>Stripe:</strong> Payment processing (if/when we add paid features)</li>
             </ul>
             <p className="text-gray-700 mb-4">
