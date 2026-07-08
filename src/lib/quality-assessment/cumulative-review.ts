@@ -40,9 +40,6 @@ export async function maybeTriggerCumulativeReview(
       const minutesSinceLast =
         (Date.now() - assessment.cumulativeReviewUpdatedAt.getTime()) / 60_000
       if (minutesSinceLast < 30) {
-          `[CUMULATIVE] Skipping milestone ${publishedCount} for work ${workId}` +
-          ` — review generated ${minutesSinceLast.toFixed(0)}m ago (30m cooldown)`
-        )
         return
       }
     }

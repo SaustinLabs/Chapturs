@@ -238,12 +238,6 @@ export async function sendStorageAlert(usage: UsageStats): Promise<void> {
  */
 export async function dailyStorageCheck(): Promise<void> {
   const usage = await checkFreeTierUsage()
-  
-    storage: `${usage.storage.used.toFixed(2)}/${usage.storage.limit} GB (${usage.storage.percent.toFixed(1)}%)`,
-    images: usage.storage.images,
-    operations: `${usage.operations.count.toLocaleString()}/${usage.operations.limit.toLocaleString()} (${usage.operations.percent.toFixed(1)}%)`,
-    status: usage.status,
-  })
 
   await sendStorageAlert(usage)
 }
