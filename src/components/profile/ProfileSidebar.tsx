@@ -13,6 +13,7 @@ interface ProfileSidebarProps {
   isPremium?: boolean
   featuredCommentCount?: number
   onEdit?: () => void
+  socialLinks?: { type: string; url: string; label?: string }[]
 }
 
 /**
@@ -28,7 +29,8 @@ export default function ProfileSidebar({
   isOwner = false,
   isPremium = false,
   featuredCommentCount = 0,
-  onEdit
+  onEdit,
+  socialLinks = []
 }: ProfileSidebarProps) {
   return (
     <div className="space-y-6">
@@ -103,6 +105,32 @@ export default function ProfileSidebar({
           </button>
         )}
       </div>
+
+      {/* Social Links */}
+      {socialLinks.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {socialLinks.map((link, i) => {
+            const icon = link.type === 'discord' ? '🎮' :
+                         link.type === 'twitter' || link.type === 'x' ? '𝕏' :
+                         link.type === 'website' ? '🔗' :
+                         link.type === 'patreon' ? '💎' :
+                         link.type === 'youtube' ? '▶' : '🔗'
+            return (
+              <a
+                key={i}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-sm text-gray-300 transition-colors"
+                title={link.label || link.type}
+              >
+                <span>{icon}</span>
+                <span className="capitalize">{link.label || link.type}</span>
+              </a>
+            )
+          })}
+        </div>
+      )}
 
       {/* Action Buttons (for non-owners) */}
       {!isOwner && (

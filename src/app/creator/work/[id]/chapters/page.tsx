@@ -20,6 +20,7 @@ interface Chapter {
   status: string
   publishedAt?: string
   scheduledPublishAt?: string | null
+  earlyAccessUntil?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -294,6 +295,31 @@ export default function ManageChaptersPage() {
                         >
                           <ClockIcon className="h-5 w-5" />
                           Schedule
+                        </button>
+                      )}
+                      {chapter.status === 'published' && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            // Toggle early access: set to 7 days from now if not set, or clear if already set
+                            const newDate = chapter.earlyAccessUntil ? null : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+                            await fetch(`/api/works/${workId}/sections/${chapter.id}`, {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ earlyAccessUntil: newDate })
+                            })
+                            // Update local state
+                            setChapters(prev => prev.map(c => c.id === chapter.id ? { ...c, earlyAccessUntil: newDate } : c))
+                          }}
+                          className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                            chapter.earlyAccessUntil
+                              ? 'border-amber-500/40 bg-amber-500/20 text-amber-300 hover:bg-amber-500/30'
+                              : 'border-gray-600 bg-gray-800 text-gray-400 hover:bg-gray-700'
+                          }`}
+                          title="Early access: premium subscribers see this chapter 7 days before everyone else"
+                        >
+                          <span className="text-xs">👑</span>
+                          Early Access {chapter.earlyAccessUntil ? 'ON' : 'OFF'}
                         </button>
                       )}
                       {chapter.status === 'published' && (

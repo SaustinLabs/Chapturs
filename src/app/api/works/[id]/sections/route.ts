@@ -56,7 +56,8 @@ export async function POST(request: NextRequest, props: RouteParams) {
       title,
       content,
       wordCount,
-      status = 'draft'
+      status = 'draft',
+      earlyAccessUntil
     } = body
 
     if (!title || !content) {
@@ -156,7 +157,8 @@ export async function POST(request: NextRequest, props: RouteParams) {
       title,
       content,
       wordCount: wordCount || 0,
-      status
+      status,
+      ...(earlyAccessUntil ? { earlyAccessUntil: new Date(earlyAccessUntil) } : {})
     })
 
     // Log collaboration activity (fire-and-forget)

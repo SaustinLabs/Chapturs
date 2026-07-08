@@ -121,7 +121,7 @@ export async function PATCH(request: NextRequest, props: RouteParams) {
     const workId = params.id
     const sectionId = params.sectionId
     const body = await request.json()
-    const { title, content, wordCount, status } = body
+    const { title, content, wordCount, status, earlyAccessUntil } = body
 
     // Resolve the canonical DB user ID — handles re-auth JWT ID mismatch
     let dbUserId = session.user.id
@@ -189,6 +189,7 @@ export async function PATCH(request: NextRequest, props: RouteParams) {
         ...(content !== undefined && { content }),
         ...(wordCount !== undefined && { wordCount }),
         ...(status !== undefined && { status }),
+        ...(earlyAccessUntil !== undefined && { earlyAccessUntil: earlyAccessUntil ? new Date(earlyAccessUntil) : null }),
         updatedAt: new Date()
       }
     })

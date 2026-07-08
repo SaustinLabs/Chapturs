@@ -94,6 +94,16 @@ export default function ProfilePage() {
 
   return (
     <AppLayout>
+      {/* Profile Banner */}
+      {user.bannerImage && (
+        <div className="w-full h-32 md:h-48 overflow-hidden bg-gray-800">
+          <img
+            src={user.bannerImage}
+            alt=""
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
       <ProfileLayout
         sidebar={
           <ProfileSidebar
@@ -103,6 +113,7 @@ export default function ProfilePage() {
             bio={profile?.bio || user.bio || undefined}
             isPremium={user.isPremium}
             featuredCommentCount={user.featuredCommentCount ?? 0}
+            socialLinks={user.authorProfile?.socialLinks || user.socialLinks || []}
           />
         }
         featured={
