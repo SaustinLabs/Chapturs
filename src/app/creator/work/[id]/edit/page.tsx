@@ -525,13 +525,13 @@ export default function EditWorkPage() {
 
           {/* Internal Ad Promotion */}
           <div>
-            <div className=\"flex items-center gap-2 mb-1\">
-              <span className=\"text-sm\">📢</span>
-              <label className=\"block text-sm font-medium text-gray-700 dark:text-gray-300\">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-sm">📢</span>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Ad Promotion
               </label>
             </div>
-            <p className=\"text-xs text-gray-500 dark:text-gray-400 mb-3\">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
               Promote another work across your chapters. Internal promos replace ~30% of ad slots on your story — no extra ad load, just a recommendation card instead of a regular ad.
             </p>
             <PromotionSection workId={workId} />
