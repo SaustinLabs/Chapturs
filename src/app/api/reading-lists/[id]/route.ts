@@ -23,7 +23,6 @@ export async function GET(
               select: {
                 id: true,
                 title: true,
-                slug: true,
                 coverImage: true,
                 status: true,
               },

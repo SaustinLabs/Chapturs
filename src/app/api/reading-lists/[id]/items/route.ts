@@ -64,7 +64,6 @@ export async function POST(
             select: {
               id: true,
               title: true,
-              slug: true,
               coverImage: true,
             },
           },
