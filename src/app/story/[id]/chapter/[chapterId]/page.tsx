@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
 import AppLayout from '@/components/AppLayout'
 import ChapterBlockRenderer from '@/components/ChapterBlockRenderer'
 import ChapterTopBar from '@/components/ChapterTopBar'
@@ -26,7 +27,7 @@ import {
   PlusIcon,
   CogIcon,
 } from '@heroicons/react/24/outline'
-import { MessageSquare, Send, Sparkles, Edit3, Globe } from 'lucide-react'
+import { MessageSquare, Send, Sparkles, Edit3, Globe, BookOpen } from 'lucide-react'
 import ReportButton from '@/components/ReportButton'
 import AdSlot from '@/components/ads/AdSlot'
 import ChapterReactionBar from '@/components/ChapterReactionBar'
@@ -1123,11 +1124,31 @@ export default function ChapterPage() {
     )
   })
 
-  if (!work || !section) {
+  if (loading) {
     return (
       <AppLayout>
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        </div>
+      </AppLayout>
+    )
+  }
+
+  if (!work || !section) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center h-64 text-center px-4">
+          <BookOpen className="w-12 h-12 text-gray-600 mb-3" />
+          <h2 className="text-lg font-semibold text-white mb-1">Chapter not found</h2>
+          <p className="text-sm text-gray-400 mb-4">
+            This chapter may have been removed or the link is incorrect.
+          </p>
+          <Link
+            href={`/story/${storyId}`}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+          >
+            Back to story
+          </Link>
         </div>
       </AppLayout>
     )
