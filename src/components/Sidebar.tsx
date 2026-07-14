@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSession, signIn, signOut } from 'next-auth/react'
 import { usePathname, useRouter } from 'next/navigation'
+import Link from 'next/link'
 import {
   BookOpenIcon,
   HomeIcon,
@@ -367,7 +368,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
       {currentHub === 'reader' ? (
         /* Reader hub: Library | Subscriptions | [Logo Home] | Search | Settings */
         <div className="flex items-center justify-around px-1 h-14 overflow-visible">
-          <a
+          <Link
             href="/library"
             className={`flex flex-col items-center gap-0.5 px-3 py-1 text-xs font-medium transition-colors ${
               pathname.startsWith('/library') ? 'text-blue-400' : 'text-gray-500'
@@ -375,8 +376,8 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
           >
             <BookmarkIcon className="w-5 h-5" />
             <span>Library</span>
-          </a>
-          <a
+          </Link>
+          <Link
             href="/subscriptions"
             className={`flex flex-col items-center gap-0.5 px-3 py-1 text-xs font-medium transition-colors ${
               pathname.startsWith('/subscriptions') ? 'text-blue-400' : 'text-gray-500'
@@ -384,19 +385,19 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
           >
             <BookOpenIcon className="w-5 h-5" />
             <span>Following</span>
-          </a>
+          </Link>
 
           {/* Centre — logo Home button, lifted above the bar */}
-          <a href="/" className={`flex flex-col items-center gap-1 -translate-y-3 flex-shrink-0 text-xs font-bold transition-colors ${
+          <Link href="/" className={`flex flex-col items-center gap-1 -translate-y-3 flex-shrink-0 text-xs font-bold transition-colors ${
             pathname === '/' ? 'text-blue-400' : 'text-gray-400'
           }`}>
             <span className="bg-white rounded-2xl p-1.5 shadow-lg flex items-center justify-center">
               <img src="/logo-transparent.png" alt="Home" className="w-9 h-9" />
             </span>
             <span>Home</span>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/search"
             className={`flex flex-col items-center gap-0.5 px-3 py-1 text-xs font-medium transition-colors ${
               pathname.startsWith('/search') ? 'text-blue-400' : 'text-gray-500'
@@ -404,8 +405,8 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
           >
             <MagnifyingGlassIcon className="w-5 h-5" />
             <span>Search</span>
-          </a>
-          <a
+          </Link>
+          <Link
             href="/notifications"
             className={`flex flex-col items-center gap-0.5 px-3 py-1 text-xs font-medium transition-colors ${
               pathname.startsWith('/notifications') ? 'text-blue-400' : 'text-gray-500'
@@ -423,7 +424,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
               )}
             </div>
             <span>Alerts</span>
-          </a>
+          </Link>
         </div>
       ) : (
         /* Creator hub: first 5 creator items, unchanged */
@@ -432,7 +433,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
             const IconComponent = item.icon
             const requiresAuth = !session
             return (
-              <a
+              <Link
                 key={item.href}
                 href={requiresAuth ? '#' : item.href}
                 onClick={(e) => {
@@ -451,7 +452,7 @@ export default function Sidebar({ currentHub, onHubChange, isCollapsed, onToggle
               >
                 <IconComponent className="w-6 h-6 mb-1" />
                 <span className="truncate w-14 text-center">{item.label}</span>
-              </a>
+              </Link>
             )
           })}
         </div>

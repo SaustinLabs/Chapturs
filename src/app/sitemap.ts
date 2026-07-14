@@ -19,7 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   try {
-    const [works, users] = await Promise.all([
+    const [works, users, sections] = await Promise.all([
       prisma.work.findMany({
         where: { status: { in: ['published', 'ongoing', 'completed'] } },
         select: { id: true, updatedAt: true },
@@ -30,6 +30,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         select: { username: true, updatedAt: true },
         orderBy: { updatedAt: 'desc' },
         take: 5000,
+      }),
+      prisma.section.findMany({
+        where: { status: 'published' },
+        select: { id: true, workId: true, updatedAt: true },
+        orderBy: { updatedAt: 'desc' },
+        take: 25000,
       }),
     ])
 
@@ -49,7 +55,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.7,
       }))
 
-    return [...staticRoutes, ...workRoutes, ...profileRoutes]
+    const chapterRoutes: MetadataRoute.Sitemap = sections.map((s) => ({
+      url: `${BASE_URL}/story/${s.workId}/chapter/${s.id}`,
+      lastModified: s.updatedAt,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    }))
+
+    return [...staticRoutes, ...workRoutes, ...profileRoutes, ...chapterRoutes]
   } catch {
     return staticRoutes
   }
