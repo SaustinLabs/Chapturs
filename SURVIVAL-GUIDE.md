@@ -115,7 +115,7 @@ p.$disconnect()
 '
 ```
 
-VPS SSH: `sshpass -p 'ZSvJRhbQ5t2Mp24m70' ssh root@104.168.117.163 "command"`
+VPS SSH: `ssh root@104.168.117.163 "command"` (key auth only — password auth disabled)
 
 ## Sam's Preferences
 
