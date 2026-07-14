@@ -241,6 +241,7 @@ export interface FeedItem {
   lastReadSection?: string
   bookmark?: boolean
   liked?: boolean
+  subscribed?: boolean
   
   // Timestamps
   addedToFeedAt: Date

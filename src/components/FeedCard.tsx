@@ -21,13 +21,13 @@ export default function FeedCard({ item, onClick, recommendationRank = 0 }: Feed
   const { userId, isAuthenticated, isLoading: isAuthLoading } = useUser()
   const [isBookmarked, setIsBookmarked] = useState(item.bookmark || false)
   const [isLiked, setIsLiked] = useState(item.liked || false)
-  const [isSubscribed, setIsSubscribed] = useState(false)
+  const [isSubscribed, setIsSubscribed] = useState(item.subscribed || false)
   const [isLoading, setIsLoading] = useState(false)
   const { trackEngagement } = useSignalTracker()
 
-  // Per-card subscription check — TODO(1.3): batch in feed API
+  // Per-card subscription check — only fires when feed didn't pre-annotate it
   useEffect(() => {
-    if (!userId) return
+    if (!userId || item.subscribed !== undefined) return
     DataService.checkUserSubscription(userId, item.work.author.id)
       .then(setIsSubscribed)
       .catch(() => {})

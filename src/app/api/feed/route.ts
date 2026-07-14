@@ -108,20 +108,24 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Batch-annotate bookmark/like status so FeedCard doesn't need per-card API calls
+    // Batch-annotate bookmark/like/subscription status so FeedCard doesn't need per-card API calls
     if (session?.user?.id && feedItems.length > 0) {
       try {
         const workIds = feedItems.map((item: any) => item.work?.id).filter(Boolean)
-        const [bookmarks, likes] = await Promise.all([
+        const authorIds = [...new Set(feedItems.map((item: any) => item.work?.author?.id).filter(Boolean))]
+        const [bookmarks, likes, subscriptions] = await Promise.all([
           prisma.bookmark.findMany({ where: { userId: session.user.id, workId: { in: workIds } }, select: { workId: true } }),
-          prisma.like.findMany({ where: { userId: session.user.id, workId: { in: workIds } }, select: { workId: true } })
+          prisma.like.findMany({ where: { userId: session.user.id, workId: { in: workIds } }, select: { workId: true } }),
+          prisma.subscription.findMany({ where: { userId: session.user.id, authorId: { in: authorIds } }, select: { authorId: true } }),
         ])
         const bookmarkedIds = new Set(bookmarks.map((b: any) => b.workId))
         const likedIds = new Set(likes.map((l: any) => l.workId))
+        const subscribedAuthorIds = new Set(subscriptions.map((s: any) => s.authorId))
         feedItems = feedItems.map((item: any) => ({
           ...item,
           bookmark: bookmarkedIds.has(item.work?.id),
-          liked: likedIds.has(item.work?.id)
+          liked: likedIds.has(item.work?.id),
+          subscribed: subscribedAuthorIds.has(item.work?.author?.id),
         }))
       } catch (e) {
         // non-critical — FeedCard falls back to individual checks
