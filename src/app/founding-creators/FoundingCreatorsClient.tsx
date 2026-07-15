@@ -1,11 +1,123 @@
 'use client'
 
 import { useSession, signIn } from 'next-auth/react'
+import { useState } from 'react'
 import { Check, Sparkles, DollarSign, Users, Zap, ArrowRight } from 'lucide-react'
 
 interface Props {
   spotsTaken: number
   spotsRemaining: number
+}
+
+const featureTooltips: Record<string, string> = {
+  'Revenue share': 'Creators earn 70% of all subscription and ad revenue for 12 months. No fees, no hosting costs.',
+  'Serial chapter publishing': 'Publish chapters on your schedule. Readers get notified when new chapters drop.',
+  'AI quality assessment': 'AI scores your writing across 6 dimensions — pacing, prose, character depth, and more.',
+  'Built-in translations': 'Readers can translate your work into 20+ languages. Community voting surfaces the best versions.',
+  'Co-author collaboration': 'Invite co-authors with role-based permissions. Chapter locking prevents edit conflicts.',
+  'Smart paste from Google Docs': 'Paste from Google Docs or Word — formatting, italics, and paragraph structure are preserved.',
+  'Achievement system': 'Earn badges and milestones as you publish. Readers unlock achievements for engagement.',
+  'Cross-story promotion': 'Promote your other works inside ad slots within your own stories — free internal cross-promotion.',
+  'Direct dev access': 'Talk directly to the developers. Feature requests and bug reports go to the team, not a ticket queue.',
+  'Founding creator badge': 'A permanent badge on your profile and every story page. Readers know you helped build the platform.',
+  'Free to publish': 'No upfront costs, no hosting fees. You keep all rights to your work.',
+  'Built-in reader audience': 'Gutenberg classics and discovery features bring readers to the platform. Your work gets prime placement.',
+  'No exclusivity lock-in': 'Publish anywhere else. Chapturs does not require exclusivity — unlike Kindle Unlimited.',
+}
+
+function TooltipRow({ feature, chapturs, rr, wattpad, kdp, patreon }: {
+  feature: string; chapturs: string | boolean; rr: string | boolean
+  wattpad: string | boolean; kdp: string | boolean; patreon: string | boolean
+}) {
+  const tooltip = featureTooltips[feature]
+  const [showTooltip, setShowTooltip] = useState(false)
+
+  const renderCell = (val: string | boolean) => {
+    if (val === true) return <Check size={16} className="text-green-600 dark:text-green-400 mx-auto" />
+    if (val === false) return <span className="text-gray-300 dark:text-gray-600">&mdash;</span>
+    return <span className="font-medium text-indigo-600 dark:text-indigo-400">{val}</span>
+  }
+
+  return (
+    <tr className="bg-white dark:bg-gray-900 group">
+      <td className="p-4 text-gray-700 dark:text-gray-300 relative">
+        {tooltip ? (
+          <span
+            className="cursor-help border-b border-dotted border-gray-400 dark:border-gray-500"
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+          >
+            {feature}
+            {showTooltip && (
+              <span className="absolute left-4 bottom-full mb-2 w-64 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg shadow-xl z-10 pointer-events-none">
+                {tooltip}
+                <span className="absolute top-full left-6 border-4 border-transparent border-t-gray-900 dark:border-t-gray-700" />
+              </span>
+            )}
+          </span>
+        ) : (
+          feature
+        )}
+      </td>
+      <td className="p-4 text-center">{renderCell(chapturs)}</td>
+      <td className="p-4 text-center">{renderCell(rr)}</td>
+      <td className="p-4 text-center">{renderCell(wattpad)}</td>
+      <td className="p-4 text-center">{renderCell(kdp)}</td>
+      <td className="p-4 text-center">{renderCell(patreon)}</td>
+    </tr>
+  )
+}
+
+function GlossaryDemoRow({ chapturs, rr, wattpad, kdp, patreon }: {
+  chapturs: boolean; rr: boolean; wattpad: boolean; kdp: boolean; patreon: boolean
+}) {
+  const [showGlossary, setShowGlossary] = useState(false)
+  const [showTooltips, setShowTooltips] = useState(false)
+
+  const renderCell = (val: string | boolean) => {
+    if (val === true) return <Check size={16} className="text-green-600 dark:text-green-400 mx-auto" />
+    if (val === false) return <span className="text-gray-300 dark:text-gray-600">&mdash;</span>
+    return <span className="text-gray-500">{val}</span>
+  }
+
+  return (
+    <tr className="bg-white dark:bg-gray-900">
+      <td className="p-4 text-gray-700 dark:text-gray-300 relative">
+        <span
+          className="cursor-help border-b border-dotted border-indigo-400 dark:border-indigo-400 text-indigo-600 dark:text-indigo-400"
+          onMouseEnter={() => setShowGlossary(true)}
+          onMouseLeave={() => setShowGlossary(false)}
+        >
+          Glossary
+          {showGlossary && (
+            <span className="absolute left-4 bottom-full mb-2 w-56 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg shadow-xl z-10 pointer-events-none">
+              Define terms, places, and lore. Readers see definitions on hover while reading your story.
+              <span className="absolute top-full left-6 border-4 border-transparent border-t-gray-900 dark:border-t-gray-700" />
+            </span>
+          )}
+        </span>
+        {' + '}
+        <span
+          className="cursor-help border-b border-dotted border-indigo-400 dark:border-indigo-400 text-indigo-600 dark:text-indigo-400"
+          onMouseEnter={() => setShowTooltips(true)}
+          onMouseLeave={() => setShowTooltips(false)}
+        >
+          tooltips
+          {showTooltips && (
+            <span className="absolute left-4 bottom-full mb-2 w-56 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg shadow-xl z-10 pointer-events-none">
+              Character names, aliases, and profiles appear as hover tooltips — readers never lose track of who&apos;s who.
+              <span className="absolute top-full left-6 border-4 border-transparent border-t-gray-900 dark:border-t-gray-700" />
+            </span>
+          )}
+        </span>
+      </td>
+      <td className="p-4 text-center">{renderCell(chapturs)}</td>
+      <td className="p-4 text-center">{renderCell(rr)}</td>
+      <td className="p-4 text-center">{renderCell(wattpad)}</td>
+      <td className="p-4 text-center">{renderCell(kdp)}</td>
+      <td className="p-4 text-center">{renderCell(patreon)}</td>
+    </tr>
+  )
 }
 
 export default function FoundingCreatorsClient({ spotsTaken, spotsRemaining }: Props) {
@@ -164,69 +276,21 @@ export default function FoundingCreatorsClient({ spotsTaken, spotsRemaining }: P
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {[
-                { f: 'Revenue share', c: '70%', r: 'Ad share only', w: 'Limited', k: '35-70%', p: 'varies' },
-                { f: 'Serial chapter publishing', c: true, r: true, w: true, k: false, p: false },
-                { f: 'AI quality assessment', c: true, r: false, w: false, k: false, p: false },
-                { f: 'Built-in translations', c: true, r: false, w: false, k: false, p: false },
-                { f: 'Glossary + character tooltips', c: true, r: false, w: false, k: false, p: false },
-                { f: 'Co-author collaboration', c: true, r: false, w: 'Limited', k: false, p: false },
-                { f: 'Smart paste from Google Docs', c: true, r: false, w: false, k: false, p: false },
-                { f: 'Achievement system', c: true, r: 'Limited', w: 'Limited', k: false, p: false },
-                { f: 'Cross-story promotion', c: true, r: false, w: false, k: false, p: false },
-                { f: 'Direct dev access', c: true, r: false, w: false, k: false, p: false },
-                { f: 'Founding creator badge', c: true, r: false, w: false, k: false, p: false },
-                { f: 'Free to publish', c: true, r: true, w: true, k: true, p: true },
-                { f: 'Built-in reader audience', c: true, r: true, w: true, k: false, p: false },
-                { f: 'No exclusivity lock-in', c: true, r: true, w: 'Limited', k: 'KU lock-in', p: true },
-              ].map((row) => (
-                <tr key={row.f} className="bg-white dark:bg-gray-900">
-                  <td className="p-4 text-gray-700 dark:text-gray-300">{row.f}</td>
-                  <td className="p-4 text-center">
-                    {row.c === true ? (
-                      <Check size={16} className="text-green-600 dark:text-green-400 mx-auto" />
-                    ) : (
-                      <span className="font-medium text-indigo-600 dark:text-indigo-400">{row.c}</span>
-                    )}
-                  </td>
-                  <td className="p-4 text-center">
-                    {row.r === true ? (
-                      <Check size={16} className="text-green-600 dark:text-green-400 mx-auto" />
-                    ) : row.r === false ? (
-                      <span className="text-gray-300 dark:text-gray-600">&mdash;</span>
-                    ) : (
-                      <span className="text-gray-500">{row.r}</span>
-                    )}
-                  </td>
-                  <td className="p-4 text-center">
-                    {row.w === true ? (
-                      <Check size={16} className="text-green-600 dark:text-green-400 mx-auto" />
-                    ) : row.w === false ? (
-                      <span className="text-gray-300 dark:text-gray-600">&mdash;</span>
-                    ) : (
-                      <span className="text-gray-500">{row.w}</span>
-                    )}
-                  </td>
-                  <td className="p-4 text-center">
-                    {row.k === true ? (
-                      <Check size={16} className="text-green-600 dark:text-green-400 mx-auto" />
-                    ) : row.k === false ? (
-                      <span className="text-gray-300 dark:text-gray-600">&mdash;</span>
-                    ) : (
-                      <span className="text-gray-500">{row.k}</span>
-                    )}
-                  </td>
-                  <td className="p-4 text-center">
-                    {row.p === true ? (
-                      <Check size={16} className="text-green-600 dark:text-green-400 mx-auto" />
-                    ) : row.p === false ? (
-                      <span className="text-gray-300 dark:text-gray-600">&mdash;</span>
-                    ) : (
-                      <span className="text-gray-500">{row.p}</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              <TooltipRow feature="Revenue share" chapturs="70%" rr="Ad share only" wattpad="Limited" kdp="35-70%" patreon="varies" />
+              <TooltipRow feature="Serial chapter publishing" chapturs={true} rr={true} wattpad={true} kdp={false} patreon={false} />
+              <TooltipRow feature="AI quality assessment" chapturs={true} rr={false} wattpad={false} kdp={false} patreon={false} />
+              <TooltipRow feature="Built-in translations" chapturs={true} rr={false} wattpad={false} kdp={false} patreon={false} />
+              {/* Self-demonstrating row: Glossary and tooltips are actual tooltips */}
+              <GlossaryDemoRow chapturs={true} rr={false} wattpad={false} kdp={false} patreon={false} />
+              <TooltipRow feature="Co-author collaboration" chapturs={true} rr={false} wattpad="Limited" kdp={false} patreon={false} />
+              <TooltipRow feature="Smart paste from Google Docs" chapturs={true} rr={false} wattpad={false} kdp={false} patreon={false} />
+              <TooltipRow feature="Achievement system" chapturs={true} rr="Limited" wattpad="Limited" kdp={false} patreon={false} />
+              <TooltipRow feature="Cross-story promotion" chapturs={true} rr={false} wattpad={false} kdp={false} patreon={false} />
+              <TooltipRow feature="Direct dev access" chapturs={true} rr={false} wattpad={false} kdp={false} patreon={false} />
+              <TooltipRow feature="Founding creator badge" chapturs={true} rr={false} wattpad={false} kdp={false} patreon={false} />
+              <TooltipRow feature="Free to publish" chapturs={true} rr={true} wattpad={true} kdp={true} patreon={true} />
+              <TooltipRow feature="Built-in reader audience" chapturs={true} rr={true} wattpad={true} kdp={false} patreon={false} />
+              <TooltipRow feature="No exclusivity lock-in" chapturs={true} rr={true} wattpad="Limited" kdp="KU lock-in" patreon={true} />
             </tbody>
           </table>
         </div>
